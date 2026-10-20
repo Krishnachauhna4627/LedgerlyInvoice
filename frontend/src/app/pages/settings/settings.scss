@@ -1,0 +1,63 @@
+@use 'breakpoints' as bp;
+
+.form {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.address {
+  align-content: start;
+
+  @include bp.up(md) {
+    grid-row: span 2;
+
+    textarea {
+      min-height: 168px;
+    }
+  }
+}
+
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.upper {
+  text-transform: uppercase;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+  color: var(--color-text);
+  font-size: var(--text-sm);
+
+  app-icon {
+    color: var(--color-warning);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+
+  .hint {
+    flex: 1 1 240px;
+  }
+
+  .btn {
+    @include bp.down(sm) {
+      flex: 1;
+    }
+  }
+}

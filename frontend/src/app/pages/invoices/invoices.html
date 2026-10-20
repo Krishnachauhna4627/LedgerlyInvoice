@@ -1,0 +1,148 @@
+<app-page-header title="Invoices">
+  <label class="period">
+    <app-icon name="calendar" [size]="16" />
+    <span class="sr-only">Period</span>
+    <select (change)="period.set($any($event.target).value)">
+      @for (p of periods; track p.value) {
+        <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
+      }
+    </select>
+    <app-icon name="chevron-down" [size]="14" />
+  </label>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!visible().length" (click)="exportCsv()">
+    <app-icon name="download" [size]="16" /> Export as .CSV
+  </button>
+  <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create Invoice</a>
+</app-page-header>
+
+<div class="page-body">
+  <div class="toolbar controls">
+    <div class="segments" role="group" aria-label="Filter by status">
+      @for (f of statusFilters; track f.value) {
+        <button type="button" class="segment" [attr.aria-pressed]="status() === f.value" (click)="status.set(f.value)">
+          {{ f.label }} <span class="segment__count">{{ counts()[f.value] }}</span>
+        </button>
+      }
+    </div>
+
+    <label class="sort">
+      <app-icon name="arrow-up-down" [size]="16" />
+      <span class="sr-only">Sort order</span>
+      <select (change)="sort.set($any($event.target).value)">
+        @for (s of sorts; track s.value) {
+          <option [value]="s.value" [selected]="s.value === sort()">{{ s.label }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="search-box">
+      <app-icon name="search" [size]="16" />
+      <input
+        class="input"
+        type="search"
+        placeholder="Search number, client or GSTIN"
+        aria-label="Search invoices"
+        [value]="searchInput()"
+        (input)="searchInput.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  @if (hasFilters()) {
+    <div class="pills" aria-label="Active filters">
+      @if (period() !== 'all') {
+        <span class="pill">Date: {{ periodLabel() }}
+          <button type="button" aria-label="Remove date filter" (click)="period.set('all')"><app-icon name="x" [size]="12" /></button>
+        </span>
+      }
+      @if (status() !== 'all') {
+        <span class="pill">Status: {{ statusLabel() }}
+          <button type="button" aria-label="Remove status filter" (click)="status.set('all')"><app-icon name="x" [size]="12" /></button>
+        </span>
+      }
+      @if (searchInput().trim()) {
+        <span class="pill">Search: “{{ searchInput().trim() }}”
+          <button type="button" aria-label="Clear search" (click)="searchInput.set('')"><app-icon name="x" [size]="12" /></button>
+        </span>
+      }
+      <button type="button" class="clear-all" (click)="clearFilters()">Clear all</button>
+    </div>
+  }
+
+  @if (selectedRows().length) {
+    <div class="bulk" role="region" aria-label="Bulk actions">
+      <span class="bulk__count">{{ selectedRows().length }} selected</span>
+      <button type="button" class="btn btn--outline btn--sm" (click)="exportCsv()"><app-icon name="download" [size]="16" /> Export</button>
+      <button type="button" class="btn btn--outline btn--sm" [disabled]="busy()" (click)="markSelectedPaid()">
+        <app-icon name="check-circle" [size]="16" /> Mark as paid
+      </button>
+      <button type="button" class="btn btn--outline btn--sm bulk__delete" [disabled]="busy()" (click)="pendingDelete.set(selectedRows())">
+        <app-icon name="trash" [size]="16" /> Delete
+      </button>
+      <button type="button" class="bulk__clear" (click)="toggleAll(false)">Clear selection</button>
+    </div>
+  }
+
+  <section class="panel" aria-label="Invoices" [attr.aria-busy]="loading()">
+    @if (error()) {
+      <div class="empty-state">
+        <p class="empty-state__title">Couldn't load invoices</p>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn btn--outline btn--sm" (click)="reload()">Try again</button>
+      </div>
+    } @else if (loading() && !rows().length) {
+      <div class="empty-state"><p>Loading invoices…</p></div>
+    } @else if (!visible().length) {
+      @if (hasFilters()) {
+        <div class="empty-state">
+          <p class="empty-state__title">No matching invoices</p>
+          <p>Try a different search, status or date range.</p>
+          <button type="button" class="btn btn--outline btn--sm" (click)="clearFilters()">Clear filters</button>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <span class="empty-icon"><app-icon name="file-text" [size]="28" [strokeWidth]="1.75" /></span>
+          <p class="empty-state__title">No invoices yet</p>
+          <p>Create your first GST invoice — it will show up here.</p>
+          <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create invoice</a>
+        </div>
+      }
+    } @else {
+      <app-invoice-table
+        [class.is-loading]="loading()"
+        [invoices]="visible()"
+        [selected]="selected()"
+        [menuFor]="menu()?.invoice?.id ?? null"
+        (toggle)="toggle($event)"
+        (toggleAll)="toggleAll($event)"
+        (openMenu)="toggleMenu($event)"
+      />
+    }
+  </section>
+</div>
+
+@if (menu(); as m) {
+  <app-row-menu [invoice]="m.invoice" [anchor]="m.anchor" (action)="onAction(m.invoice, $event)" (closed)="menu.set(null)" />
+}
+
+<app-modal
+  size="sm"
+  [open]="!!pendingDelete()"
+  [title]="pendingDelete()?.length === 1 ? 'Delete invoice?' : 'Delete ' + pendingDelete()?.length + ' invoices?'"
+  (closed)="pendingDelete.set(null)"
+>
+  <p class="confirm-text">
+    @if (pendingDelete()?.length === 1) {
+      Invoice <strong>{{ pendingDelete()![0].invoiceNumber }}</strong> will be permanently deleted.
+    } @else {
+      {{ pendingDelete()?.length }} invoices will be permanently deleted.
+    }
+    This can't be undone.
+  </p>
+  <div class="confirm-actions">
+    <button type="button" class="btn btn--outline btn--sm" (click)="pendingDelete.set(null)">Cancel</button>
+    <button type="button" class="btn btn--danger btn--sm" [disabled]="busy()" (click)="confirmDelete()">
+      {{ busy() ? 'Deleting…' : 'Delete' }}
+    </button>
+  </div>
+</app-modal>

@@ -1,0 +1,57 @@
+// Per-template overrides for the invoice document (classic = the base styles).
+
+// --- Modern: dark indigo header band, indigo table heads ---
+:host(.tpl-modern) {
+  .doc__head {
+    padding: var(--space-5);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: linear-gradient(115deg, var(--color-surface-inverse), var(--color-primary-hover));
+    color: var(--color-on-primary);
+
+    .k,
+    .doc__type p {
+      color: color-mix(in srgb, var(--color-on-primary) 75%, transparent);
+    }
+
+    .doc__type h1 {
+      color: var(--color-on-primary);
+    }
+  }
+
+  th,
+  tfoot td {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-hover);
+  }
+
+  h3,
+  .totals .grand {
+    color: var(--color-primary-hover);
+  }
+}
+
+// --- Minimal: no frame, one strong rule under the header ---
+:host(.tpl-minimal) {
+  .doc {
+    border-color: transparent;
+  }
+
+  .doc__head {
+    border-bottom-color: var(--color-text);
+  }
+
+  .doc__type h1 {
+    color: var(--color-text);
+  }
+
+  .box,
+  .totals {
+    border-radius: 0;
+  }
+
+  th,
+  tfoot td {
+    background: transparent;
+  }
+}

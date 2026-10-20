@@ -1,6 +1,8 @@
 // Shared form styles — every form in the app uses these classes.
 .field {
   display: grid;
+  // Keep label + input at the top when a neighbouring field in the row is taller (e.g. has a hint).
+  align-content: start;
   gap: var(--space-1);
 }
 

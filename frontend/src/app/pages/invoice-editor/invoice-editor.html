@@ -1,0 +1,194 @@
+<app-page-header [title]="title()" subtitle="Fill in the client, invoice details and items. Totals update as you type.">
+  <a class="btn btn--outline btn--sm" [routerLink]="cancelLink">Cancel</a>
+</app-page-header>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel panel__body muted" role="status">Loading…</div>
+  } @else if (loadError()) {
+    <div class="panel panel__body">
+      <div class="form-alert" role="alert">{{ loadError() }}</div>
+      <a class="btn btn--outline btn--sm back" routerLink="/invoices">Back to invoices</a>
+    </div>
+  } @else {
+    @if (!sellerStateCode()) {
+      <div class="notice" role="alert">
+        <app-icon name="alert-circle" [size]="18" />
+        <span>
+          Your seller details aren't complete. Add your business state in
+          <a routerLink="/settings">Settings</a> before saving an invoice — it decides whether CGST+SGST or IGST applies.
+        </span>
+      </div>
+    }
+
+    <form class="panel editor" [formGroup]="form" (ngSubmit)="save('final')" novalidate>
+      <div class="panel__body sections">
+        @if (error()) {
+          <div class="form-alert" role="alert">{{ error() }}</div>
+        }
+
+        <!-- Customer details -->
+        <section aria-labelledby="customer-title">
+          <h2 id="customer-title" class="section-title">Customer details</h2>
+
+          @if (clients().length === 0) {
+            <div class="empty-clients">
+              <p>You haven't saved any clients yet. Add your first client to bill them.</p>
+              <button type="button" class="btn btn--primary btn--sm" (click)="showClientDialog.set(true)">
+                <app-icon name="plus" [size]="16" /> New client
+              </button>
+            </div>
+          } @else {
+            <div class="client-pick">
+              <div class="field">
+                <label class="field__label" for="client-picker">Client</label>
+                <app-search-picker
+                  inputId="client-picker"
+                  [options]="clientOptions()"
+                  [selectedLabel]="selectedClient()?.name ?? ''"
+                  placeholder="Search client by name or GSTIN…"
+                  emptyText="No clients match. Use “New client”."
+                  [invalid]="!!errorFor('clientId')"
+                  describedBy="client-error"
+                  (picked)="pickClient($event)"
+                />
+                @if (errorFor('clientId'); as message) {
+                  <span id="client-error" class="field__error">{{ message }}</span>
+                }
+              </div>
+              <button type="button" class="btn btn--outline new-client" (click)="showClientDialog.set(true)">
+                <app-icon name="plus" [size]="16" /> New client
+              </button>
+            </div>
+          }
+
+          @if (orphanClient(); as old) {
+            <p class="hint-warn">
+              This invoice was billed to <strong>{{ old.name }}</strong>, who has since been deleted. Choose a saved client to save changes.
+            </p>
+          }
+
+          @if (selectedClient(); as client) {
+            <dl class="client-card">
+              <div><dt>Name</dt><dd>{{ client.name }}</dd></div>
+              <div><dt>GSTIN</dt><dd>{{ client.gstin || 'Not registered' }}</dd></div>
+              <div><dt>State</dt><dd>{{ stateLabel(client.stateCode) }}</dd></div>
+              <div class="wide"><dt>Address</dt><dd class="pre">{{ client.address || '—' }}</dd></div>
+            </dl>
+          }
+        </section>
+
+        <!-- Invoice details -->
+        <section aria-labelledby="details-title">
+          <h2 id="details-title" class="section-title">Invoice details</h2>
+          <div class="details-grid">
+            <div class="field">
+              <label class="field__label" for="inv-number">Invoice number</label>
+              <input id="inv-number" class="input" formControlName="invoiceNumber" autocomplete="off"
+                [class.is-invalid]="errorFor('invoiceNumber')" [attr.aria-invalid]="!!errorFor('invoiceNumber')" aria-describedby="inv-number-error" />
+              @if (errorFor('invoiceNumber'); as message) {
+                <span id="inv-number-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+            <div class="field">
+              <label class="field__label" for="inv-date">Invoice date</label>
+              <input id="inv-date" class="input" type="date" formControlName="invoiceDate"
+                [class.is-invalid]="errorFor('invoiceDate')" [attr.aria-invalid]="!!errorFor('invoiceDate')" aria-describedby="inv-date-error" />
+              @if (errorFor('invoiceDate'); as message) {
+                <span id="inv-date-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+            <div class="field">
+              <label class="field__label" for="inv-due">Due date</label>
+              <input id="inv-due" class="input" type="date" formControlName="dueDate"
+                [class.is-invalid]="errorFor('dueDate')" [attr.aria-invalid]="!!errorFor('dueDate')" aria-describedby="inv-due-error" />
+              @if (errorFor('dueDate'); as message) {
+                <span id="inv-due-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+            <div class="field">
+              <label class="field__label" for="inv-pos">Place of supply</label>
+              <select id="inv-pos" class="input" formControlName="placeOfSupplyCode" aria-describedby="inv-pos-hint">
+                <option value="">Same as client's state</option>
+                @for (state of states; track state.code) {
+                  <option [value]="state.code">{{ state.code }} — {{ state.name }}</option>
+                }
+              </select>
+              <span id="inv-pos-hint" class="hint">
+                {{ calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
+              </span>
+            </div>
+            <div class="field">
+              <label class="field__label" for="inv-template">Invoice format</label>
+              <select id="inv-template" class="input" formControlName="template">
+                @for (t of templates; track t.value) {
+                  <option [value]="t.value">{{ t.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="field__label" for="inv-irn">IRN (optional)</label>
+              <input id="inv-irn" class="input" formControlName="irn" autocomplete="off" spellcheck="false"
+                [class.is-invalid]="errorFor('irn')" [attr.aria-invalid]="!!errorFor('irn')" aria-describedby="inv-irn-error" />
+              @if (errorFor('irn'); as message) {
+                <span id="inv-irn-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+            <label class="check">
+              <input type="checkbox" formControlName="reverseCharge" />
+              <span>Reverse charge applicable</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Particulars -->
+        <section aria-labelledby="lines-title">
+          <h2 id="lines-title" class="section-title">Particulars</h2>
+          <app-line-items
+            [lines]="lines"
+            [items]="items()"
+            [amounts]="calculation().lines"
+            [errorFor]="errorFor"
+            (picked)="applyItem($event.index, $event.itemId)"
+            (newItem)="newItemLine.set($event)"
+            (removed)="removeLine($event)"
+            (added)="addLine()"
+          />
+          <div class="summary">
+            <app-totals-summary [totals]="calculation().totals" [isInterState]="calculation().isInterState" [words]="words()" />
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        <p class="footer__total">
+          <span>Total</span>
+          <strong>{{ calculation().totals.grandTotal | inr }}</strong>
+        </p>
+        <div class="footer__actions">
+          @if (canSaveDraft()) {
+            <button type="button" class="btn btn--outline" [disabled]="!!saving()" (click)="save('draft')">
+              {{ saving() === 'draft' ? 'Saving…' : 'Save as draft' }}
+            </button>
+          }
+          <button type="submit" class="btn btn--primary" [disabled]="!!saving()">
+            <app-icon name="save" [size]="18" />
+            {{ saving() && saving() !== 'draft' ? 'Saving…' : mode === 'edit' && existing()?.status !== 'draft' ? 'Save changes' : 'Save invoice' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</div>
+
+<app-modal [open]="showClientDialog()" title="Add client" (closed)="showClientDialog.set(false)">
+  @if (showClientDialog()) {
+    <app-client-form (saved)="onClientCreated($event)" (cancelled)="showClientDialog.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="newItemLine() !== null" title="Add item" (closed)="newItemLine.set(null)">
+  @if (newItemLine() !== null) {
+    <app-item-form (saved)="onItemCreated($event)" (cancelled)="newItemLine.set(null)" />
+  }
+</app-modal>

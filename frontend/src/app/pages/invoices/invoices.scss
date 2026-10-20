@@ -1,0 +1,220 @@
+@use 'breakpoints' as bp;
+
+// Native <select> dressed as a button (period + sort).
+.period,
+.sort {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  app-icon {
+    position: absolute;
+    color: var(--color-text-muted);
+    pointer-events: none;
+
+    &:first-child {
+      left: var(--space-3);
+    }
+
+    &:last-child:not(:first-child) {
+      right: var(--space-3);
+    }
+  }
+
+  select {
+    min-height: 36px;
+    padding: 0 var(--space-8) 0 var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    appearance: none;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.sort select {
+  min-height: 40px;
+  padding-right: var(--space-3);
+}
+
+// Grid items of .page-body: without min-width 0 the status chips would widen the page on phones.
+.controls,
+.pills,
+.bulk,
+.panel {
+  min-width: 0;
+}
+
+.controls {
+  gap: var(--space-3);
+}
+
+.segments {
+  display: flex;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  scrollbar-width: none;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+.segment__count {
+  min-width: 20px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+
+  [aria-pressed='true'] > & {
+    background: var(--color-surface);
+    color: var(--color-primary);
+  }
+}
+
+.search-box {
+  @include bp.up(lg) {
+    flex: 0 1 300px;
+    margin-left: auto;
+  }
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 2px 2px var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+
+  button {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+  }
+}
+
+.clear-all,
+.bulk__clear {
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+}
+
+.bulk__count {
+  margin-right: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.bulk__delete:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.panel {
+  overflow: hidden;
+}
+
+.is-loading {
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.confirm-text {
+  color: var(--color-text-muted);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}

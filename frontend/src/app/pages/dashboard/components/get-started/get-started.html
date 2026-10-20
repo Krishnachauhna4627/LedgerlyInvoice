@@ -1,0 +1,24 @@
+<section class="panel" aria-labelledby="setup-title">
+  <div class="head">
+    <h2 id="setup-title">Get started</h2>
+    <span class="progress">{{ doneCount() }} of {{ steps().length }} done</span>
+  </div>
+  <ol class="list">
+    @for (step of steps(); track step.label) {
+      <li>
+        <a class="step" [class.step--done]="step.done" [routerLink]="step.link">
+          <span class="step__icon">
+            <app-icon [name]="step.done ? 'check' : step.icon" [size]="18" [strokeWidth]="step.done ? 3 : 2" />
+          </span>
+          <span class="step__text">
+            <span class="step__title">{{ step.label }}</span>
+            <span class="step__hint">{{ step.done ? 'Done' : step.hint }}</span>
+          </span>
+          @if (!step.done) {
+            <app-icon class="step__go" name="arrow-right" [size]="16" />
+          }
+        </a>
+      </li>
+    }
+  </ol>
+</section>

@@ -1,0 +1,22 @@
+// Printing (invoice "Print / Save as PDF"): show only the page content, not the app chrome.
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    background: var(--color-surface);
+  }
+
+  app-shell .mobile-bar,
+  app-shell .sidebar,
+  app-shell .backdrop,
+  app-toast-host {
+    display: none !important;
+  }
+
+  app-shell .content {
+    margin-left: 0 !important;
+  }
+}

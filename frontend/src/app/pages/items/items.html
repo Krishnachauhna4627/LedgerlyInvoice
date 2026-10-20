@@ -1,0 +1,113 @@
+<app-page-header title="Items / Services" subtitle="Products and services with HSN/SAC and GST rate, used to fill invoice lines.">
+  <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
+    <app-icon name="plus" [size]="16" /> Add item
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading items…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load items</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="panel empty-state">
+      <span class="empty-icon"><app-icon name="box" [size]="26" /></span>
+      <p class="empty-state__title">No items yet</p>
+      <p>Save the products and services you sell, with their HSN/SAC and GST rate, to fill invoice lines in one click.</p>
+      <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
+        <app-icon name="plus" [size]="16" /> Add your first item
+      </button>
+    </div>
+  } @else {
+    <div class="toolbar">
+      <label class="search-box">
+        <span class="sr-only">Search items</span>
+        <app-icon name="search" [size]="16" />
+        <input class="input" type="search" placeholder="Search by name or HSN/SAC" [value]="search()" (input)="search.set($any($event.target).value)" />
+      </label>
+      <span class="count">{{ filtered().length }} of {{ items().length }}</span>
+    </div>
+
+    <div class="panel">
+      @if (filtered().length === 0) {
+        <div class="empty-state"><p>No items match "{{ search() }}".</p></div>
+      } @else {
+        <div class="table-scroll desktop">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">HSN/SAC</th>
+                <th scope="col" class="num">Rate (₹)</th>
+                <th scope="col" class="num">GST %</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of filtered(); track item.id) {
+                <tr>
+                  <td class="strong">{{ item.name }}</td>
+                  <td [class.muted]="!item.hsnSac">{{ item.hsnSac || '—' }}</td>
+                  <td class="num">{{ item.unitPrice | inr: false }}</td>
+                  <td class="num">{{ item.gstRate }}%</td>
+                  <td class="row-actions">
+                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + item.name" (click)="openForm(item)">
+                      <app-icon name="pencil" [size]="16" />
+                    </button>
+                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + item.name" (click)="deleting.set(item)">
+                      <app-icon name="trash" [size]="16" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <ul class="cards">
+          @for (item of filtered(); track item.id) {
+            <li class="card">
+              <div class="card__main">
+                <span class="card__title">{{ item.name }}</span>
+                <span class="card__meta">HSN/SAC: {{ item.hsnSac || '—' }} · {{ item.unitPrice | inr }} · GST {{ item.gstRate }}%</span>
+              </div>
+              <div class="card__actions">
+                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + item.name" (click)="openForm(item)">
+                  <app-icon name="pencil" [size]="16" />
+                </button>
+                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + item.name" (click)="deleting.set(item)">
+                  <app-icon name="trash" [size]="16" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>
+
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit item' : 'Add item'" (closed)="formOpen.set(false)">
+  @if (formOpen()) {
+    <app-item-form [item]="editing()" (saved)="onSaved($event)" (cancelled)="formOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!deleting()" title="Delete item?" size="sm" (closed)="deleting.set(null)">
+  @if (deleting(); as item) {
+    <p class="confirm-text">
+      <strong>{{ item.name }}</strong> will be removed from your saved items. Invoices that already use it keep their
+      own copy of the line.
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
+        {{ deleteBusy() ? 'Deleting…' : 'Delete item' }}
+      </button>
+    </div>
+  }
+</app-modal>

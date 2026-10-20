@@ -1,0 +1,97 @@
+@use 'breakpoints' as bp;
+
+// Clip the table header to the panel's rounded corners.
+.panel {
+  overflow: hidden;
+}
+
+.count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.desktop {
+  display: none;
+
+  @include bp.up(md) {
+    display: block;
+  }
+}
+
+.address {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-actions {
+  width: 1%;
+  text-align: right;
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.card__main {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card__title {
+  font-weight: 600;
+}
+
+.card__meta {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.card__actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.confirm-text {
+  color: var(--color-text-muted);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}

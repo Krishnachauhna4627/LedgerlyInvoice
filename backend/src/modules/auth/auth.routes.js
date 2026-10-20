@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { HttpError } from '../../http-error.js';
 import { requireAuth } from '../../middleware/require-auth.js';
 import { validate } from '../../middleware/validate.js';
 import { getUserById, login, signup } from './auth.service.js';
@@ -16,9 +15,5 @@ authRouter.post('/login', validate(loginSchema), async (req, res) => {
 });
 
 authRouter.get('/me', requireAuth, async (req, res) => {
-  const user = await getUserById(req.userId);
-  if (!user) {
-    throw new HttpError(401, 'Please log in.');
-  }
-  res.json({ user });
+  res.json({ user: await getUserById(req.user.id) });
 });

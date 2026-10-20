@@ -1,0 +1,57 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="client-name">Client name *</label>
+    <input id="client-name" class="input" formControlName="name" autocomplete="organization"
+      [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="client-name-error" />
+    @if (errorFor('name'); as message) {
+      <span id="client-name-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="client-address">Address</label>
+    <textarea id="client-address" class="input" formControlName="address" rows="3" autocomplete="street-address"
+      [class.is-invalid]="errorFor('address')" [attr.aria-invalid]="!!errorFor('address')" aria-describedby="client-address-error"></textarea>
+    @if (errorFor('address'); as message) {
+      <span id="client-address-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="client-state">State *</label>
+      <select id="client-state" class="input" formControlName="stateCode"
+        [class.is-invalid]="errorFor('stateCode')" [attr.aria-invalid]="!!errorFor('stateCode')" aria-describedby="client-state-error">
+        <option value="">Select state / code</option>
+        @for (state of states; track state.code) {
+          <option [value]="state.code">{{ state.code }} — {{ state.name }}</option>
+        }
+      </select>
+      @if (errorFor('stateCode'); as message) {
+        <span id="client-state-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="client-state-error" class="hint">Code 25 is merged/unused; code 28 is old/replaced.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="client-gstin">GSTIN</label>
+      <input id="client-gstin" class="input upper" formControlName="gstin" maxlength="15" autocomplete="off" spellcheck="false"
+        placeholder="Optional" [class.is-invalid]="errorFor('gstin')" [attr.aria-invalid]="!!errorFor('gstin')" aria-describedby="client-gstin-error" />
+      @if (errorFor('gstin'); as message) {
+        <span id="client-gstin-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : client() ? 'Save changes' : 'Add client' }}
+    </button>
+  </div>
+</form>

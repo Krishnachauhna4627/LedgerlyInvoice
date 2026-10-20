@@ -1,0 +1,87 @@
+@use 'breakpoints' as bp;
+
+.filters {
+  display: grid;
+  gap: var(--space-4);
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .span-all {
+    grid-column: 1 / -1;
+  }
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @include bp.up(xl) {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.tile--total {
+  @include bp.down(md) {
+    grid-column: span 2;
+  }
+
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  background: var(--color-primary-soft);
+}
+
+.tile__label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.tile__value {
+  overflow-wrap: anywhere;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.panel {
+  overflow: hidden;
+}
+
+.panel-title {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  font-size: var(--text-base);
+  font-weight: 700;
+
+  @include bp.up(md) {
+    padding-inline: var(--space-6);
+  }
+}
+
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}

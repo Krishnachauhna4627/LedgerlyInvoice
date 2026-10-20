@@ -1,0 +1,121 @@
+<app-page-header title="Sales report" subtitle="Drafts are not included.">
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('summary')">
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'summary' ? 'Exporting…' : 'Invoice summary (CSV)' }}
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('items')">
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'items' ? 'Exporting…' : 'Item details (CSV)' }}
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  <div class="panel panel__body filters">
+    <div class="field">
+      <label class="field__label" for="report-period">Period</label>
+      <select id="report-period" class="input" [value]="period()" (change)="choosePeriod($any($event.target).value)">
+        @for (p of periods; track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+        }
+        <option value="custom">Custom range</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="report-from">From</label>
+      <input id="report-from" class="input" type="date" [value]="from()" (change)="setDate('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="report-range-error" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="report-to">To</label>
+      <input id="report-to" class="input" type="date" [value]="to()" (change)="setDate('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="report-range-error" />
+    </div>
+    @if (rangeInvalid()) {
+      <span id="report-range-error" class="field__error span-all">"From" must be on or before "To".</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading report…</p></div>
+  } @else if (error()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load the report</p>
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (report(); as r) {
+    @if (r.totals.count === 0) {
+      <div class="panel empty-state">
+        <span class="empty-icon"><app-icon name="bar-chart" [size]="26" /></span>
+        <p class="empty-state__title">No invoices in this period</p>
+        <p>Pick a different period, or create an invoice to see your sales here.</p>
+      </div>
+    } @else {
+      <ul class="tiles">
+        @for (tile of tiles(); track tile.label) {
+          <li class="tile" [class.tile--total]="tile.label === 'Grand total'">
+            <span class="tile__label">{{ tile.label }}</span>
+            <span class="tile__value">{{ tile.money ? ($any(tile.value) | inr) : tile.value }}</span>
+          </li>
+        }
+      </ul>
+
+      <section class="panel">
+        <h2 class="panel-title">By month</h2>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col" class="num">Invoices</th>
+                <th scope="col" class="num">Taxable value</th>
+                <th scope="col" class="num">Total tax</th>
+                <th scope="col" class="num">Grand total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of r.byMonth; track m.month) {
+                <tr>
+                  <td class="strong">{{ monthLabel(m.month) }}</td>
+                  <td class="num">{{ m.count }}</td>
+                  <td class="num">{{ m.subTotal | inr }}</td>
+                  <td class="num">{{ m.tax | inr }}</td>
+                  <td class="num strong">{{ m.total | inr }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">HSN/SAC summary</h2>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">HSN/SAC</th>
+                <th scope="col" class="num">GST %</th>
+                <th scope="col" class="num">Taxable value</th>
+                <th scope="col" class="num">CGST</th>
+                <th scope="col" class="num">SGST</th>
+                <th scope="col" class="num">IGST</th>
+                <th scope="col" class="num">Total tax</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (h of r.byHsn; track $index) {
+                <tr>
+                  <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
+                  <td class="num">{{ h.gstRate }}%</td>
+                  <td class="num">{{ h.taxable | inr }}</td>
+                  <td class="num">{{ h.cgst | inr }}</td>
+                  <td class="num">{{ h.sgst | inr }}</td>
+                  <td class="num">{{ h.igst | inr }}</td>
+                  <td class="num strong">{{ h.tax | inr }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  }
+</div>

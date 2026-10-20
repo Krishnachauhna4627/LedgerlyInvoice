@@ -1,0 +1,228 @@
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Router, RouterLink } from '@angular/router';
+import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { toApiError } from '../../core/api/api-error';
+import { DisplayStatus, InvoiceListItem, InvoiceSort } from '../../core/data/models';
+import { InvoiceService } from '../../core/invoices/invoice.service';
+import { PERIODS, Period, periodRange } from '../../core/ui/dates';
+import { ToastService } from '../../core/ui/toast.service';
+import { Icon } from '../../shared/components/icon/icon';
+import { Modal } from '../../shared/components/modal/modal';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { InvoiceTable, MenuRequest } from './components/invoice-table/invoice-table';
+import { RowAction, RowMenu } from './components/row-menu/row-menu';
+import { exportInvoicesCsv } from './invoice-csv';
+
+type StatusFilter = DisplayStatus | 'all';
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'unpaid', label: 'Unpaid' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'draft', label: 'Draft' },
+];
+
+const SORTS: { value: InvoiceSort; label: string }[] = [
+  { value: 'date_desc', label: 'Newest first' },
+  { value: 'date_asc', label: 'Oldest first' },
+  { value: 'amount_desc', label: 'Amount: high to low' },
+  { value: 'amount_asc', label: 'Amount: low to high' },
+  { value: 'number_asc', label: 'Invoice number' },
+];
+
+// Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
+@Component({
+  selector: 'app-invoices-page',
+  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu],
+  templateUrl: './invoices.html',
+  styleUrl: './invoices.scss',
+})
+export class Invoices {
+  private readonly invoiceService = inject(InvoiceService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+
+  protected readonly periods = PERIODS;
+  protected readonly statusFilters = STATUS_FILTERS;
+  protected readonly sorts = SORTS;
+
+  protected readonly period = signal<Period>('all');
+  protected readonly status = signal<StatusFilter>('all');
+  protected readonly sort = signal<InvoiceSort>('date_desc');
+  protected readonly searchInput = signal('');
+  private readonly search = toSignal(
+    toObservable(this.searchInput).pipe(
+      debounceTime(300),
+      map((s) => s.trim()),
+      distinctUntilChanged(),
+    ),
+    { initialValue: '' },
+  );
+  private readonly reloadTick = signal(0);
+
+  protected readonly rows = signal<InvoiceListItem[]>([]);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly selected = signal<ReadonlySet<number>>(new Set());
+  protected readonly menu = signal<MenuRequest | null>(null);
+  protected readonly pendingDelete = signal<InvoiceListItem[] | null>(null);
+  protected readonly busy = signal(false);
+
+  private readonly query = computed(() => ({
+    ...periodRange(this.period()),
+    search: this.search(),
+    sort: this.sort(),
+    tick: this.reloadTick(),
+  }));
+
+  protected readonly counts = computed(() => {
+    const counts: Record<StatusFilter, number> = { all: 0, paid: 0, unpaid: 0, overdue: 0, draft: 0 };
+    for (const row of this.rows()) {
+      counts.all++;
+      counts[row.displayStatus]++;
+    }
+    return counts;
+  });
+
+  protected readonly visible = computed(() => {
+    const status = this.status();
+    return status === 'all' ? this.rows() : this.rows().filter((r) => r.displayStatus === status);
+  });
+
+  protected readonly selectedRows = computed(() => this.visible().filter((r) => this.selected().has(r.id)));
+
+  protected readonly hasFilters = computed(
+    () => this.period() !== 'all' || this.status() !== 'all' || this.search() !== '',
+  );
+  protected readonly periodLabel = computed(() => PERIODS.find((p) => p.value === this.period())?.label ?? '');
+  protected readonly statusLabel = computed(() => STATUS_FILTERS.find((s) => s.value === this.status())?.label ?? '');
+
+  constructor() {
+    toObservable(this.query)
+      .pipe(
+        tap(() => {
+          this.loading.set(true);
+          this.error.set(null);
+        }),
+        switchMap(({ tick: _tick, ...query }) =>
+          this.invoiceService.list(query).pipe(
+            map((rows) => ({ rows, error: null as string | null })),
+            catchError((err: unknown) => of({ rows: [] as InvoiceListItem[], error: toApiError(err).message })),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe(({ rows, error }) => {
+        this.rows.set(rows);
+        this.error.set(error);
+        this.loading.set(false);
+      });
+
+    // Changing filters clears the selection so bulk actions never hit rows you can't see.
+    effect(() => {
+      this.query();
+      this.status();
+      this.selected.set(new Set());
+    });
+  }
+
+  protected reload(): void {
+    this.reloadTick.update((n) => n + 1);
+  }
+
+  protected clearFilters(): void {
+    this.period.set('all');
+    this.status.set('all');
+    this.searchInput.set('');
+  }
+
+  protected toggle(id: number): void {
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  protected toggleAll(select: boolean): void {
+    this.selected.set(select ? new Set(this.visible().map((r) => r.id)) : new Set());
+  }
+
+  protected toggleMenu(request: MenuRequest): void {
+    this.menu.set(this.menu()?.invoice.id === request.invoice.id ? null : request);
+  }
+
+  protected exportCsv(): void {
+    const rows = this.selectedRows().length ? this.selectedRows() : this.visible();
+    exportInvoicesCsv(rows);
+  }
+
+  protected onAction(invoice: InvoiceListItem, action: RowAction): void {
+    switch (action) {
+      case 'view':
+        this.router.navigate(['/invoices', invoice.id]);
+        break;
+      case 'edit':
+        this.router.navigate(['/invoices', invoice.id, 'edit']);
+        break;
+      case 'duplicate':
+        this.router.navigate(['/invoices/new'], { queryParams: { from: invoice.id } });
+        break;
+      case 'paid':
+      case 'unpaid':
+        this.setStatus([invoice], action);
+        break;
+      case 'delete':
+        this.pendingDelete.set([invoice]);
+        break;
+    }
+  }
+
+  protected markSelectedPaid(): void {
+    this.setStatus(this.selectedRows().filter((r) => r.status !== 'paid'), 'paid');
+  }
+
+  private setStatus(invoices: InvoiceListItem[], status: 'paid' | 'unpaid'): void {
+    if (!invoices.length) {
+      this.toast.success('Those invoices are already paid.');
+      return;
+    }
+    this.busy.set(true);
+    forkJoin(invoices.map((inv) => this.invoiceService.setStatus(inv.id, status))).subscribe({
+      next: () => {
+        this.busy.set(false);
+        const what = invoices.length === 1 ? invoices[0].invoiceNumber : `${invoices.length} invoices`;
+        this.toast.success(`${what} marked as ${status}.`);
+        this.reload();
+      },
+      error: (err: unknown) => {
+        this.busy.set(false);
+        this.toast.error(toApiError(err).message);
+        this.reload();
+      },
+    });
+  }
+
+  protected confirmDelete(): void {
+    const invoices = this.pendingDelete();
+    if (!invoices?.length) return;
+    this.busy.set(true);
+    forkJoin(invoices.map((inv) => this.invoiceService.delete(inv.id))).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.pendingDelete.set(null);
+        this.toast.success(invoices.length === 1 ? `${invoices[0].invoiceNumber} deleted.` : `${invoices.length} invoices deleted.`);
+        this.reload();
+      },
+      error: (err: unknown) => {
+        this.busy.set(false);
+        this.pendingDelete.set(null);
+        this.toast.error(toApiError(err).message);
+        this.reload();
+      },
+    });
+  }
+}

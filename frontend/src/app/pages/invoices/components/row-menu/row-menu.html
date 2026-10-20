@@ -1,0 +1,15 @@
+<div
+  class="menu"
+  role="menu"
+  [attr.aria-label]="'Actions for ' + invoice().invoiceNumber"
+  [style.top.px]="position().top"
+  [style.left.px]="position().left"
+  (keydown)="onKeydown($event)"
+>
+  @for (item of items(); track item.action) {
+    <button type="button" role="menuitem" class="item" [class.item--danger]="item.danger" (click)="choose(item.action)">
+      <app-icon [name]="item.icon" [size]="16" />
+      {{ item.label }}
+    </button>
+  }
+</div>

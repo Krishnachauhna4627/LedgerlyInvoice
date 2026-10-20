@@ -1,0 +1,36 @@
+dialog {
+  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  max-height: calc(100dvh - 2 * var(--space-8));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+
+  &[data-size='sm'] {
+    width: min(420px, calc(100vw - 2 * var(--space-4)));
+  }
+
+  &::backdrop {
+    background: color-mix(in srgb, var(--color-text) 45%, transparent);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
+}
+
+.body {
+  padding: var(--space-5);
+}

@@ -1,0 +1,165 @@
+@let inv = invoice();
+<article class="doc" aria-label="Tax invoice {{ inv.invoiceNumber }}">
+  <header class="doc__head">
+    <div class="seller">
+      <h2 class="seller__name">{{ inv.seller.name }}</h2>
+      @if (inv.seller.address) {
+        <p class="pre">{{ inv.seller.address }}</p>
+      }
+      <p><span class="k">GSTIN:</span> {{ inv.seller.gstin || 'Not registered' }}</p>
+      <p><span class="k">State:</span> {{ stateLabel(inv.seller.stateCode) }}</p>
+    </div>
+    <div class="doc__type">
+      <h1>TAX INVOICE</h1>
+      <p>{{ inv.invoiceNumber }}</p>
+    </div>
+  </header>
+
+  <section class="parties">
+    <div class="box">
+      <h3>Billed to</h3>
+      <p class="strong">{{ inv.client.name }}</p>
+      @if (inv.client.address) {
+        <p class="pre">{{ inv.client.address }}</p>
+      }
+      <p><span class="k">GSTIN:</span> {{ inv.client.gstin || 'Not registered' }}</p>
+      <p><span class="k">State:</span> {{ stateLabel(inv.client.stateCode) }}</p>
+    </div>
+    <dl class="box meta">
+      <dt>Invoice no.</dt>
+      <dd>{{ inv.invoiceNumber }}</dd>
+      <dt>Invoice date</dt>
+      <dd>{{ formatDate(inv.invoiceDate) }}</dd>
+      <dt>Due date</dt>
+      <dd>{{ formatDate(inv.dueDate) }}</dd>
+      <dt>Place of supply</dt>
+      <dd>{{ stateLabel(inv.placeOfSupplyCode) }}</dd>
+      <dt>Reverse charge</dt>
+      <dd>{{ inv.reverseCharge ? 'Yes' : 'No' }}</dd>
+      @if (inv.irn) {
+        <dt>IRN</dt>
+        <dd class="irn">{{ inv.irn }}</dd>
+      }
+    </dl>
+  </section>
+
+  <div class="table-scroll">
+    <table class="lines">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Particulars</th>
+          <th>HSN/SAC</th>
+          <th class="num">Qty</th>
+          <th class="num">Rate (₹)</th>
+          <th class="num">GST %</th>
+          <th class="num">Taxable (₹)</th>
+          <th class="num">Tax (₹)</th>
+          <th class="num">Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of inv.lines; track $index) {
+          <tr>
+            <td>{{ $index + 1 }}</td>
+            <td class="desc">{{ line.description }}</td>
+            <td>{{ line.hsnSac || '—' }}</td>
+            <td class="num">{{ line.quantity | number: '1.0-3' }}</td>
+            <td class="num">{{ line.unitPrice | inr: false }}</td>
+            <td class="num">{{ line.gstRate }}%</td>
+            <td class="num">{{ line.taxableAmount | inr: false }}</td>
+            <td class="num">{{ line.totalTax | inr: false }}</td>
+            <td class="num">{{ line.lineTotal | inr: false }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6">Total</td>
+          <td class="num">{{ inv.totals.subTotal | inr: false }}</td>
+          <td class="num">{{ inv.totals.totalTax | inr: false }}</td>
+          <td class="num">{{ inv.totals.grandTotal | inr: false }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <section class="summary">
+    <div class="summary__left">
+      <p class="words"><span class="k">Amount in words:</span> {{ words() }}</p>
+      <h3>HSN/SAC summary</h3>
+      <div class="table-scroll">
+        <table class="hsn">
+          <thead>
+            <tr>
+              <th>HSN/SAC</th>
+              <th class="num">Rate</th>
+              <th class="num">Taxable</th>
+              @if (inv.isInterState) {
+                <th class="num">IGST</th>
+              } @else {
+                <th class="num">CGST</th>
+                <th class="num">SGST</th>
+              }
+              <th class="num">Total tax</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of hsnSummary(); track row.hsnSac + row.gstRate) {
+              <tr>
+                <td>{{ row.hsnSac }}</td>
+                <td class="num">{{ row.gstRate }}%</td>
+                <td class="num">{{ row.taxable | inr: false }}</td>
+                @if (inv.isInterState) {
+                  <td class="num">{{ row.igst | inr: false }}</td>
+                } @else {
+                  <td class="num">{{ row.cgst | inr: false }}</td>
+                  <td class="num">{{ row.sgst | inr: false }}</td>
+                }
+                <td class="num">{{ row.tax | inr: false }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <dl class="totals">
+      <dt>Sub-total</dt>
+      <dd>{{ inv.totals.subTotal | inr }}</dd>
+      @if (inv.isInterState) {
+        <dt>Add IGST</dt>
+        <dd>{{ inv.totals.totalIgst | inr }}</dd>
+      } @else {
+        <dt>Add CGST</dt>
+        <dd>{{ inv.totals.totalCgst | inr }}</dd>
+        <dt>Add SGST</dt>
+        <dd>{{ inv.totals.totalSgst | inr }}</dd>
+      }
+      <dt class="grand">Grand total</dt>
+      <dd class="grand">{{ inv.totals.grandTotal | inr }}</dd>
+    </dl>
+  </section>
+
+  <section class="extras">
+    <div>
+      <h3>Bank details</h3>
+      @if (inv.seller.bankName || inv.seller.accountNo || inv.seller.ifsc) {
+        <p><span class="k">Bank:</span> {{ inv.seller.bankName || '—' }}</p>
+        <p><span class="k">A/C no.:</span> {{ inv.seller.accountNo || '—' }}</p>
+        <p><span class="k">IFSC:</span> {{ inv.seller.ifsc || '—' }}</p>
+      } @else {
+        <p class="muted">Not provided.</p>
+      }
+    </div>
+    <div>
+      <h3>Terms &amp; conditions</h3>
+      <p class="pre">{{ inv.seller.terms || '—' }}</p>
+    </div>
+  </section>
+
+  <footer class="sign">
+    <p class="strong">For {{ inv.seller.name }}</p>
+    <p class="sign__line">Authorised Signatory</p>
+  </footer>
+</article>

@@ -12,14 +12,19 @@ src/
   config.js                 # loads .env, validates required settings — use this, not process.env
   db.js                     # shared Knex instance
   http-error.js             # throw new HttpError(status, message, fieldErrors?)
-  middleware/               # validate (zod), require-auth (JWT), error-handler
-  modules/<feature>/        # <feature>.routes.js, .service.js, .validation.js
+  lib/gst.js                # GST states, GSTIN pattern, line/invoice tax maths (source of truth)
+  lib/validation.js         # shared zod field helpers (requiredText, stateCode, gstin, money, …)
+  middleware/               # validate (zod), require-auth (JWT → req.user), error-handler
+  modules/<feature>/        # auth, company, clients, items, invoices, reports
   app.js  server.js
 ```
 
 - Each feature lives in `src/modules/<feature>/`: routes stay thin, logic goes in the service, input rules in a zod schema applied with `validate(schema)`.
 - Errors respond as `{ message, errors?: { field: message } }` — the frontend relies on this shape.
-- Protected routes use `requireAuth`, which sets `req.userId`. Data always belongs to a company: scope queries by the user's `company_id`.
+- Protected routes use `requireAuth`, which sets `req.user = { id, companyId }`. **Every query on business data is scoped by `req.user.companyId`** — look rows up with `where({ id, company_id })` and answer 404 if missing, never 403 (don't reveal other companies' ids).
+- Invoices store snapshots of the seller and client (and line item details), plus totals calculated on the server with `lib/gst.js`. Never trust totals sent by the client.
+- Money columns are `DECIMAL`, returned as numbers (`decimalNumbers`); `DATE` columns come back as `'YYYY-MM-DD'` strings (`dateStrings`), so compare dates as strings.
+- Use `where(col, 'like', …)` for text search — knex's `whereLike` adds a collation MySQL rejects for utf8mb4.
 - Never return `password_hash`; passwords are hashed with bcrypt.
 
 ## Commands

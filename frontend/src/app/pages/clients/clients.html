@@ -1,0 +1,116 @@
+<app-page-header title="Clients" subtitle="Customers you bill. Pick them when creating an invoice.">
+  <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
+    <app-icon name="plus" [size]="16" /> Add client
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading clients…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load clients</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else if (clients().length === 0) {
+    <div class="panel empty-state">
+      <span class="empty-icon"><app-icon name="users" [size]="26" /></span>
+      <p class="empty-state__title">No clients yet</p>
+      <p>Add the customers you bill once, then pick them on every invoice.</p>
+      <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
+        <app-icon name="plus" [size]="16" /> Add your first client
+      </button>
+    </div>
+  } @else {
+    <div class="toolbar">
+      <label class="search-box">
+        <span class="sr-only">Search clients</span>
+        <app-icon name="search" [size]="16" />
+        <input class="input" type="search" placeholder="Search by name or GSTIN" [value]="search()" (input)="search.set($any($event.target).value)" />
+      </label>
+      <span class="count">{{ filtered().length }} of {{ clients().length }}</span>
+    </div>
+
+    <div class="panel">
+      @if (filtered().length === 0) {
+        <div class="empty-state"><p>No clients match "{{ search() }}".</p></div>
+      } @else {
+        <div class="table-scroll desktop">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">GSTIN</th>
+                <th scope="col">State</th>
+                <th scope="col">Address</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (client of filtered(); track client.id) {
+                <tr>
+                  <td class="strong">{{ client.name }}</td>
+                  <td [class.muted]="!client.gstin">{{ client.gstin || '—' }}</td>
+                  <td>{{ stateLabel(client.stateCode) }}</td>
+                  <td class="muted address" [title]="client.address ?? ''">{{ client.address || '—' }}</td>
+                  <td class="row-actions">
+                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" (click)="openForm(client)">
+                      <app-icon name="pencil" [size]="16" />
+                    </button>
+                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" (click)="deleting.set(client)">
+                      <app-icon name="trash" [size]="16" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <ul class="cards">
+          @for (client of filtered(); track client.id) {
+            <li class="card">
+              <div class="card__main">
+                <span class="card__title">{{ client.name }}</span>
+                <span class="card__meta">{{ client.gstin || 'No GSTIN' }} · {{ stateLabel(client.stateCode) }}</span>
+                @if (client.address) {
+                  <span class="card__meta">{{ client.address }}</span>
+                }
+              </div>
+              <div class="card__actions">
+                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" (click)="openForm(client)">
+                  <app-icon name="pencil" [size]="16" />
+                </button>
+                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" (click)="deleting.set(client)">
+                  <app-icon name="trash" [size]="16" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>
+
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit client' : 'Add client'" (closed)="formOpen.set(false)">
+  @if (formOpen()) {
+    <app-client-form [client]="editing()" (saved)="onSaved($event)" (cancelled)="formOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!deleting()" title="Delete client?" size="sm" (closed)="deleting.set(null)">
+  @if (deleting(); as client) {
+    <p class="confirm-text">
+      <strong>{{ client.name }}</strong> will be removed from your saved clients. Invoices already issued to them keep
+      their own copy of the client's details.
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
+        {{ deleteBusy() ? 'Deleting…' : 'Delete client' }}
+      </button>
+    </div>
+  }
+</app-modal>

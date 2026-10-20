@@ -1,0 +1,89 @@
+<div class="table-scroll wide">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th class="check">
+          <input
+            type="checkbox"
+            aria-label="Select all invoices"
+            [checked]="allSelected()"
+            [indeterminate]="someSelected()"
+            (change)="toggleAll.emit(!allSelected())"
+          />
+        </th>
+        <th scope="col">Invoice ID</th>
+        <th scope="col">Customer</th>
+        <th scope="col" class="num">Amount due</th>
+        <th scope="col">Status</th>
+        <th scope="col">Product</th>
+        <th scope="col">Date</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (inv of invoices(); track inv.id) {
+        <tr [class.is-selected]="selected().has(inv.id)">
+          <td class="check">
+            <input
+              type="checkbox"
+              [attr.aria-label]="'Select ' + inv.invoiceNumber"
+              [checked]="selected().has(inv.id)"
+              (change)="toggle.emit(inv.id)"
+            />
+          </td>
+          <td><a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a></td>
+          <td class="strong">{{ inv.clientName }}</td>
+          <td class="num strong">{{ inv.grandTotal | inr }}</td>
+          <td><app-status-badge [status]="inv.displayStatus" /></td>
+          <td class="muted">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'item' : 'items' }}</td>
+          <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}</td>
+          <td class="actions">
+            <button
+              type="button"
+              class="icon-button"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="menuFor() === inv.id"
+              [attr.aria-label]="'Actions for ' + inv.invoiceNumber"
+              (click)="menu(inv, $event)"
+            >
+              <app-icon name="more-horizontal" [size]="18" />
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<ul class="cards">
+  @for (inv of invoices(); track inv.id) {
+    <li class="card" [class.is-selected]="selected().has(inv.id)">
+      <input
+        type="checkbox"
+        class="card__check"
+        [attr.aria-label]="'Select ' + inv.invoiceNumber"
+        [checked]="selected().has(inv.id)"
+        (change)="toggle.emit(inv.id)"
+      />
+      <div class="card__main">
+        <a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a>
+        <span class="card__client">{{ inv.clientName }}</span>
+        <span class="card__meta">{{ inv.invoiceDate | date: 'd MMM y' }} · {{ inv.itemCount }} {{ inv.itemCount === 1 ? 'item' : 'items' }}</span>
+      </div>
+      <div class="card__side">
+        <span class="card__amount">{{ inv.grandTotal | inr }}</span>
+        <app-status-badge [status]="inv.displayStatus" />
+      </div>
+      <button
+        type="button"
+        class="icon-button card__menu"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="menuFor() === inv.id"
+        [attr.aria-label]="'Actions for ' + inv.invoiceNumber"
+        (click)="menu(inv, $event)"
+      >
+        <app-icon name="more-horizontal" [size]="18" />
+      </button>
+    </li>
+  }
+</ul>

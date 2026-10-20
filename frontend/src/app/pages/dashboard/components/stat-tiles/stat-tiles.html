@@ -1,0 +1,15 @@
+<h2 class="sr-only">Summary</h2>
+<ul class="tiles">
+  @for (tile of tiles(); track tile.label) {
+    <li class="tile" [class.tile--danger]="tile.tone === 'danger'">
+      <div class="tile__head">
+        <span class="tile__label">{{ tile.label }}</span>
+        <span class="tile__icon"><app-icon [name]="tile.icon" [size]="18" /></span>
+      </div>
+      <span class="tile__value">{{ tile.value }}</span>
+      @if (tile.note) {
+        <span class="tile__note">{{ tile.note }}</span>
+      }
+    </li>
+  }
+</ul>

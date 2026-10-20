@@ -1,0 +1,48 @@
+<div class="control" [class.is-open]="open()">
+  <app-icon name="search" [size]="16" class="lead" />
+  <input
+    #field
+    class="input"
+    type="text"
+    role="combobox"
+    autocomplete="off"
+    [id]="inputId()"
+    [class.is-invalid]="invalid()"
+    [attr.aria-invalid]="invalid()"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listId()"
+    aria-autocomplete="list"
+    [attr.aria-activedescendant]="open() && filtered().length ? listId() + '-' + active() : null"
+    [placeholder]="selectedLabel() || placeholder()"
+    [value]="displayValue()"
+    (focus)="onFocus()"
+    (input)="onInput($any($event.target).value)"
+    (keydown)="onKeydown($event)"
+  />
+  <app-icon name="chevron-down" [size]="16" class="trail" />
+</div>
+
+@if (open()) {
+  <ul class="list" role="listbox" [id]="listId()">
+    @for (option of filtered(); track option.id; let i = $index) {
+      <li
+        role="option"
+        tabindex="-1"
+        [id]="listId() + '-' + i"
+        [class.active]="i === active()"
+        [attr.aria-selected]="i === active()"
+        (mousedown)="$event.preventDefault()"
+        (click)="choose(option)"
+        (mouseenter)="active.set(i)"
+      >
+        <span class="label">{{ option.label }}</span>
+        @if (option.detail) {
+          <span class="detail">{{ option.detail }}</span>
+        }
+      </li>
+    } @empty {
+      <li class="empty">{{ emptyText() }}</li>
+    }
+  </ul>
+}

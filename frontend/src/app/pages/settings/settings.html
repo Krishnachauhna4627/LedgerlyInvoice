@@ -1,0 +1,119 @@
+<app-page-header title="Settings" subtitle="Your business details, printed on every new invoice." />
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading settings…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load settings</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else {
+    <form class="panel panel__body form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      @if (missingState()) {
+        <div class="notice" role="note">
+          <app-icon name="alert-circle" [size]="18" />
+          <span>Choose your <strong>state</strong> below — it's needed to work out CGST/SGST vs IGST before you can save an invoice.</span>
+        </div>
+      }
+      @if (error()) {
+        <div class="form-alert" role="alert">{{ error() }}</div>
+      }
+
+      <section>
+        <h2 class="section-title">Your Business Details (Seller)</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field__label" for="seller-name">Business name *</label>
+            <input id="seller-name" class="input" formControlName="name" autocomplete="organization"
+              [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="seller-name-error" />
+            @if (errorFor('name'); as message) {
+              <span id="seller-name-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+
+          <div class="field address">
+            <label class="field__label" for="seller-address">Business address</label>
+            <textarea id="seller-address" class="input" formControlName="address" rows="3" autocomplete="street-address"
+              [class.is-invalid]="errorFor('address')" [attr.aria-invalid]="!!errorFor('address')" aria-describedby="seller-address-error"></textarea>
+            @if (errorFor('address'); as message) {
+              <span id="seller-address-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="seller-state">State / GST state code</label>
+            <select id="seller-state" class="input" formControlName="stateCode" aria-describedby="seller-state-hint">
+              <option value="">Select state / code</option>
+              @for (state of states; track state.code) {
+                <option [value]="state.code">{{ state.code }} — {{ state.name }}</option>
+              }
+            </select>
+            <span id="seller-state-hint" class="hint">Required to issue invoices.</span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="seller-gstin">GSTIN (optional)</label>
+            <input id="seller-gstin" class="input upper" formControlName="gstin" maxlength="15" autocomplete="off" spellcheck="false"
+              [class.is-invalid]="errorFor('gstin')" [attr.aria-invalid]="!!errorFor('gstin')" aria-describedby="seller-gstin-error" />
+            @if (errorFor('gstin'); as message) {
+              <span id="seller-gstin-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Bank Details</h2>
+        <div class="form-grid" style="--cols: 3">
+          <div class="field">
+            <label class="field__label" for="seller-bank">Bank name</label>
+            <input id="seller-bank" class="input" formControlName="bankName" autocomplete="off"
+              [class.is-invalid]="errorFor('bankName')" [attr.aria-invalid]="!!errorFor('bankName')" aria-describedby="seller-bank-error" />
+            @if (errorFor('bankName'); as message) {
+              <span id="seller-bank-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label" for="seller-account">Account number</label>
+            <input id="seller-account" class="input" formControlName="accountNo" autocomplete="off" inputmode="numeric"
+              [class.is-invalid]="errorFor('accountNo')" [attr.aria-invalid]="!!errorFor('accountNo')" aria-describedby="seller-account-error" />
+            @if (errorFor('accountNo'); as message) {
+              <span id="seller-account-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label" for="seller-ifsc">IFSC code</label>
+            <input id="seller-ifsc" class="input upper" formControlName="ifsc" maxlength="11" autocomplete="off" spellcheck="false"
+              [class.is-invalid]="errorFor('ifsc')" [attr.aria-invalid]="!!errorFor('ifsc')" aria-describedby="seller-ifsc-error" />
+            @if (errorFor('ifsc'); as message) {
+              <span id="seller-ifsc-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Terms &amp; Conditions</h2>
+        <div class="field">
+          <label class="field__label" for="seller-terms">Terms</label>
+          <textarea id="seller-terms" class="input" formControlName="terms" rows="4"
+            placeholder="1. Payment due within 30 days.&#10;2. All disputes subject to local jurisdiction."
+            [class.is-invalid]="errorFor('terms')" [attr.aria-invalid]="!!errorFor('terms')" aria-describedby="seller-terms-error"></textarea>
+          @if (errorFor('terms'); as message) {
+            <span id="seller-terms-error" class="field__error">{{ message }}</span>
+          }
+        </div>
+      </section>
+
+      <div class="actions">
+        <span class="hint">Changes apply to invoices you save from now on; issued invoices keep their details.</span>
+        <button type="button" class="btn btn--outline" [disabled]="saving() || form.pristine" (click)="reset()">Discard changes</button>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          <app-icon name="save" [size]="18" /> {{ saving() ? 'Saving…' : 'Save settings' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

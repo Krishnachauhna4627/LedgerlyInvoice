@@ -95,15 +95,18 @@ src/app/
     pipes/  directives/
   layout/                   # header, footer, nav, shells used by many pages
     site-header/            # public website header (desktop nav + mobile menu)
-    app-topbar/             # header for logged-in pages (user, company, log out)
+    app-shell/              # logged-in layout: sidebar nav + <router-outlet> + toasts
   pages/
     landing/                # Module 1 — public website
       landing.ts | .html | .scss | .spec.ts
       components/           # hero, product-preview, features, how-it-works, cta
     auth/                   # Module 2 — /login: login + signup on one page
       components/           # login-form, signup-form
-    dashboard/              # Module 3 — /dashboard, first page after login
-      components/           # stat-cards, recent-invoices, quick-actions
+    dashboard/              # /dashboard — first page after login
+    invoices/               # /invoices — list, filters, bulk actions, CSV
+    invoice-editor/         # /invoices/new, /invoices/:id/edit (?from=:id duplicates)
+    invoice-view/           # /invoices/:id — printable tax invoice
+    clients/  items/  settings/  reports/
     <next-page>/            # each new page gets its own folder
   app.routes.ts             # all top-level routes
 ```
@@ -138,13 +141,21 @@ ng generate component shared/components/<name>
 - API calls go through services in `core/` (or a feature service), never directly from a page component. Always call relative `/api/...` URLs; in development `proxy.conf.json` forwards them to the backend on `http://localhost:3000`.
 - Show API failures with `toApiError()` (`core/api/api-error.ts`): its `message` goes in a `.form-alert`, its `fieldErrors` onto the matching form controls.
 
-## 5. Authentication
+## 5. Logged-in area and data
+
+- Every logged-in page is a child route of the pathless `''` route that loads `AppShell` (sidebar). Pages start with `<app-page-header title="…">actions</app-page-header>` followed by `<div class="page-body">`.
+- Building blocks: `styles/_ui.scss` (`.panel`, `.section-title`, `.form-grid`, `.data-table` inside `.table-scroll`, `.badge--*`, `.empty-state`, `.toolbar`, `.search-box`, `.btn--sm/--outline/--danger`, `.icon-button`), `<app-modal>`, `<app-status-badge>`, `ToastService`, `| inr`.
+- API access: `core/data/*.service.ts` and `core/invoices/invoice.service.ts`; API shapes in `core/data/models.ts`. Dates are `'YYYY-MM-DD'` strings (`core/ui/dates.ts`), money is formatted with `InrPipe`, CSVs with `core/ui/csv.ts`.
+- GST: `core/gst/` (states, GSTIN pattern, `calculateInvoice`, `amountInWords`) mirrors `backend/src/lib/gst.js` for live previews. The server recalculates and its numbers are what's saved — change both together.
+- All data is per company (each user has their own company); the backend enforces this, the frontend never filters by user itself.
+
+## 6. Authentication
 
 - `AuthService` (`core/auth/`) owns the session: token in localStorage, current user in the `user` signal. `authInterceptor` adds `Authorization: Bearer <token>` to `/api/` calls and sends the user to `/login` on a 401.
-- Every page that needs a logged-in user uses `canActivate: [authGuard]`; it loads the user before the page renders, so the page can read `AuthService.user()` directly. Logged-in pages use `<app-topbar />`.
+- Every page that needs a logged-in user uses `canActivate: [authGuard]`; it loads the user before the page renders, so the page can read `AuthService.user()` directly. Logged-in pages render inside `AppShell`.
 - `/login` uses `guestGuard` (logged-in users go straight to `/dashboard`).
 
-## 6. Forms
+## 7. Forms
 
 - Reactive forms (`NonNullableFormBuilder`) with the shared classes from `src/styles/_forms.scss`: `.field`, `.field__label`, `.input` (+ `.is-invalid`), `.field__error`, `.form-alert`.
 - Every input has a `<label for>`, the right `autocomplete`, and `aria-invalid` / `aria-describedby` pointing at its error.

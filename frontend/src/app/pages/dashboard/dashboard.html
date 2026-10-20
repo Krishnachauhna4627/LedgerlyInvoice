@@ -1,21 +1,24 @@
-<app-topbar />
+<app-page-header title="Dashboard" [subtitle]="subtitle()">
+  <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create Invoice</a>
+</app-page-header>
 
-<main class="container page">
-  <header class="welcome">
-    <div>
-      <p class="company">{{ companyName() }}</p>
-      <h1>Welcome, {{ firstName() }}</h1>
-      <p class="lead">Here's an overview of your business.</p>
+<div class="page-body">
+  @if (error()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load your dashboard</p>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
-    <button type="button" class="btn btn--primary" disabled title="Coming soon">
-      <app-icon name="plus" [size]="18" /> New invoice
-    </button>
-  </header>
+  } @else if (summary(); as s) {
+    <app-stat-tiles [summary]="s" />
 
-  <app-stat-cards />
-
-  <div class="grid">
-    <app-recent-invoices />
-    <app-quick-actions />
-  </div>
-</main>
+    <div class="grid" [class.grid--single]="setupDone()">
+      <app-recent-invoices [invoices]="s.recentInvoices" />
+      @if (!setupDone()) {
+        <app-get-started [steps]="steps()" />
+      }
+    </div>
+  } @else if (loading()) {
+    <div class="panel empty-state"><p>Loading your dashboard…</p></div>
+  }
+</div>

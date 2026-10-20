@@ -1,0 +1,102 @@
+<div class="head" aria-hidden="true">
+  <span>Item</span>
+  <span>HSN/SAC</span>
+  <span>Qty</span>
+  <span>Rate (₹)</span>
+  <span>GST %</span>
+  <span class="num">Taxable</span>
+  <span class="num">Tax</span>
+  <span class="num">Total</span>
+  <span></span>
+</div>
+
+<datalist id="line-gst-rates">
+  @for (rate of rates; track rate) {
+    <option [value]="rate"></option>
+  }
+</datalist>
+
+<ol class="lines">
+  @for (line of lines().controls; track line; let i = $index) {
+    <li class="line" [formGroup]="$any(line)">
+      <div class="cell cell--item">
+        <div class="item-label">
+          <label class="field__label" [for]="'line-' + i + '-item'">Item {{ i + 1 }}</label>
+          <button type="button" class="link-btn" (click)="newItem.emit(i)">
+            <app-icon name="plus" [size]="14" /> New item
+          </button>
+        </div>
+        <app-search-picker
+          [inputId]="'line-' + i + '-item'"
+          [options]="itemOptions()"
+          [selectedLabel]="line.get('description')?.value"
+          placeholder="Search saved items…"
+          emptyText="No saved items match. Use “New item”."
+          [invalid]="!!err(i, 'description')"
+          [describedBy]="'line-' + i + '-item-error'"
+          (picked)="picked.emit({ index: i, itemId: $event })"
+        />
+        @if (err(i, 'description'); as message) {
+          <span class="field__error" [id]="'line-' + i + '-item-error'">{{ message }}</span>
+        }
+      </div>
+
+      <div class="cell">
+        <label class="field__label" [for]="'line-' + i + '-hsn'">HSN/SAC</label>
+        <input class="input" [id]="'line-' + i + '-hsn'" formControlName="hsnSac" inputmode="numeric" maxlength="20" />
+      </div>
+
+      <div class="cell">
+        <label class="field__label" [for]="'line-' + i + '-qty'">Qty</label>
+        <input class="input" type="number" min="0" step="any" inputmode="decimal" [id]="'line-' + i + '-qty'" formControlName="quantity"
+          [class.is-invalid]="err(i, 'quantity')" [attr.aria-invalid]="!!err(i, 'quantity')" [attr.aria-describedby]="'line-' + i + '-qty-error'" />
+        @if (err(i, 'quantity'); as message) {
+          <span class="field__error" [id]="'line-' + i + '-qty-error'">{{ message }}</span>
+        }
+      </div>
+
+      <div class="cell">
+        <label class="field__label" [for]="'line-' + i + '-rate'">Rate (₹)</label>
+        <input class="input" type="number" min="0" step="0.01" inputmode="decimal" [id]="'line-' + i + '-rate'" formControlName="unitPrice"
+          [class.is-invalid]="err(i, 'unitPrice')" [attr.aria-invalid]="!!err(i, 'unitPrice')" [attr.aria-describedby]="'line-' + i + '-rate-error'" />
+        @if (err(i, 'unitPrice'); as message) {
+          <span class="field__error" [id]="'line-' + i + '-rate-error'">{{ message }}</span>
+        }
+      </div>
+
+      <div class="cell">
+        <label class="field__label" [for]="'line-' + i + '-gst'">GST %</label>
+        <input class="input" type="number" min="0" max="100" step="0.01" inputmode="decimal" list="line-gst-rates" [id]="'line-' + i + '-gst'" formControlName="gstRate"
+          [class.is-invalid]="err(i, 'gstRate')" [attr.aria-invalid]="!!err(i, 'gstRate')" [attr.aria-describedby]="'line-' + i + '-gst-error'" />
+        @if (err(i, 'gstRate'); as message) {
+          <span class="field__error" [id]="'line-' + i + '-gst-error'">{{ message }}</span>
+        }
+      </div>
+
+      <div class="cell cell--amount">
+        <span class="field__label">Taxable</span>
+        <span class="amount">{{ amounts()[i]?.taxableAmount | inr }}</span>
+      </div>
+      <div class="cell cell--amount">
+        <span class="field__label">Tax</span>
+        <span class="amount">{{ amounts()[i]?.totalTax | inr }}</span>
+      </div>
+      <div class="cell cell--amount">
+        <span class="field__label">Total</span>
+        <span class="amount amount--strong">{{ amounts()[i]?.lineTotal | inr }}</span>
+      </div>
+
+      <div class="cell cell--remove">
+        <button type="button" class="icon-button icon-button--danger" [disabled]="lines().length === 1"
+          [attr.aria-label]="'Remove item ' + (i + 1)" [title]="lines().length === 1 ? 'An invoice needs at least one line' : 'Remove line'"
+          (click)="removed.emit(i)">
+          <app-icon name="trash" [size]="16" />
+        </button>
+      </div>
+    </li>
+  }
+</ol>
+
+<button type="button" class="btn btn--outline btn--sm add" (click)="added.emit()">
+  <app-icon name="plus" [size]="16" /> Add line
+</button>

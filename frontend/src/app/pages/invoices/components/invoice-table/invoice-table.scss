@@ -1,0 +1,120 @@
+@use 'breakpoints' as bp;
+
+.wide {
+  display: none;
+
+  @include bp.up(md) {
+    display: block;
+  }
+}
+
+.data-table {
+  th.check,
+  td.check {
+    width: 44px;
+    padding-right: 0;
+  }
+
+  .actions {
+    width: 52px;
+    text-align: right;
+  }
+
+  tr.is-selected {
+    background: color-mix(in srgb, var(--color-primary-soft) 70%, transparent);
+  }
+}
+
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.number {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+}
+
+.cards {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &.is-selected {
+    background: color-mix(in srgb, var(--color-primary-soft) 70%, transparent);
+  }
+}
+
+.card__check {
+  margin-top: 3px;
+}
+
+.card__main,
+.card__side {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card__side {
+  justify-items: end;
+  gap: var(--space-1);
+}
+
+.card__client {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__main .number,
+.card__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__main .number {
+  font-size: var(--text-sm);
+}
+
+.card__meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.card__amount {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.card__menu {
+  margin: -6px -6px 0 0;
+}

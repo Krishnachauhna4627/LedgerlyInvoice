@@ -1,0 +1,56 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="item-name">Item / service name *</label>
+    <input id="item-name" class="input" formControlName="name" autocomplete="off"
+      [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="item-name-error" />
+    @if (errorFor('name'); as message) {
+      <span id="item-name-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="item-hsn">HSN/SAC</label>
+      <input id="item-hsn" class="input" formControlName="hsnSac" autocomplete="off" inputmode="numeric"
+        [class.is-invalid]="errorFor('hsnSac')" [attr.aria-invalid]="!!errorFor('hsnSac')" aria-describedby="item-hsn-error" />
+      @if (errorFor('hsnSac'); as message) {
+        <span id="item-hsn-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="item-rate">Rate (₹) *</label>
+      <input id="item-rate" class="input" type="number" formControlName="unitPrice" min="0" step="0.01" inputmode="decimal"
+        [class.is-invalid]="errorFor('unitPrice')" [attr.aria-invalid]="!!errorFor('unitPrice')" aria-describedby="item-rate-error" />
+      @if (errorFor('unitPrice'); as message) {
+        <span id="item-rate-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="item-gst">GST % *</label>
+      <input id="item-gst" class="input" type="number" formControlName="gstRate" min="0" max="100" step="0.01"
+        inputmode="decimal" list="item-gst-rates"
+        [class.is-invalid]="errorFor('gstRate')" [attr.aria-invalid]="!!errorFor('gstRate')" aria-describedby="item-gst-error" />
+      <datalist id="item-gst-rates">
+        @for (rate of rates; track rate) {
+          <option [value]="rate"></option>
+        }
+      </datalist>
+      @if (errorFor('gstRate'); as message) {
+        <span id="item-gst-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : item() ? 'Save changes' : 'Add item' }}
+    </button>
+  </div>
+</form>

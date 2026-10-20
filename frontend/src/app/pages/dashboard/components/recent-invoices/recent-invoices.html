@@ -1,8 +1,61 @@
-<section class="card">
-  <h2 class="title">Recent invoices</h2>
-  <div class="empty">
-    <span class="empty__icon"><app-icon name="file-text" [size]="28" [strokeWidth]="1.75" /></span>
-    <p class="empty__title">No invoices yet</p>
-    <p class="empty__text">Your latest invoices will show up here once you create them.</p>
+<section class="panel" aria-labelledby="recent-title">
+  <div class="head">
+    <h2 id="recent-title">Recent invoices</h2>
+    @if (invoices().length) {
+      <a class="view-all" routerLink="/invoices">View all <app-icon name="arrow-right" [size]="14" /></a>
+    }
   </div>
+
+  @if (invoices().length) {
+    <div class="table-scroll wide">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Invoice ID</th>
+            <th scope="col">Customer</th>
+            <th scope="col" class="num">Amount due</th>
+            <th scope="col">Status</th>
+            <th scope="col">Product</th>
+            <th scope="col">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inv of invoices(); track inv.id) {
+            <tr>
+              <td><a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a></td>
+              <td class="strong">{{ inv.clientName }}</td>
+              <td class="num strong">{{ inv.grandTotal | inr }}</td>
+              <td><app-status-badge [status]="inv.displayStatus" /></td>
+              <td class="muted">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'item' : 'items' }}</td>
+              <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="cards">
+      @for (inv of invoices(); track inv.id) {
+        <li>
+          <a class="card" [routerLink]="['/invoices', inv.id]">
+            <span class="card__main">
+              <span class="card__client">{{ inv.clientName }}</span>
+              <span class="card__meta">#{{ inv.invoiceNumber }} · {{ inv.invoiceDate | date: 'd MMM y' }}</span>
+            </span>
+            <span class="card__side">
+              <span class="card__amount">{{ inv.grandTotal | inr }}</span>
+              <app-status-badge [status]="inv.displayStatus" />
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="empty-state">
+      <span class="empty-icon"><app-icon name="file-text" [size]="28" [strokeWidth]="1.75" /></span>
+      <p class="empty-state__title">No invoices yet</p>
+      <p>Your latest invoices will show up here once you create them.</p>
+      <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create invoice</a>
+    </div>
+  }
 </section>
