@@ -95,10 +95,15 @@ src/app/
     pipes/  directives/
   layout/                   # header, footer, nav, shells used by many pages
     site-header/            # public website header (desktop nav + mobile menu)
+    app-topbar/             # header for logged-in pages (user, company, log out)
   pages/
     landing/                # Module 1 — public website
       landing.ts | .html | .scss | .spec.ts
       components/           # hero, product-preview, features, how-it-works, cta
+    auth/                   # Module 2 — /login: login + signup on one page
+      components/           # login-form, signup-form
+    dashboard/              # Module 3 — /dashboard, first page after login
+      components/           # stat-cards, recent-invoices, quick-actions
     <next-page>/            # each new page gets its own folder
   app.routes.ts             # all top-level routes
 ```
@@ -108,6 +113,8 @@ src/app/
 ```ts
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/landing/landing').then(m => m.Landing) },
+  { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./pages/auth/auth').then(m => m.Auth) },
+  { path: 'dashboard', canActivate: [authGuard], loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
   { path: '**', redirectTo: '' },
 ];
 ```
@@ -128,5 +135,18 @@ ng generate component shared/components/<name>
 - Use the new control flow (`@if`, `@for`, `@switch`) in templates.
 - File names follow the Angular 22 default (`landing.ts`, not `landing.component.ts`).
 - Component styles stay small (the build budget warns at 4kB per component); shared styles go in `src/styles/`.
-- API calls go through services in `core/` (or a feature service), never directly from a page component. The backend runs at `http://localhost:3000/api`.
+- API calls go through services in `core/` (or a feature service), never directly from a page component. Always call relative `/api/...` URLs; in development `proxy.conf.json` forwards them to the backend on `http://localhost:3000`.
+- Show API failures with `toApiError()` (`core/api/api-error.ts`): its `message` goes in a `.form-alert`, its `fieldErrors` onto the matching form controls.
+
+## 5. Authentication
+
+- `AuthService` (`core/auth/`) owns the session: token in localStorage, current user in the `user` signal. `authInterceptor` adds `Authorization: Bearer <token>` to `/api/` calls and sends the user to `/login` on a 401.
+- Every page that needs a logged-in user uses `canActivate: [authGuard]`; it loads the user before the page renders, so the page can read `AuthService.user()` directly. Logged-in pages use `<app-topbar />`.
+- `/login` uses `guestGuard` (logged-in users go straight to `/dashboard`).
+
+## 6. Forms
+
+- Reactive forms (`NonNullableFormBuilder`) with the shared classes from `src/styles/_forms.scss`: `.field`, `.field__label`, `.input` (+ `.is-invalid`), `.field__error`, `.form-alert`.
+- Every input has a `<label for>`, the right `autocomplete`, and `aria-invalid` / `aria-describedby` pointing at its error.
+- Show a field's error once it is touched or the form was submitted. Client-side rules mirror the backend's, but the backend is the authority.
 - Data tables (database schema) are owned by the backend; see `../backend/CLAUDE.md` for the migration rule.

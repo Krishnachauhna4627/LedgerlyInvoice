@@ -1,0 +1,50 @@
+<h1 class="title">Welcome back</h1>
+<p class="subtitle">Log in to manage your invoices.</p>
+
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="login-username">Username</label>
+    <input
+      id="login-username"
+      class="input"
+      formControlName="username"
+      autocomplete="username"
+      autocapitalize="none"
+      spellcheck="false"
+      [class.is-invalid]="showError('username')"
+      [attr.aria-invalid]="showError('username')"
+      aria-describedby="login-username-error"
+    />
+    @if (showError('username')) {
+      <span id="login-username-error" class="field__error">Username is required.</span>
+    }
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="login-password">Password</label>
+    <input
+      id="login-password"
+      class="input"
+      type="password"
+      formControlName="password"
+      autocomplete="current-password"
+      [class.is-invalid]="showError('password')"
+      [attr.aria-invalid]="showError('password')"
+      aria-describedby="login-password-error"
+    />
+    @if (showError('password')) {
+      <span id="login-password-error" class="field__error">Password is required.</span>
+    }
+  </div>
+
+  <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+    {{ submitting() ? 'Logging in…' : 'Log in' }}
+  </button>
+</form>
+
+<p class="divider">New to Ledgerly?</p>
+<button type="button" class="btn btn--ghost btn--block" (click)="signupRequested.emit()">Sign up</button>

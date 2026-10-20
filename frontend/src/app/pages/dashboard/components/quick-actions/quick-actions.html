@@ -1,0 +1,15 @@
+<section class="card">
+  <h2 class="title">Get started</h2>
+  <ul class="list">
+    @for (action of actions; track action.title) {
+      <li class="action">
+        <span class="icon"><app-icon [name]="action.icon" [size]="20" /></span>
+        <span class="text">
+          <span class="action__title">{{ action.title }}</span>
+          <span class="action__desc">{{ action.text }}</span>
+        </span>
+        <span class="badge">Soon</span>
+      </li>
+    }
+  </ul>
+</section>

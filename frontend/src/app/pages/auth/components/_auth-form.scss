@@ -1,0 +1,37 @@
+// Shared by the login and signup forms.
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+}
+
+.subtitle {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.form .btn--primary {
+  margin-top: var(--space-2);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block: var(--space-6) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+}

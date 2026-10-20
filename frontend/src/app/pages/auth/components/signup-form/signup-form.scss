@@ -1,0 +1,16 @@
+@use 'breakpoints' as bp;
+@use '../auth-form';
+
+.row {
+  display: grid;
+  gap: var(--space-4);
+
+  @include bp.up(sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

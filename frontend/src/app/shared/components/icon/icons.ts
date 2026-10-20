@@ -1,5 +1,6 @@
 // Outline icons (Lucide, ISC license) on a 24×24 grid, stored as path data only.
 export const ICONS = {
+  'arrow-left': ['M19 12H5', 'm12 19-7-7 7-7'],
   'arrow-right': ['M5 12h14', 'm12 5 7 7-7 7'],
   'bar-chart': ['M12 20V10', 'M18 20V4', 'M6 20v-4'],
   box: [
@@ -29,12 +30,14 @@ export const ICONS = {
     'M16 13H8',
     'M16 17H8',
   ],
+  'log-out': ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'm16 17 5-5-5-5', 'M21 12H9'],
   menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   percent: [
     'M19 5 5 19',
     'M4 6.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0',
     'M15 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0',
   ],
+  rupee: ['M6 3h12', 'M6 8h12', 'm6 13 8.5 8', 'M6 13h3', 'M9 13c6.667 0 6.667-10 0-10'],
   plus: ['M5 12h14', 'M12 5v14'],
   receipt: [
     'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z',

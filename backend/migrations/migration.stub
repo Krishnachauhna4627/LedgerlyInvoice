@@ -1,0 +1,7 @@
+export async function up(knex) {
+  // await knex.schema.createTable('table_name', (table) => { ... });
+}
+
+export async function down(knex) {
+  // await knex.schema.dropTable('table_name');
+}

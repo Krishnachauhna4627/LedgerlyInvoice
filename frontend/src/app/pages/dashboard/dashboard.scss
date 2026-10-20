@@ -1,0 +1,58 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+
+.page {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-6) var(--space-12);
+
+  @include bp.up(md) {
+    gap: var(--space-8);
+    padding-top: var(--space-8);
+  }
+}
+
+.welcome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  h1 {
+    font-size: clamp(var(--text-2xl), 3vw, var(--text-3xl));
+    font-weight: 800;
+  }
+
+  .btn {
+    @include bp.down(sm) {
+      width: 100%;
+    }
+  }
+}
+
+.company {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.lead {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+
+  @include bp.up(lg) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}

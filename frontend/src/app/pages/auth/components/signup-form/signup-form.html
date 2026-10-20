@@ -1,0 +1,106 @@
+<h1 class="title">Create your account</h1>
+<p class="subtitle">Tell us about you and your business.</p>
+
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="signup-name">Full name</label>
+      <input
+        id="signup-name"
+        class="input"
+        formControlName="name"
+        autocomplete="name"
+        [class.is-invalid]="errorFor('name')"
+        [attr.aria-invalid]="!!errorFor('name')"
+        aria-describedby="signup-name-error"
+      />
+      @if (errorFor('name'); as message) {
+        <span id="signup-name-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-username">Username</label>
+      <input
+        id="signup-username"
+        class="input"
+        formControlName="username"
+        autocomplete="username"
+        autocapitalize="none"
+        spellcheck="false"
+        [class.is-invalid]="errorFor('username')"
+        [attr.aria-invalid]="!!errorFor('username')"
+        aria-describedby="signup-username-error"
+      />
+      @if (errorFor('username'); as message) {
+        <span id="signup-username-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="signup-phone">Phone number</label>
+      <input
+        id="signup-phone"
+        class="input"
+        type="tel"
+        formControlName="phone"
+        autocomplete="tel"
+        inputmode="tel"
+        [class.is-invalid]="errorFor('phone')"
+        [attr.aria-invalid]="!!errorFor('phone')"
+        aria-describedby="signup-phone-error"
+      />
+      @if (errorFor('phone'); as message) {
+        <span id="signup-phone-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-company">Company</label>
+      <input
+        id="signup-company"
+        class="input"
+        formControlName="company"
+        autocomplete="organization"
+        [class.is-invalid]="errorFor('company')"
+        [attr.aria-invalid]="!!errorFor('company')"
+        aria-describedby="signup-company-error"
+      />
+      @if (errorFor('company'); as message) {
+        <span id="signup-company-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="signup-password">Password</label>
+    <input
+      id="signup-password"
+      class="input"
+      type="password"
+      formControlName="password"
+      autocomplete="new-password"
+      [class.is-invalid]="errorFor('password')"
+      [attr.aria-invalid]="!!errorFor('password')"
+      aria-describedby="signup-password-error"
+    />
+    @if (errorFor('password'); as message) {
+      <span id="signup-password-error" class="field__error">{{ message }}</span>
+    } @else {
+      <span id="signup-password-error" class="hint">At least 8 characters.</span>
+    }
+  </div>
+
+  <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+    {{ submitting() ? 'Creating account…' : 'Create account' }}
+  </button>
+</form>
+
+<p class="divider">Already have an account?</p>
+<button type="button" class="btn btn--ghost btn--block" (click)="loginRequested.emit()">Log in</button>

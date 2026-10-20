@@ -1,0 +1,37 @@
+<div class="page">
+  <aside class="brand-panel">
+    <a class="brand" routerLink="/">
+      <app-logo-mark [size]="44" />
+      <span class="brand__name">Ledgerly Invoices</span>
+    </a>
+    <div class="brand-panel__copy">
+      <h2>GST billing, without the headache.</h2>
+      <ul>
+        @for (perk of perks; track perk) {
+          <li>
+            <span class="tick"><app-icon name="check" [size]="13" [strokeWidth]="3" /></span>
+            {{ perk }}
+          </li>
+        }
+      </ul>
+    </div>
+  </aside>
+
+  <main class="form-side">
+    <div class="top">
+      <a class="brand brand--compact" routerLink="/">
+        <app-logo-mark [size]="36" />
+        <span class="brand__name">Ledgerly Invoices</span>
+      </a>
+      <a class="back" routerLink="/"><app-icon name="arrow-left" [size]="16" /> Back to website</a>
+    </div>
+
+    <div class="card">
+      @if (mode() === 'login') {
+        <app-login-form (signupRequested)="mode.set('signup')" />
+      } @else {
+        <app-signup-form (loginRequested)="mode.set('login')" />
+      }
+    </div>
+  </main>
+</div>
