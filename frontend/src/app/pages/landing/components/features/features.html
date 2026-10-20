@@ -1,0 +1,12 @@
+<div class="container">
+  <h2 class="sr-only">Features</h2>
+  <ul class="grid">
+    @for (feature of features; track feature.title) {
+      <li class="feature">
+        <span class="icon"><app-icon [name]="feature.icon" [size]="28" [strokeWidth]="1.75" /></span>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.text }}</p>
+      </li>
+    }
+  </ul>
+</div>

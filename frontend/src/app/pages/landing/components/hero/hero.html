@@ -1,0 +1,33 @@
+<div class="container grid">
+  <div class="copy">
+    <span class="eyebrow">Simple <span aria-hidden="true">•</span> Secure <span aria-hidden="true">•</span> GST Ready</span>
+
+    <h1 class="title">
+      GST Billing,
+      <span class="accent">without the headache.</span>
+    </h1>
+
+    <p class="lead">
+      Create professional invoices, manage customers and items, calculate GST automatically and export
+      to PDF or Excel — all in one simple platform.
+    </p>
+
+    <div class="actions">
+      <a class="btn btn--primary btn--lg" routerLink="/" fragment="features">
+        Explore Ledgerly <app-icon name="arrow-right" />
+      </a>
+      <span class="note">No setup. Start using now.</span>
+    </div>
+
+    <ul class="perks">
+      @for (perk of perks; track perk) {
+        <li>
+          <span class="tick"><app-icon name="check" [size]="13" [strokeWidth]="3" /></span>
+          {{ perk }}
+        </li>
+      }
+    </ul>
+  </div>
+
+  <app-product-preview />
+</div>

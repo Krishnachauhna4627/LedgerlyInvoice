@@ -1,0 +1,55 @@
+<div class="field">
+  <span>Customer:</span>
+  <span class="input muted">Search Customer <app-icon name="chevron-down" [size]="12" /></span>
+</div>
+
+<div class="row">
+  <div class="field">
+    <span>Invoice No:</span>
+    <span class="input">INV-001</span>
+  </div>
+  <div class="field">
+    <span>Date:</span>
+    <span class="input">20/10/2026 <app-icon name="calendar" [size]="12" /></span>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>HSN/SAC</th>
+        <th>Qty</th>
+        <th>Rate (₹)</th>
+        <th>GST %</th>
+        <th class="num">Amount</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of items; track item.name) {
+        <tr>
+          <td class="muted">{{ item.name }}</td>
+          <td>{{ item.hsn }}</td>
+          <td>{{ item.qty }}</td>
+          <td>{{ item.rate }}</td>
+          <td>{{ item.gstRate }}%</td>
+          <td class="num">{{ item.qty * item.rate | number: '1.2-2' }}</td>
+          <td><app-icon name="trash" [size]="12" /></td>
+        </tr>
+      }
+      <tr class="muted">
+        <td><app-icon name="chevron-down" [size]="12" /></td>
+        <td><app-icon name="chevron-down" [size]="12" /></td>
+        <td></td>
+        <td>0.00</td>
+        <td><app-icon name="chevron-down" [size]="12" /></td>
+        <td class="num">0.00</td>
+        <td><app-icon name="trash" [size]="12" /></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<span class="add"><app-icon name="plus" [size]="12" /> Add Item</span>

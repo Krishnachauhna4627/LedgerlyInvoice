@@ -1,0 +1,128 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--header-height);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.brand__name {
+  display: block;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.brand__tag {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.nav {
+  display: none;
+  gap: var(--space-10);
+
+  @include bp.up(lg) {
+    display: flex;
+  }
+
+  a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: var(--header-height);
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover,
+    &.active {
+      color: var(--color-primary);
+    }
+
+    &.active::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 -1px;
+      height: 2px;
+      background: var(--color-primary);
+    }
+  }
+}
+
+.cta {
+  display: none;
+
+  @include bp.up(lg) {
+    display: inline-flex;
+  }
+}
+
+.menu-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+
+  @include bp.up(lg) {
+    display: none;
+  }
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+
+  @include bp.up(lg) {
+    display: none;
+  }
+
+  a:not(.btn) {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+
+    &.active {
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+    }
+  }
+
+  .btn {
+    margin-top: var(--space-3);
+  }
+}

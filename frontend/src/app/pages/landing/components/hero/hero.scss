@@ -1,0 +1,87 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+  overflow: hidden;
+  background:
+    radial-gradient(55% 60% at 90% 0%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg-tint) 100%);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-10);
+  padding-block: var(--space-10) var(--space-12);
+
+  @include bp.up(xl) {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-12);
+    padding-block: var(--space-16);
+  }
+}
+
+.title {
+  margin-top: var(--space-5);
+  font-size: clamp(2.25rem, 3vw + 0.5rem, 3.125rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.accent {
+  display: block;
+  color: var(--color-primary);
+}
+
+.lead {
+  margin-top: var(--space-5);
+  max-width: 34rem;
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-8);
+
+  .btn {
+    width: 100%;
+
+    @include bp.up(sm) {
+      width: auto;
+    }
+  }
+}
+
+.note {
+  color: var(--color-text-muted);
+}
+
+.perks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-8);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+}
+
+.tick {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

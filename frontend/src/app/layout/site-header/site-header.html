@@ -1,0 +1,54 @@
+<div class="container bar">
+  <a class="brand" routerLink="/" (click)="closeMenu()">
+    <app-logo-mark [size]="44" />
+    <span>
+      <span class="brand__name">Ledgerly Invoices</span>
+      <span class="brand__tag">GST Billing Made Simple</span>
+    </span>
+  </a>
+
+  <nav class="nav" aria-label="Main">
+    @for (link of links; track link.label) {
+      <a
+        [routerLink]="'/'"
+        [fragment]="link.fragment"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="activeOptions"
+        >{{ link.label }}</a
+      >
+    }
+  </nav>
+
+  <a class="btn btn--primary cta" routerLink="/" fragment="features">
+    Explore Ledgerly <app-icon name="arrow-right" [size]="18" />
+  </a>
+
+  <button
+    type="button"
+    class="menu-btn"
+    [attr.aria-expanded]="menuOpen()"
+    aria-controls="site-menu"
+    [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'"
+    (click)="toggleMenu()"
+  >
+    <app-icon [name]="menuOpen() ? 'x' : 'menu'" [size]="22" />
+  </button>
+</div>
+
+@if (menuOpen()) {
+  <nav id="site-menu" class="drawer container" aria-label="Main">
+    @for (link of links; track link.label) {
+      <a
+        [routerLink]="'/'"
+        [fragment]="link.fragment"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="activeOptions"
+        (click)="closeMenu()"
+        >{{ link.label }}</a
+      >
+    }
+    <a class="btn btn--primary" routerLink="/" fragment="features" (click)="closeMenu()">
+      Explore Ledgerly <app-icon name="arrow-right" [size]="18" />
+    </a>
+  </nav>
+}

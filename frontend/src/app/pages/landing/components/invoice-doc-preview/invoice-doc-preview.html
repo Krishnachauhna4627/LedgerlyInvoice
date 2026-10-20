@@ -1,0 +1,74 @@
+<div class="doc">
+  <div class="head">
+    <div class="brand">
+      <app-logo-mark [size]="24" />
+      <strong>Ledgerly Invoices</strong>
+    </div>
+    <strong class="type">TAX INVOICE</strong>
+  </div>
+
+  <div class="meta">
+    <div>
+      <strong>Customer Details:</strong>
+      <p class="muted">
+        ABC Traders<br />
+        123, Industrial Area<br />
+        Ludhiana, Punjab – 141001<br />
+        GSTIN: 03ABCDE1234F1Z5
+      </p>
+    </div>
+    <dl>
+      <dt>Invoice No:</dt>
+      <dd>INV-001</dd>
+      <dt>Date:</dt>
+      <dd>20/10/2026</dd>
+      <dt>State:</dt>
+      <dd>Punjab</dd>
+    </dl>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Description</th>
+          <th>HSN/SAC</th>
+          <th>Qty</th>
+          <th class="num">Rate</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items; track item.name; let i = $index) {
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.hsn }}</td>
+            <td>{{ item.qty }}</td>
+            <td class="num">{{ item.rate | number: '1.2-2' }}</td>
+            <td class="num">{{ item.qty * item.rate | number: '1.2-2' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <dl class="totals">
+    <dt>Subtotal</dt>
+    <dd>{{ totals.subtotal | number: '1.2-2' }}</dd>
+    <dt>CGST (9%)</dt>
+    <dd>{{ totals.cgst | number: '1.2-2' }}</dd>
+    <dt>SGST (9%)</dt>
+    <dd>{{ totals.sgst | number: '1.2-2' }}</dd>
+    <dt class="grand">Total</dt>
+    <dd class="grand">{{ totals.total | number: '1.2-2' }}</dd>
+  </dl>
+
+  <div class="actions">
+    <span class="mini-btn mini-btn--primary">Save Invoice</span>
+    @for (action of actions; track action) {
+      <span class="mini-btn">{{ action }}</span>
+    }
+  </div>
+</div>

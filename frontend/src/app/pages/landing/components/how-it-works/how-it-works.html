@@ -1,0 +1,23 @@
+<div class="container grid">
+  <div class="intro">
+    <span class="eyebrow">Quick &amp; Easy</span>
+    <h2>How it works</h2>
+    <p>Start creating GST invoices in just a few steps.</p>
+  </div>
+
+  <ol class="steps">
+    @for (step of steps; track step.title; let i = $index, last = $last) {
+      <li class="step">
+        <span class="num">{{ i + 1 }}</span>
+        <div>
+          <span class="icon"><app-icon [name]="step.icon" [size]="26" [strokeWidth]="1.75" /></span>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.text }}</p>
+        </div>
+        @if (!last) {
+          <span class="arrow"><app-icon name="arrow-right" [size]="22" /></span>
+        }
+      </li>
+    }
+  </ol>
+</div>

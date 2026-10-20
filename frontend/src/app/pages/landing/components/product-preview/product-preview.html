@@ -1,0 +1,37 @@
+<div class="window" role="img" aria-label="Preview of the Ledgerly invoice editor showing a GST tax invoice">
+  <div class="bar" aria-hidden="true">
+    <span class="dot dot--red"></span>
+    <span class="dot dot--yellow"></span>
+    <span class="dot dot--green"></span>
+  </div>
+
+  <div aria-hidden="true">
+    <div class="app-head">
+      <div class="app-brand">
+        <app-logo-mark [size]="28" />
+        <strong>Ledgerly Invoices</strong>
+      </div>
+      <div class="app-biz">
+        <div class="biz-text">
+          <span>Business Name</span>
+          <small>GSTIN: 03ABCDE1234F1Z5</small>
+        </div>
+        <span class="avatar"><app-icon name="user" [size]="14" /></span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      @for (tab of tabs; track tab.label) {
+        <span class="tab" [class.tab--active]="$first">
+          <app-icon [name]="tab.icon" [size]="12" />
+          {{ tab.label }}
+        </span>
+      }
+    </div>
+
+    <div class="panes">
+      <app-invoice-form-preview />
+      <app-invoice-doc-preview />
+    </div>
+  </div>
+</div>
