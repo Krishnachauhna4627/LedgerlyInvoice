@@ -17,14 +17,14 @@ export class LoginForm {
   readonly signupRequested = output();
 
   protected readonly form = inject(NonNullableFormBuilder).group({
-    username: ['', Validators.required],
+    login: ['', Validators.required],
     password: ['', Validators.required],
   });
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected showError(field: 'username' | 'password'): boolean {
+  protected showError(field: 'login' | 'password'): boolean {
     const control = this.form.controls[field];
     return control.invalid && (control.touched || this.submitted());
   }

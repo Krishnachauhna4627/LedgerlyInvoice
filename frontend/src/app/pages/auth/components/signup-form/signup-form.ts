@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { toApiError } from '../../../../core/api/api-error';
 import { AuthService } from '../../../../core/auth/auth.service';
 
-type Field = 'name' | 'username' | 'phone' | 'company' | 'password';
+type Field = 'name' | 'username' | 'email' | 'phone' | 'company' | 'password';
 
 // Same rules as the backend (auth.validation.js); the backend has the final say.
 const MESSAGES: Record<Field, Record<string, string>> = {
@@ -12,6 +12,11 @@ const MESSAGES: Record<Field, Record<string, string>> = {
   username: {
     required: 'Username is required.',
     pattern: 'Use 3–30 letters, numbers, dots or underscores.',
+  },
+  email: {
+    required: 'Email is required.',
+    email: 'Enter a valid email address.',
+    maxlength: 'Email is too long.',
   },
   phone: {
     required: 'Phone number is required.',
@@ -40,6 +45,7 @@ export class SignupForm {
   protected readonly form = inject(NonNullableFormBuilder).group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     username: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9._]{3,30}$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     phone: ['', [Validators.required, Validators.pattern(/^\+?(?:[\s-]*\d){10,15}[\s-]*$/)]],
     company: ['', [Validators.required, Validators.maxLength(150)]],
     password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],

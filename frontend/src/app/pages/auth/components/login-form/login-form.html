@@ -7,20 +7,20 @@
   }
 
   <div class="field">
-    <label class="field__label" for="login-username">Username</label>
+    <label class="field__label" for="login-id">Username or email</label>
     <input
-      id="login-username"
+      id="login-id"
       class="input"
-      formControlName="username"
+      formControlName="login"
       autocomplete="username"
       autocapitalize="none"
       spellcheck="false"
-      [class.is-invalid]="showError('username')"
-      [attr.aria-invalid]="showError('username')"
-      aria-describedby="login-username-error"
+      [class.is-invalid]="showError('login')"
+      [attr.aria-invalid]="showError('login')"
+      aria-describedby="login-id-error"
     />
-    @if (showError('username')) {
-      <span id="login-username-error" class="field__error">Username is required.</span>
+    @if (showError('login')) {
+      <span id="login-id-error" class="field__error">Username or email is required.</span>
     }
   </div>
 

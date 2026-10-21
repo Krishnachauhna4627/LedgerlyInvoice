@@ -44,6 +44,28 @@
 
   <div class="row">
     <div class="field">
+      <label class="field__label" for="signup-email">Email</label>
+      <input
+        id="signup-email"
+        class="input"
+        type="email"
+        formControlName="email"
+        autocomplete="email"
+        inputmode="email"
+        autocapitalize="none"
+        spellcheck="false"
+        [class.is-invalid]="errorFor('email')"
+        [attr.aria-invalid]="!!errorFor('email')"
+        aria-describedby="signup-email-error"
+      />
+      @if (errorFor('email'); as message) {
+        <span id="signup-email-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="signup-email-error" class="hint">You can log in with it too.</span>
+      }
+    </div>
+
+    <div class="field">
       <label class="field__label" for="signup-phone">Phone number</label>
       <input
         id="signup-phone"
@@ -60,7 +82,9 @@
         <span id="signup-phone-error" class="field__error">{{ message }}</span>
       }
     </div>
+  </div>
 
+  <div class="row">
     <div class="field">
       <label class="field__label" for="signup-company">Company</label>
       <input
@@ -76,25 +100,25 @@
         <span id="signup-company-error" class="field__error">{{ message }}</span>
       }
     </div>
-  </div>
 
-  <div class="field">
-    <label class="field__label" for="signup-password">Password</label>
-    <input
-      id="signup-password"
-      class="input"
-      type="password"
-      formControlName="password"
-      autocomplete="new-password"
-      [class.is-invalid]="errorFor('password')"
-      [attr.aria-invalid]="!!errorFor('password')"
-      aria-describedby="signup-password-error"
-    />
-    @if (errorFor('password'); as message) {
-      <span id="signup-password-error" class="field__error">{{ message }}</span>
-    } @else {
-      <span id="signup-password-error" class="hint">At least 8 characters.</span>
-    }
+    <div class="field">
+      <label class="field__label" for="signup-password">Password</label>
+      <input
+        id="signup-password"
+        class="input"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+        [class.is-invalid]="errorFor('password')"
+        [attr.aria-invalid]="!!errorFor('password')"
+        aria-describedby="signup-password-error"
+      />
+      @if (errorFor('password'); as message) {
+        <span id="signup-password-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="signup-password-error" class="hint">At least 8 characters.</span>
+      }
+    </div>
   </div>
 
   <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
