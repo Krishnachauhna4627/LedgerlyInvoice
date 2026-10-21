@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth/auth.guards';
+import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
 
 const page = (title: string) => `${title} — Ledgerly Invoices`;
 
@@ -61,6 +61,25 @@ export const routes: Routes = [
         path: 'settings',
         title: page('Settings'),
         loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings),
+      },
+      // Super user only.
+      {
+        path: 'admin/users',
+        canActivate: [adminGuard],
+        title: page('Users'),
+        loadComponent: () => import('./pages/admin-users/admin-users').then((m) => m.AdminUsers),
+      },
+      {
+        path: 'admin/users/:id',
+        canActivate: [adminGuard],
+        title: page('User'),
+        loadComponent: () => import('./pages/admin-user-detail/admin-user-detail').then((m) => m.AdminUserDetail),
+      },
+      {
+        path: 'admin/invoices/:id',
+        canActivate: [adminGuard],
+        title: page('Invoice'),
+        loadComponent: () => import('./pages/admin-invoice-view/admin-invoice-view').then((m) => m.AdminInvoiceView),
       },
     ],
   },

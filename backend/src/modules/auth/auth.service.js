@@ -15,6 +15,7 @@ function toPublicUser(row) {
     username: row.username,
     email: row.email,
     phone: row.phone,
+    isAdmin: Boolean(row.is_admin),
     company: { id: row.company_id, name: row.company_name },
   };
 }
@@ -23,7 +24,16 @@ export async function getUserById(id) {
   const row = await db('users')
     .join('companies', 'companies.id', 'users.company_id')
     .where('users.id', id)
-    .first('users.id', 'users.name', 'users.username', 'users.email', 'users.phone', 'users.company_id', 'companies.name as company_name');
+    .first(
+      'users.id',
+      'users.name',
+      'users.username',
+      'users.email',
+      'users.phone',
+      'users.is_admin',
+      'users.company_id',
+      'companies.name as company_name',
+    );
   return row ? toPublicUser(row) : null;
 }
 

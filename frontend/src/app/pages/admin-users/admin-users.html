@@ -1,0 +1,91 @@
+<app-page-header title="Users" subtitle="Every account, its company and what it has created." />
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading users…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load users</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else {
+    <div class="toolbar">
+      <label class="search-box">
+        <span class="sr-only">Search users</span>
+        <app-icon name="search" [size]="16" />
+        <input class="input" type="search" placeholder="Search by name, username, email or company" [value]="search()" (input)="search.set($any($event.target).value)" />
+      </label>
+      <span class="count">{{ filtered().length }} of {{ users().length }}</span>
+    </div>
+
+    <div class="panel">
+      @if (filtered().length === 0) {
+        <div class="empty-state"><p>No users match "{{ search() }}".</p></div>
+      } @else {
+        <div class="table-scroll desktop">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">User</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Company</th>
+                <th scope="col" class="num">Clients</th>
+                <th scope="col" class="num">Items</th>
+                <th scope="col" class="num">Invoices</th>
+                <th scope="col" class="num">Billed</th>
+                <th scope="col">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of filtered(); track u.id) {
+                <tr>
+                  <td>
+                    <a class="strong link" [routerLink]="['/admin/users', u.id]">{{ u.name }}</a>
+                    @if (u.isAdmin) {
+                      <span class="role">Admin</span>
+                    }
+                    <span class="sub">&#64;{{ u.username }}</span>
+                  </td>
+                  <td>
+                    <span [class.muted]="!u.email">{{ u.email || 'No email' }}</span>
+                    <span class="sub">{{ u.phone }}</span>
+                  </td>
+                  <td>
+                    {{ u.company.name }}
+                    <span class="sub">{{ u.company.gstin || 'No GSTIN' }}</span>
+                  </td>
+                  <td class="num">{{ u.stats.clients }}</td>
+                  <td class="num">{{ u.stats.items }}</td>
+                  <td class="num">{{ u.stats.invoices }}</td>
+                  <td class="num strong">{{ u.stats.billedTotal | inr }}</td>
+                  <td class="muted">{{ u.createdAt | date: 'd MMM y' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <ul class="cards">
+          @for (u of filtered(); track u.id) {
+            <li>
+              <a class="card" [routerLink]="['/admin/users', u.id]">
+                <span class="card__title">
+                  {{ u.name }}
+                  @if (u.isAdmin) {
+                    <span class="role">Admin</span>
+                  }
+                </span>
+                <span class="card__meta">&#64;{{ u.username }} · {{ u.email || 'No email' }}</span>
+                <span class="card__meta">{{ u.company.name }}</span>
+                <span class="card__meta">
+                  {{ u.stats.invoices }} invoices · {{ u.stats.clients }} clients · {{ u.stats.billedTotal | inr }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

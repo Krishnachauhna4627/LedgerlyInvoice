@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { config } from './config.js';
 import { errorHandler, notFound } from './middleware/error-handler.js';
+import { adminRouter } from './modules/admin/admin.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { clientsRouter } from './modules/clients/clients.js';
 import { companyRouter } from './modules/company/company.js';
@@ -24,6 +25,7 @@ app.use('/api/clients', clientsRouter);
 app.use('/api/items', itemsRouter);
 app.use('/api/invoices', invoicesRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/admin', adminRouter);
 
 app.use('/api', notFound);
 app.use(errorHandler);

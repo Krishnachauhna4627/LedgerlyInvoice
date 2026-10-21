@@ -161,3 +161,24 @@ export interface SalesExportRow {
   grandTotal: number;
   lines: Omit<InvoiceLine, 'id' | 'itemId'>[];
 }
+
+// Admin (super user) views across every company.
+export interface AdminUser {
+  id: number;
+  name: string;
+  username: string;
+  email: string | null;
+  phone: string;
+  isAdmin: boolean;
+  createdAt: string;
+  company: { id: number; name: string; gstin: string | null };
+  stats: { clients: number; items: number; invoices: number; billedTotal: number };
+}
+
+export interface AdminUserDetail {
+  user: AdminUser;
+  company: Company;
+  clients: Client[];
+  items: Item[];
+  invoices: InvoiceListItem[];
+}

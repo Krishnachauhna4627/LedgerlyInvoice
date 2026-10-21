@@ -129,6 +129,15 @@ async function findInvoiceRow(companyId, id) {
   return row;
 }
 
+// Admin only: any company's invoice.
+export async function getAnyInvoice(id) {
+  const row = await db('invoices').where({ id }).first('company_id');
+  if (!row) {
+    throw new HttpError(404, 'Invoice not found.');
+  }
+  return getInvoice(row.company_id, id);
+}
+
 export async function getInvoice(companyId, id) {
   const row = await findInvoiceRow(companyId, id);
   const lines = await db('invoice_items').where({ invoice_id: id }).orderBy('position');

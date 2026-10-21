@@ -13,7 +13,8 @@
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "migrate:status": "knex migrate:status",
-    "migrate:make": "knex migrate:make"
+    "migrate:make": "knex migrate:make",
+    "seed": "knex seed:run"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

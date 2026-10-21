@@ -1,0 +1,145 @@
+@if (detail(); as d) {
+  <app-page-header [title]="d.user.name" [subtitle]="'@' + d.user.username + ' · ' + d.company.name">
+    <a class="btn btn--outline btn--sm" routerLink="/admin/users"><app-icon name="arrow-left" [size]="16" /> All users</a>
+  </app-page-header>
+
+  <div class="page-body">
+    <ul class="stats">
+      <li class="panel"><span>Invoices</span><strong>{{ d.user.stats.invoices }}</strong></li>
+      <li class="panel"><span>Billed</span><strong>{{ d.user.stats.billedTotal | inr }}</strong></li>
+      <li class="panel"><span>Clients</span><strong>{{ d.user.stats.clients }}</strong></li>
+      <li class="panel"><span>Items</span><strong>{{ d.user.stats.items }}</strong></li>
+    </ul>
+
+    <div class="details">
+      <section class="panel panel__body">
+        <h2 class="section-title">Account</h2>
+        <dl>
+          <dt>Name</dt><dd>{{ d.user.name }}</dd>
+          <dt>Username</dt><dd>{{ d.user.username }}</dd>
+          <dt>Email</dt><dd>{{ d.user.email || '—' }}</dd>
+          <dt>Phone</dt><dd>{{ d.user.phone }}</dd>
+          <dt>Role</dt><dd>{{ d.user.isAdmin ? 'Admin' : 'User' }}</dd>
+          <dt>Joined</dt><dd>{{ d.user.createdAt | date: 'd MMM y, h:mm a' }}</dd>
+        </dl>
+      </section>
+
+      <section class="panel panel__body">
+        <h2 class="section-title">Company</h2>
+        <dl>
+          <dt>Name</dt><dd>{{ d.company.name }}</dd>
+          <dt>GSTIN</dt><dd>{{ d.company.gstin || '—' }}</dd>
+          <dt>State</dt><dd>{{ d.company.stateCode ? stateLabel(d.company.stateCode) : '—' }}</dd>
+          <dt>Address</dt><dd>{{ d.company.address || '—' }}</dd>
+          <dt>Bank</dt><dd>{{ d.company.bankName || '—' }}</dd>
+          <dt>Account / IFSC</dt><dd>{{ d.company.accountNo || '—' }} / {{ d.company.ifsc || '—' }}</dd>
+        </dl>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2 class="section-title head">Invoices ({{ d.invoices.length }})</h2>
+      @if (d.invoices.length === 0) {
+        <div class="empty-state"><p>No invoices yet.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Invoice</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Date</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="num">Tax</th>
+                <th scope="col" class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of d.invoices; track inv.id) {
+                <tr>
+                  <td><a class="link" [routerLink]="['/admin/invoices', inv.id]">#{{ inv.invoiceNumber }}</a></td>
+                  <td class="strong">{{ inv.clientName }}</td>
+                  <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}</td>
+                  <td><app-status-badge [status]="inv.displayStatus" /></td>
+                  <td class="num">{{ inv.totalTax | inr }}</td>
+                  <td class="num strong">{{ inv.grandTotal | inr }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title head">Clients ({{ d.clients.length }})</h2>
+      @if (d.clients.length === 0) {
+        <div class="empty-state"><p>No clients yet.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">GSTIN</th>
+                <th scope="col">State</th>
+                <th scope="col">Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of d.clients; track c.id) {
+                <tr>
+                  <td class="strong">{{ c.name }}</td>
+                  <td [class.muted]="!c.gstin">{{ c.gstin || '—' }}</td>
+                  <td>{{ stateLabel(c.stateCode) }}</td>
+                  <td class="muted">{{ c.address || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title head">Items ({{ d.items.length }})</h2>
+      @if (d.items.length === 0) {
+        <div class="empty-state"><p>No items yet.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">HSN/SAC</th>
+                <th scope="col" class="num">Rate</th>
+                <th scope="col" class="num">GST %</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of d.items; track item.id) {
+                <tr>
+                  <td class="strong">{{ item.name }}</td>
+                  <td [class.muted]="!item.hsnSac">{{ item.hsnSac || '—' }}</td>
+                  <td class="num">{{ item.unitPrice | inr }}</td>
+                  <td class="num">{{ item.gstRate }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+} @else if (loadError()) {
+  <app-page-header title="User" />
+  <div class="page-body">
+    <div class="panel panel__body">
+      <div class="form-alert" role="alert">{{ loadError() }}</div>
+      <a class="btn btn--outline btn--sm back" routerLink="/admin/users">Back to users</a>
+    </div>
+  </div>
+} @else {
+  <app-page-header title="User" />
+  <div class="page-body"><div class="panel empty-state"><p>Loading user…</p></div></div>
+}

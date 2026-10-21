@@ -1,0 +1,80 @@
+@use 'breakpoints' as bp;
+
+.panel {
+  overflow: hidden;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(lg) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  li {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+  }
+
+  span {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  strong {
+    overflow-wrap: anywhere;
+    font-size: var(--text-xl);
+  }
+}
+
+.details {
+  display: grid;
+  gap: var(--space-5);
+
+  @include bp.up(lg) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+dl {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+dt {
+  color: var(--color-text-muted);
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+// Section titles sitting directly on a table panel.
+.head {
+  margin: 0;
+  padding: var(--space-4);
+}
+
+.link {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.back {
+  margin-top: var(--space-4);
+}

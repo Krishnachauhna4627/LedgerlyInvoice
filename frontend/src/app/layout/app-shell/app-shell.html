@@ -33,6 +33,16 @@
         }
       </a>
     }
+
+    @if (user()?.isAdmin) {
+      <span class="nav__heading">Admin</span>
+      @for (item of adminNav; track item.path) {
+        <a class="nav__link" [routerLink]="item.path" routerLinkActive="active">
+          <app-icon [name]="item.icon" [size]="18" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    }
   </nav>
 
   @if (user(); as user) {

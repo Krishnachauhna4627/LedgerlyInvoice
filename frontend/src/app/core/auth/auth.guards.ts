@@ -13,6 +13,12 @@ export const authGuard: CanActivateFn = () => {
   return auth.loadCurrentUser().pipe(map((user) => (user ? true : router.createUrlTree(['/login']))));
 };
 
+// Admin-only pages (use after authGuard, which has loaded the user). Others go to the dashboard.
+export const adminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  return auth.user()?.isAdmin ? true : inject(Router).createUrlTree(['/dashboard']);
+};
+
 // Login/signup page: already logged-in users go straight to the dashboard.
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

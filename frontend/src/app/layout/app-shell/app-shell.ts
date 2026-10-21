@@ -36,6 +36,8 @@ export class AppShell {
     { label: 'Reports', path: '/reports', icon: 'bar-chart' },
     { label: 'Settings', path: '/settings', icon: 'settings' },
   ];
+  // Only shown to the super user.
+  protected readonly adminNav: NavItem[] = [{ label: 'Users', path: '/admin/users', icon: 'shield' }];
 
   protected readonly user = this.auth.user;
   protected readonly initials = computed(() =>

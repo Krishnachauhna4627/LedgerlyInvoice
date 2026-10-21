@@ -1,0 +1,27 @@
+@if (invoice(); as inv) {
+  <app-page-header class="no-print" [title]="'Invoice ' + inv.invoiceNumber" [subtitle]="inv.seller.name + ' → ' + inv.client.name + ' · ' + (inv.totals.grandTotal | inr)">
+    <app-status-badge [status]="inv.displayStatus" />
+    <button type="button" class="btn btn--outline btn--sm" (click)="back()"><app-icon name="arrow-left" [size]="16" /> Back</button>
+    <button type="button" class="btn btn--primary btn--sm" (click)="print()"><app-icon name="printer" [size]="16" /> Print / Save PDF</button>
+  </app-page-header>
+
+  <div class="page-body">
+    @if (inv.status === 'draft') {
+      <p class="draft-note no-print">This is a draft. It isn't counted in sales reports until it's saved as an invoice.</p>
+    }
+    <div class="sheet">
+      <app-invoice-document [invoice]="inv" />
+    </div>
+  </div>
+} @else if (loadError()) {
+  <app-page-header title="Invoice" />
+  <div class="page-body">
+    <div class="panel panel__body">
+      <div class="form-alert" role="alert">{{ loadError() }}</div>
+      <a class="btn btn--outline btn--sm back" routerLink="/admin/users">Back to users</a>
+    </div>
+  </div>
+} @else {
+  <app-page-header title="Invoice" />
+  <div class="page-body"><div class="panel empty-state"><p>Loading invoice…</p></div></div>
+}
