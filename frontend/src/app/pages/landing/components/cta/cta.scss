@@ -47,3 +47,12 @@
     margin-top: var(--space-2);
   }
 }
+
+.btn--light {
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}

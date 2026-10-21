@@ -37,4 +37,9 @@
   --container-max: 1440px;
   --header-height: 72px;
   --transition: 150ms ease;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-reveal: 700ms;
+  --duration-float: 6s;
+  --stagger: 90ms;
 }

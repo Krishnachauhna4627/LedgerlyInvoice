@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { Icon } from '../../../../shared/components/icon/icon';
+import { Reveal } from '../../../../shared/directives/reveal';
 import { IconName } from '../../../../shared/components/icon/icons';
 
 @Component({
   selector: 'app-how-it-works',
-  imports: [Icon],
+  imports: [Icon, Reveal],
   templateUrl: './how-it-works.html',
   styleUrl: './how-it-works.scss',
 })

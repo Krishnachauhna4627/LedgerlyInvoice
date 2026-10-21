@@ -61,3 +61,13 @@
   background: var(--color-primary-soft);
   color: var(--color-primary);
 }
+
+.icon {
+  transition: transform var(--transition), background var(--transition), color var(--transition);
+}
+
+.feature:hover .icon {
+  transform: translateY(-4px) rotate(-6deg);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

@@ -95,3 +95,11 @@
     transform: translate(50%, -50%);
   }
 }
+
+.step:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.arrow app-icon {
+  animation: nudge-x 1.6s ease-in-out infinite;
+}

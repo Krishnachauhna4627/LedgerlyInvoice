@@ -85,3 +85,37 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
+
+// Entrance: copy blocks fade up one after another, then the preview rises and floats.
+.copy > * {
+  animation: fade-up var(--duration-reveal) var(--ease-out) both;
+
+  @for $i from 2 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: calc(#{$i - 1} * var(--stagger));
+    }
+  }
+}
+
+app-product-preview {
+  animation:
+    rise-in calc(var(--duration-reveal) * 1.3) var(--ease-out) calc(3 * var(--stagger)) both,
+    float var(--duration-float) ease-in-out calc(var(--duration-reveal) * 1.3 + 3 * var(--stagger)) infinite;
+}
+
+.actions .btn--primary {
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+
+  app-icon {
+    transition: transform var(--transition);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), var(--shadow-primary);
+
+    app-icon {
+      transform: translateX(3px);
+    }
+  }
+}
