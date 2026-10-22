@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://bolt-dawn-survey-priced.trycloudflare.com",
+    "target": "http://localhost:3000",
     "secure": false
   }
 }
