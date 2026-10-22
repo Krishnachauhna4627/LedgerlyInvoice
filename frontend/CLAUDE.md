@@ -138,7 +138,7 @@ ng generate component shared/components/<name>
 - Use the new control flow (`@if`, `@for`, `@switch`) in templates.
 - File names follow the Angular 22 default (`landing.ts`, not `landing.component.ts`).
 - Component styles stay small (the build budget warns at 4kB per component); shared styles go in `src/styles/`.
-- API calls go through services in `core/` (or a feature service), never directly from a page component. Always call relative `/api/...` URLs; in development `proxy.conf.json` forwards them to the backend on `http://localhost:3000`.
+- API calls go through services in `core/` (or a feature service), never directly from a page component. Always call relative `/api/...` URLs; in development `proxy.conf.json` forwards them to the backend on `http://localhost:3000`; on Vercel the `/api/:path*` rewrite in `vercel.json` forwards them to the deployed backend.
 - Show API failures with `toApiError()` (`core/api/api-error.ts`): its `message` goes in a `.form-alert`, its `fieldErrors` onto the matching form controls.
 
 ## 5. Logged-in area and data
