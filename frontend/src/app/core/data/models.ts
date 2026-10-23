@@ -30,6 +30,7 @@ export interface Item {
   id: number;
   name: string;
   hsnSac: string | null;
+  unit: string | null;
   unitPrice: number;
   gstRate: number;
 }
@@ -40,7 +41,14 @@ export type InvoiceStatus = 'draft' | 'unpaid' | 'paid';
 // What the UI shows: "overdue" = unpaid and past its due date (computed by the server).
 export type DisplayStatus = InvoiceStatus | 'overdue';
 export type InvoiceTemplate = 'classic' | 'modern' | 'minimal';
-export type InvoiceSort = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'number_asc' | 'number_desc';
+export type InvoiceSort =
+  | 'date_desc'
+  | 'date_asc'
+  | 'amount_desc'
+  | 'amount_asc'
+  | 'number_asc'
+  | 'number_desc'
+  | 'status';
 
 export interface InvoiceListItem {
   id: number;
@@ -62,8 +70,10 @@ export interface InvoiceLine {
   id?: number;
   itemId: number | null;
   description: string;
+  narration: string | null;
   hsnSac: string | null;
   quantity: number;
+  unit: string | null;
   unitPrice: number;
   gstRate: number;
   taxableAmount: number;
@@ -103,7 +113,16 @@ export interface InvoiceInput {
   reverseCharge: boolean;
   template: InvoiceTemplate;
   status: InvoiceStatus;
-  lines: { itemId: number | null; description: string; hsnSac: string | null; quantity: number; unitPrice: number; gstRate: number }[];
+  lines: {
+    itemId: number | null;
+    description: string;
+    narration: string | null;
+    hsnSac: string | null;
+    quantity: number;
+    unit: string | null;
+    unitPrice: number;
+    gstRate: number;
+  }[];
 }
 
 export interface InvoiceQuery {

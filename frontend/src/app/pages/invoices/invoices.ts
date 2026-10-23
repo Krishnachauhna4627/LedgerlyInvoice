@@ -30,6 +30,7 @@ const SORTS: { value: InvoiceSort; label: string }[] = [
   { value: 'amount_desc', label: 'Amount: high to low' },
   { value: 'amount_asc', label: 'Amount: low to high' },
   { value: 'number_asc', label: 'Invoice number' },
+  { value: 'status', label: 'Status: overdue → unpaid → paid' },
 ];
 
 // Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
@@ -159,6 +160,12 @@ export class Invoices {
 
   protected toggleMenu(request: MenuRequest): void {
     this.menu.set(this.menu()?.invoice.id === request.invoice.id ? null : request);
+  }
+
+  // Opens every selected invoice (or every one shown) on one page, ready to print or save as a single PDF.
+  protected printInvoices(): void {
+    const rows = this.selectedRows().length ? this.selectedRows() : this.visible();
+    this.router.navigate(['/invoices/print'], { queryParams: { ids: rows.map((r) => r.id).join(',') } });
   }
 
   protected exportCsv(): void {

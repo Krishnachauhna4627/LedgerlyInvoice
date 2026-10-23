@@ -21,7 +21,7 @@ interface HsnRow {
   selector: 'app-invoice-document',
   imports: [InrPipe, DecimalPipe],
   templateUrl: './invoice-document.html',
-  styleUrls: ['./invoice-document.scss', './invoice-document.templates.scss'],
+  styleUrls: ['./invoice-document.scss', './invoice-document.templates.scss', './invoice-document.print.scss'],
   host: { '[class]': "'tpl-' + invoice().template" },
 })
 export class InvoiceDocument {

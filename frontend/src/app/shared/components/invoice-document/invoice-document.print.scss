@@ -1,0 +1,86 @@
+// Print (A4) layout for the invoice document: repeating header/footer, compact tables.
+@media print {
+  :host {
+    font-size: 11px;
+  }
+
+  .doc {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  // Repeat the header and footer on every A4 page.
+  .frame {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .frame > thead {
+    display: table-header-group;
+  }
+
+  .frame > tfoot {
+    display: table-footer-group;
+  }
+
+  .frame > tbody {
+    display: table-row-group;
+  }
+
+  .frame > * > tr {
+    display: table-row;
+  }
+
+  .frame > * > tr > td {
+    display: table-cell;
+  }
+
+  .frame__head {
+    padding-bottom: var(--space-4) !important;
+  }
+
+  .frame__foot {
+    padding-top: var(--space-3) !important;
+  }
+
+  .frame__body {
+    display: block !important;
+
+    > * + * {
+      margin-top: var(--space-4);
+    }
+  }
+
+  // The printable width (A4 minus margins) is below the md breakpoint, so set the A4 layout here.
+  .summary {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    align-items: start;
+  }
+
+  .table-scroll {
+    overflow: visible;
+  }
+
+  .lines th,
+  .lines td,
+  .hsn th,
+  .hsn td {
+    padding: var(--space-1) var(--space-2);
+    white-space: normal;
+  }
+
+  .desc {
+    min-width: 0;
+  }
+
+  tr,
+  .box,
+  .totals,
+  .summary,
+  .extras,
+  .sign {
+    break-inside: avoid;
+  }
+}

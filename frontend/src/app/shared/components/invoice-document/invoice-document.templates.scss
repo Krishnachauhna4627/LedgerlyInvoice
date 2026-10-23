@@ -20,7 +20,7 @@
   }
 
   th,
-  tfoot td {
+  .total-row td {
     background: var(--color-primary-soft);
     color: var(--color-primary-hover);
   }
@@ -51,7 +51,7 @@
   }
 
   th,
-  tfoot td {
+  .total-row td {
     background: transparent;
   }
 }

@@ -11,8 +11,6 @@
 }
 
 .doc {
-  display: grid;
-  gap: var(--space-5);
   padding: var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -21,12 +19,47 @@
   @include bp.up(md) {
     padding: var(--space-8);
   }
+}
+
+// Print frame (see the template): plain blocks on screen, a real table when printed.
+.frame,
+.frame > thead,
+.frame > tbody,
+.frame > tfoot,
+.frame > * > tr,
+.frame > * > tr > td {
+  display: block;
+  padding: 0;
+}
+
+.frame__head {
+  padding-bottom: var(--space-5) !important;
+}
+
+.frame__body {
+  display: grid !important;
+  gap: var(--space-5);
 
   // Let wide tables scroll inside their .table-scroll instead of stretching the page.
   > *,
   .summary > * {
     min-width: 0;
   }
+}
+
+.frame > tfoot {
+  display: none;
+}
+
+.page-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-3xs);
 }
 
 p {
@@ -126,7 +159,8 @@ h3 {
   }
 }
 
-table {
+.lines,
+.hsn {
   width: 100%;
   border-collapse: collapse;
 
@@ -154,7 +188,14 @@ table {
     white-space: normal;
   }
 
-  tfoot td {
+  .narration {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    white-space: pre-line;
+  }
+
+  .total-row td {
     background: var(--color-bg);
     font-weight: 700;
   }
@@ -232,32 +273,4 @@ table {
   border-top: 1px solid var(--color-text-muted);
   color: var(--color-text-muted);
   text-align: center;
-}
-
-@media print {
-  :host {
-    font-size: 11px;
-  }
-
-  .doc {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-  }
-
-  .table-scroll {
-    overflow: visible;
-  }
-
-  table th,
-  table td {
-    white-space: normal;
-  }
-
-  tr,
-  .box,
-  .totals,
-  .sign {
-    break-inside: avoid;
-  }
 }

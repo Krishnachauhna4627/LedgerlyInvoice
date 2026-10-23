@@ -33,6 +33,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/invoice-editor/invoice-editor').then((m) => m.InvoiceEditor),
       },
       {
+        path: 'invoices/print',
+        title: page('Print invoices'),
+        loadComponent: () => import('./pages/invoice-print/invoice-print').then((m) => m.InvoicePrint),
+      },
+      {
         path: 'invoices/:id/edit',
         title: page('Edit invoice'),
         loadComponent: () => import('./pages/invoice-editor/invoice-editor').then((m) => m.InvoiceEditor),

@@ -1,5 +1,12 @@
 @let inv = invoice();
 <article class="doc" aria-label="Tax invoice {{ inv.invoiceNumber }}">
+  <!--
+    When printed, this table's head and foot repeat on every A4 page (browsers repeat <thead>/<tfoot>);
+    on screen it is laid out as plain blocks. Totals, HSN summary and signature come once, at the end.
+  -->
+  <table class="frame" role="presentation">
+  <thead>
+  <tr><td class="frame__head">
   <header class="doc__head">
     <div class="seller">
       <h2 class="seller__name">{{ inv.seller.name }}</h2>
@@ -14,6 +21,20 @@
       <p>{{ inv.invoiceNumber }}</p>
     </div>
   </header>
+  </td></tr>
+  </thead>
+
+  <tfoot>
+  <tr><td class="frame__foot">
+  <p class="page-foot">
+    <span>{{ inv.seller.name }} · Invoice {{ inv.invoiceNumber }} · {{ formatDate(inv.invoiceDate) }}</span>
+    <span>This is a computer-generated invoice.</span>
+  </p>
+  </td></tr>
+  </tfoot>
+
+  <tbody>
+  <tr><td class="frame__body">
 
   <section class="parties">
     <div class="box">
@@ -47,6 +68,7 @@
           <th>Particulars</th>
           <th>HSN/SAC</th>
           <th class="num">Qty</th>
+          <th>Unit</th>
           <th class="num">Rate (₹)</th>
           <th class="num">GST %</th>
           <th class="num">Taxable (₹)</th>
@@ -58,9 +80,15 @@
         @for (line of inv.lines; track $index) {
           <tr>
             <td>{{ $index + 1 }}</td>
-            <td class="desc">{{ line.description }}</td>
+            <td class="desc">
+              {{ line.description }}
+              @if (line.narration) {
+                <span class="narration">{{ line.narration }}</span>
+              }
+            </td>
             <td>{{ line.hsnSac || '—' }}</td>
             <td class="num">{{ line.quantity | number: '1.0-3' }}</td>
+            <td>{{ line.unit || '—' }}</td>
             <td class="num">{{ line.unitPrice | inr: false }}</td>
             <td class="num">{{ line.gstRate }}%</td>
             <td class="num">{{ line.taxableAmount | inr: false }}</td>
@@ -68,15 +96,14 @@
             <td class="num">{{ line.lineTotal | inr: false }}</td>
           </tr>
         }
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="6">Total</td>
+        <!-- In <tbody>, not <tfoot>, so a multi-page print shows the total only once, after the last line. -->
+        <tr class="total-row">
+          <td colspan="7">Total</td>
           <td class="num">{{ inv.totals.subTotal | inr: false }}</td>
           <td class="num">{{ inv.totals.totalTax | inr: false }}</td>
           <td class="num">{{ inv.totals.grandTotal | inr: false }}</td>
         </tr>
-      </tfoot>
+      </tbody>
     </table>
   </div>
 
@@ -158,4 +185,7 @@
     <p class="strong">For {{ inv.seller.name }}</p>
     <p class="sign__line">Authorised Signatory</p>
   </footer>
+  </td></tr>
+  </tbody>
+  </table>
 </article>

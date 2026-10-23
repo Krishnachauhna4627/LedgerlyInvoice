@@ -78,8 +78,10 @@ function toDetailDto(row, lines) {
       id: l.id,
       itemId: l.item_id,
       description: l.description,
+      narration: l.narration,
       hsnSac: l.hsn_sac,
       quantity: l.quantity,
+      unit: l.unit,
       unitPrice: l.unit_price,
       gstRate: l.gst_rate,
       taxableAmount: l.taxable_amount,
@@ -102,7 +104,20 @@ const SORTS = {
   amount_asc: [['grand_total', 'asc']],
   number_asc: [['invoice_number', 'asc']],
   number_desc: [['invoice_number', 'desc']],
+  // Overdue, then unpaid, paid and drafts; newest first within each.
+  status: [['invoice_date', 'desc'], ['invoices.id', 'desc']],
 };
+
+const statusRank = () =>
+  db.raw(
+    `CASE
+       WHEN invoices.status = 'unpaid' AND due_date IS NOT NULL AND due_date < ? THEN 1
+       WHEN invoices.status = 'unpaid' THEN 2
+       WHEN invoices.status = 'paid' THEN 3
+       ELSE 4
+     END`,
+    [today()],
+  );
 
 export async function listInvoices(companyId, { search, from, to, status, sort, limit }) {
   const query = db('invoices').where('company_id', companyId).select('invoices.*', itemCountSubquery());
@@ -115,6 +130,7 @@ export async function listInvoices(companyId, { search, from, to, status, sort, 
   if (from) query.where('invoice_date', '>=', from);
   if (to) query.where('invoice_date', '<=', to);
   if (status) whereDisplayStatus(query, status);
+  if (sort === 'status') query.orderBy(statusRank());
   for (const [column, direction] of SORTS[sort]) query.orderBy(column, direction);
   if (limit) query.limit(limit);
   return (await query).map(toListDto);
@@ -210,8 +226,10 @@ async function buildInvoice(companyId, input) {
     item_id: ownedItemIds.has(l.itemId) ? l.itemId : null,
     position: index + 1,
     description: l.description,
+    narration: l.narration,
     hsn_sac: l.hsnSac,
     quantity: l.quantity,
+    unit: l.unit,
     unit_price: l.unitPrice,
     gst_rate: l.gstRate,
     taxable_amount: l.taxableAmount,

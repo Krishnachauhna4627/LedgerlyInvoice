@@ -179,8 +179,10 @@ export class InvoiceEditor {
     return this.fb.group({
       itemId: this.fb.control<number | null>(line?.itemId ?? null),
       description: [line?.description ?? '', [Validators.required, Validators.maxLength(200)]],
+      narration: [line?.narration ?? '', Validators.maxLength(500)],
       hsnSac: [line?.hsnSac ?? ''],
       quantity: [line?.quantity ?? 1, [Validators.required, positive]],
+      unit: [line?.unit ?? ''],
       unitPrice: [line?.unitPrice ?? 0, [Validators.required, Validators.min(0)]],
       gstRate: [line?.gstRate ?? 0, [Validators.required, Validators.min(0), Validators.max(100)]],
     });
@@ -272,6 +274,7 @@ export class InvoiceEditor {
       itemId: item.id,
       description: item.name,
       hsnSac: item.hsnSac ?? '',
+      unit: item.unit ?? '',
       unitPrice: item.unitPrice,
       gstRate: item.gstRate,
     });
@@ -327,8 +330,10 @@ export class InvoiceEditor {
       lines: v.lines.map((l) => ({
         itemId: l.itemId,
         description: l.description.trim(),
+        narration: l.narration.trim() || null,
         hsnSac: l.hsnSac.trim() || null,
         quantity: Number(l.quantity),
+        unit: l.unit || null,
         unitPrice: Number(l.unitPrice),
         gstRate: Number(l.gstRate),
       })),

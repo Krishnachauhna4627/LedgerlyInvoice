@@ -2,19 +2,27 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { HttpError } from '../../http-error.js';
-import { gstRate, idParam, money, optionalText, requiredText } from '../../lib/validation.js';
+import { gstRate, idParam, money, optionalText, requiredText, unit } from '../../lib/validation.js';
 import { requireAuth } from '../../middleware/require-auth.js';
 import { validate } from '../../middleware/validate.js';
 
 const itemSchema = z.object({
   name: requiredText('Item name', 200),
   hsnSac: optionalText('HSN/SAC', 20),
+  unit,
   unitPrice: money('Rate'),
   gstRate,
 });
 
 export function toItemDto(row) {
-  return { id: row.id, name: row.name, hsnSac: row.hsn_sac, unitPrice: row.unit_price, gstRate: row.gst_rate };
+  return {
+    id: row.id,
+    name: row.name,
+    hsnSac: row.hsn_sac,
+    unit: row.unit,
+    unitPrice: row.unit_price,
+    gstRate: row.gst_rate,
+  };
 }
 
 async function findItem(companyId, id) {
@@ -25,7 +33,7 @@ async function findItem(companyId, id) {
   return row;
 }
 
-const toRow = (b) => ({ name: b.name, hsn_sac: b.hsnSac, unit_price: b.unitPrice, gst_rate: b.gstRate });
+const toRow = (b) => ({ name: b.name, hsn_sac: b.hsnSac, unit: b.unit, unit_price: b.unitPrice, gst_rate: b.gstRate });
 
 export const itemsRouter = Router();
 itemsRouter.use(requireAuth);

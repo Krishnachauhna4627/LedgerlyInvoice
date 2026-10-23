@@ -109,8 +109,10 @@ reportsRouter.get('/sales/export', async (req, res) => {
       grandTotal: inv.grand_total,
       lines: (linesByInvoice.get(inv.id) ?? []).map((l) => ({
         description: l.description,
+        narration: l.narration,
         hsnSac: l.hsn_sac,
         quantity: l.quantity,
+        unit: l.unit,
         unitPrice: l.unit_price,
         gstRate: l.gst_rate,
         taxableAmount: l.taxable_amount,

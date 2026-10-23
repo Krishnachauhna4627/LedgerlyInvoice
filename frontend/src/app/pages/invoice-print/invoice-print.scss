@@ -1,0 +1,34 @@
+.sheet {
+  width: 100%;
+  min-width: 0;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.back {
+  margin-top: var(--space-4);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .page-body {
+    padding: 0;
+    gap: 0;
+  }
+
+  .sheet {
+    max-width: none;
+  }
+
+  // Every invoice after the first starts on a fresh page.
+  .sheet + .sheet {
+    break-before: page;
+  }
+}

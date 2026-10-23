@@ -141,13 +141,13 @@ export class Reports {
     downloadCsv(
       `sales-item-details${this.fileSuffix()}.csv`,
       ['Invoice Number', 'Invoice Date', 'Seller Name', 'Seller GSTIN', 'Client Name', 'Client State Code', 'Client GSTIN',
-        'Place of Supply', 'Reverse Charge', 'Item No.', 'Description', 'HSN/SAC', 'Quantity', 'Unit Price',
+        'Place of Supply', 'Reverse Charge', 'Item No.', 'Description', 'Narration', 'HSN/SAC', 'Quantity', 'Unit', 'Unit Price',
         'GST Rate (%)', 'Taxable Value', 'CGST', 'SGST', 'IGST', 'Total Tax', 'Line Total'],
       rows.flatMap((r) =>
         r.lines.map((l, index) => [
           r.invoiceNumber, r.invoiceDate, r.sellerName, r.sellerGstin, r.clientName, r.clientStateCode, r.clientGstin,
-          stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No', index + 1, l.description, l.hsnSac,
-          l.quantity, l.unitPrice, l.gstRate, l.taxableAmount, l.cgst, l.sgst, l.igst, l.totalTax, l.lineTotal,
+          stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No', index + 1, l.description, l.narration, l.hsnSac,
+          l.quantity, l.unit, l.unitPrice, l.gstRate, l.taxableAmount, l.cgst, l.sgst, l.igst, l.totalTax, l.lineTotal,
         ]),
       ),
     );

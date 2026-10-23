@@ -12,6 +12,9 @@
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!visible().length" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export as .CSV
   </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!visible().length" (click)="printInvoices()">
+    <app-icon name="printer" [size]="16" /> Print / PDF all
+  </button>
   <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create Invoice</a>
 </app-page-header>
 
@@ -73,6 +76,7 @@
     <div class="bulk" role="region" aria-label="Bulk actions">
       <span class="bulk__count">{{ selectedRows().length }} selected</span>
       <button type="button" class="btn btn--outline btn--sm" (click)="exportCsv()"><app-icon name="download" [size]="16" /> Export</button>
+      <button type="button" class="btn btn--outline btn--sm" (click)="printInvoices()"><app-icon name="printer" [size]="16" /> Print / PDF</button>
       <button type="button" class="btn btn--outline btn--sm" [disabled]="busy()" (click)="markSelectedPaid()">
         <app-icon name="check-circle" [size]="16" /> Mark as paid
       </button>

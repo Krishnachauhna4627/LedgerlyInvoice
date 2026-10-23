@@ -2,6 +2,7 @@
   <span>Item</span>
   <span>HSN/SAC</span>
   <span>Qty</span>
+  <span>Unit</span>
   <span>Rate (₹)</span>
   <span>GST %</span>
   <span class="num">Taxable</span>
@@ -39,6 +40,9 @@
         @if (err(i, 'description'); as message) {
           <span class="field__error" [id]="'line-' + i + '-item-error'">{{ message }}</span>
         }
+        <label class="sr-only" [for]="'line-' + i + '-narration'">Short narration for item {{ i + 1 }}</label>
+        <input class="input narration" [id]="'line-' + i + '-narration'" formControlName="narration" maxlength="500"
+          placeholder="Narration, e.g. Chain 22K" autocomplete="off" />
       </div>
 
       <div class="cell">
@@ -53,6 +57,16 @@
         @if (err(i, 'quantity'); as message) {
           <span class="field__error" [id]="'line-' + i + '-qty-error'">{{ message }}</span>
         }
+      </div>
+
+      <div class="cell">
+        <label class="field__label" [for]="'line-' + i + '-unit'">Unit</label>
+        <select class="input" [id]="'line-' + i + '-unit'" formControlName="unit">
+          <option value="">—</option>
+          @for (u of units; track u.code) {
+            <option [value]="u.code" [title]="u.label">{{ u.code }}</option>
+          }
+        </select>
       </div>
 
       <div class="cell">

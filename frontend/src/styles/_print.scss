@@ -3,8 +3,15 @@
   @page {
     size: A4;
     margin: 12mm;
+
+    @bottom-right {
+      content: 'Page ' counter(page) ' of ' counter(pages);
+      font-size: 9px;
+    }
   }
 
+  // Both, so no tinted page background shows below a short last page.
+  html,
   body {
     background: var(--color-surface);
   }

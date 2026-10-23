@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { gstRate, isoDate, money, optionalText, requiredText, stateCode } from '../../lib/validation.js';
+import { gstRate, isoDate, money, optionalText, requiredText, stateCode, unit } from '../../lib/validation.js';
 
 export const INVOICE_STATUSES = ['draft', 'unpaid', 'paid'];
 export const INVOICE_TEMPLATES = ['classic', 'modern', 'minimal'];
@@ -7,11 +7,13 @@ export const INVOICE_TEMPLATES = ['classic', 'modern', 'minimal'];
 const lineSchema = z.object({
   itemId: z.coerce.number().int().positive().nullish().transform((value) => value ?? null),
   description: requiredText('Item', 200),
+  narration: optionalText('Narration', 500),
   hsnSac: optionalText('HSN/SAC', 20),
   quantity: z.coerce
     .number({ error: 'Quantity must be a number.' })
     .positive('Quantity must be more than 0.')
     .max(1_000_000_000, 'Quantity is too large.'),
+  unit,
   unitPrice: money('Rate'),
   gstRate,
 });
@@ -42,6 +44,8 @@ export const listQuerySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   status: z.enum([...INVOICE_STATUSES, 'overdue']).optional(),
-  sort: z.enum(['date_desc', 'date_asc', 'amount_desc', 'amount_asc', 'number_asc', 'number_desc']).default('date_desc'),
+  sort: z
+    .enum(['date_desc', 'date_asc', 'amount_desc', 'amount_asc', 'number_asc', 'number_desc', 'status'])
+    .default('date_desc'),
   limit: z.coerce.number().int().min(1).max(1000).optional(),
 });

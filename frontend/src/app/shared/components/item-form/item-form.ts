@@ -3,6 +3,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { toApiError } from '../../../core/api/api-error';
 import { ItemService } from '../../../core/data/item.service';
 import { Item, ItemInput } from '../../../core/data/models';
+import { UNITS } from '../../../core/data/units';
 import { GST_RATES } from '../../../core/gst/gst-states';
 import { ToastService } from '../../../core/ui/toast.service';
 
@@ -31,9 +32,11 @@ export class ItemForm implements OnInit {
   readonly cancelled = output();
 
   protected readonly rates = GST_RATES;
+  protected readonly units = UNITS;
   protected readonly form = inject(NonNullableFormBuilder).group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     hsnSac: ['', Validators.maxLength(20)],
+    unit: [''],
     unitPrice: [0 as number | null, [Validators.required, Validators.min(0)]],
     gstRate: [18 as number | null, [Validators.required, Validators.min(0), Validators.max(100)]],
   });
@@ -44,7 +47,13 @@ export class ItemForm implements OnInit {
   ngOnInit(): void {
     const i = this.item();
     if (i) {
-      this.form.setValue({ name: i.name, hsnSac: i.hsnSac ?? '', unitPrice: i.unitPrice, gstRate: i.gstRate });
+      this.form.setValue({
+        name: i.name,
+        hsnSac: i.hsnSac ?? '',
+        unit: i.unit ?? '',
+        unitPrice: i.unitPrice,
+        gstRate: i.gstRate,
+      });
     }
   }
 
@@ -62,6 +71,7 @@ export class ItemForm implements OnInit {
     const input: ItemInput = {
       name: v.name.trim(),
       hsnSac: v.hsnSac.trim() || null,
+      unit: v.unit || null,
       unitPrice: Number(v.unitPrice),
       gstRate: Number(v.gstRate),
     };

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GST_STATE_CODES, GSTIN_PATTERN } from './gst.js';
+import { UNITS } from './units.js';
 
 // Reusable zod pieces with user-friendly messages.
 export const text = (message) => z.string({ error: message });
@@ -43,6 +44,13 @@ export const optionalEmail = z
   .nullish()
   .transform((value) => value || null)
   .refine((value) => value === null || z.email().safeParse(value).success, 'Enter a valid email address.');
+
+// Optional unit of measure from the fixed list; empty → null.
+export const unit = z
+  .enum(UNITS, { error: 'Choose a valid unit.' })
+  .or(z.literal(''))
+  .nullish()
+  .transform((value) => value || null);
 
 export const isoDate = (label) =>
   text(`${label} is required.`).regex(/^\d{4}-\d{2}-\d{2}$/, `${label} must be a valid date.`);

@@ -1,0 +1,28 @@
+@if (invoices(); as list) {
+  <app-page-header class="no-print" [title]="'Print ' + list.length + (list.length === 1 ? ' invoice' : ' invoices')"
+    subtitle="Each invoice starts on a new A4 page. Choose “Save as PDF” in the print dialog to get one PDF.">
+    <a class="btn btn--outline btn--sm" routerLink="/invoices">Back to invoices</a>
+    <button type="button" class="btn btn--primary btn--sm" (click)="print()"><app-icon name="printer" [size]="16" /> Print / Save PDF</button>
+  </app-page-header>
+
+  <div class="page-body">
+    @for (inv of list; track inv.id) {
+      <div class="sheet">
+        <app-invoice-document [invoice]="inv" />
+      </div>
+    }
+  </div>
+} @else if (loadError()) {
+  <app-page-header title="Print invoices" />
+  <div class="page-body">
+    <div class="panel panel__body">
+      <div class="form-alert" role="alert">{{ loadError() }}</div>
+      <a class="btn btn--outline btn--sm back" routerLink="/invoices">Back to invoices</a>
+    </div>
+  </div>
+} @else {
+  <app-page-header title="Print invoices" />
+  <div class="page-body">
+    <div class="panel panel__body muted" role="status">Loading {{ count }} {{ count === 1 ? 'invoice' : 'invoices' }}…</div>
+  </div>
+}

@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
 import { Item } from '../../../../core/data/models';
+import { UNITS } from '../../../../core/data/units';
 import { LineAmounts } from '../../../../core/gst/gst';
 import { GST_RATES } from '../../../../core/gst/gst-states';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -26,6 +27,7 @@ export class LineItems {
   readonly added = output();
 
   protected readonly rates = GST_RATES;
+  protected readonly units = UNITS;
   protected readonly itemOptions = computed<PickerOption[]>(() =>
     this.items().map((i) => ({
       id: i.id,
