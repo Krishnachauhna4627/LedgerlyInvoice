@@ -55,10 +55,14 @@ function toDetailDto(row, lines) {
       address: row.seller_address,
       stateCode: row.seller_state_code,
       gstin: row.seller_gstin,
+      phone: row.seller_phone,
+      email: row.seller_email,
       bankName: row.seller_bank_name,
       accountNo: row.seller_account_no,
       ifsc: row.seller_ifsc,
       terms: row.seller_terms,
+      // Not snapshotted (it's an image); always the company's current signature.
+      signature: row.signature ?? null,
     },
     client: {
       name: row.client_name,
@@ -156,7 +160,8 @@ export async function getAnyInvoice(id) {
 export async function getInvoice(companyId, id) {
   const row = await findInvoiceRow(companyId, id);
   const lines = await db('invoice_items').where({ invoice_id: id }).orderBy('position');
-  return toDetailDto(row, lines);
+  const company = await db('companies').where({ id: companyId }).first('signature');
+  return toDetailDto({ ...row, signature: company?.signature }, lines);
 }
 
 // Next number in the "INV-<year>-0001" series for this company.
@@ -201,6 +206,8 @@ async function buildInvoice(companyId, input) {
     seller_address: seller.address,
     seller_state_code: seller.state_code,
     seller_gstin: seller.gstin,
+    seller_phone: seller.phone,
+    seller_email: seller.email,
     seller_bank_name: seller.bank_name,
     seller_account_no: seller.account_no,
     seller_ifsc: seller.ifsc,

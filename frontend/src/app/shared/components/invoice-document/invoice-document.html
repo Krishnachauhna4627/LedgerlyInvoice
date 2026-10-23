@@ -1,5 +1,7 @@
 @let inv = invoice();
-<article class="doc" aria-label="Tax invoice {{ inv.invoiceNumber }}">
+<!-- A seller without a GSTIN can't charge GST separately: one tax-inclusive amount per line, no tax breakdown. -->
+@let gst = !!inv.seller.gstin;
+<article class="doc" [attr.aria-label]="(gst ? 'Tax invoice ' : 'Invoice ') + inv.invoiceNumber">
   <!--
     When printed, this table's head and foot repeat on every A4 page (browsers repeat <thead>/<tfoot>);
     on screen it is laid out as plain blocks. Totals, HSN summary and signature come once, at the end.
@@ -13,11 +15,24 @@
       @if (inv.seller.address) {
         <p class="pre">{{ inv.seller.address }}</p>
       }
+      @if (inv.seller.phone || inv.seller.email) {
+        <p>
+          @if (inv.seller.phone) {
+            <span class="k">Mobile:</span> {{ inv.seller.phone }}
+          }
+          @if (inv.seller.phone && inv.seller.email) {
+            ·
+          }
+          @if (inv.seller.email) {
+            <span class="k">Email:</span> {{ inv.seller.email }}
+          }
+        </p>
+      }
       <p><span class="k">GSTIN:</span> {{ inv.seller.gstin || 'Not registered' }}</p>
       <p><span class="k">State:</span> {{ stateLabel(inv.seller.stateCode) }}</p>
     </div>
     <div class="doc__type">
-      <h1>TAX INVOICE</h1>
+      <h1>{{ gst ? 'TAX INVOICE' : 'INVOICE' }}</h1>
       <p>{{ inv.invoiceNumber }}</p>
     </div>
   </header>
@@ -69,11 +84,16 @@
           <th>HSN/SAC</th>
           <th class="num">Qty</th>
           <th>Unit</th>
-          <th class="num">Rate (₹)</th>
-          <th class="num">GST %</th>
-          <th class="num">Taxable (₹)</th>
-          <th class="num">Tax (₹)</th>
-          <th class="num">Total (₹)</th>
+          @if (gst) {
+            <th class="num">Rate (₹)</th>
+            <th class="num">GST %</th>
+            <th class="num">Taxable (₹)</th>
+            <th class="num">Tax (₹)</th>
+            <th class="num">Total (₹)</th>
+          } @else {
+            <th class="num">Rate (₹)</th>
+            <th class="num">Amount (₹)</th>
+          }
         </tr>
       </thead>
       <tbody>
@@ -89,18 +109,27 @@
             <td>{{ line.hsnSac || '—' }}</td>
             <td class="num">{{ line.quantity | number: '1.0-3' }}</td>
             <td>{{ line.unit || '—' }}</td>
-            <td class="num">{{ line.unitPrice | inr: false }}</td>
-            <td class="num">{{ line.gstRate }}%</td>
-            <td class="num">{{ line.taxableAmount | inr: false }}</td>
-            <td class="num">{{ line.totalTax | inr: false }}</td>
-            <td class="num">{{ line.lineTotal | inr: false }}</td>
+            @if (gst) {
+              <td class="num">{{ line.unitPrice | inr: false }}</td>
+              <td class="num">{{ line.gstRate }}%</td>
+              <td class="num">{{ line.taxableAmount | inr: false }}</td>
+              <td class="num">{{ line.totalTax | inr: false }}</td>
+              <td class="num">{{ line.lineTotal | inr: false }}</td>
+            } @else {
+              <td class="num">{{ inclusiveRate(line) | inr: false }}</td>
+              <td class="num">{{ line.lineTotal | inr: false }}</td>
+            }
           </tr>
         }
         <!-- In <tbody>, not <tfoot>, so a multi-page print shows the total only once, after the last line. -->
         <tr class="total-row">
-          <td colspan="7">Total</td>
-          <td class="num">{{ inv.totals.subTotal | inr: false }}</td>
-          <td class="num">{{ inv.totals.totalTax | inr: false }}</td>
+          @if (gst) {
+            <td colspan="7">Total</td>
+            <td class="num">{{ inv.totals.subTotal | inr: false }}</td>
+            <td class="num">{{ inv.totals.totalTax | inr: false }}</td>
+          } @else {
+            <td colspan="6">Total</td>
+          }
           <td class="num">{{ inv.totals.grandTotal | inr: false }}</td>
         </tr>
       </tbody>
@@ -110,6 +139,7 @@
   <section class="summary">
     <div class="summary__left">
       <p class="words"><span class="k">Amount in words:</span> {{ words() }}</p>
+      @if (gst) {
       <h3>HSN/SAC summary</h3>
       <div class="table-scroll">
         <table class="hsn">
@@ -145,9 +175,11 @@
           </tbody>
         </table>
       </div>
+      }
     </div>
 
     <dl class="totals">
+      @if (gst) {
       <dt>Sub-total</dt>
       <dd>{{ inv.totals.subTotal | inr }}</dd>
       @if (inv.isInterState) {
@@ -159,8 +191,9 @@
         <dt>Add SGST</dt>
         <dd>{{ inv.totals.totalSgst | inr }}</dd>
       }
-      <dt class="grand">Grand total</dt>
-      <dd class="grand">{{ inv.totals.grandTotal | inr }}</dd>
+      }
+      <dt class="grand" [class.grand--only]="!gst">{{ gst ? 'Grand total' : 'Total' }}</dt>
+      <dd class="grand" [class.grand--only]="!gst">{{ inv.totals.grandTotal | inr }}</dd>
     </dl>
   </section>
 
@@ -181,8 +214,11 @@
     </div>
   </section>
 
-  <footer class="sign">
+  <footer class="sign" [class.sign--image]="!!inv.seller.signature">
     <p class="strong">For {{ inv.seller.name }}</p>
+    @if (inv.seller.signature; as src) {
+      <img class="sign__img" [src]="src" alt="Signature of {{ inv.seller.name }}" />
+    }
     <p class="sign__line">Authorised Signatory</p>
   </footer>
   </td></tr>

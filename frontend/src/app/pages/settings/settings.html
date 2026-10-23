@@ -59,6 +59,32 @@
               [class.is-invalid]="errorFor('gstin')" [attr.aria-invalid]="!!errorFor('gstin')" aria-describedby="seller-gstin-error" />
             @if (errorFor('gstin'); as message) {
               <span id="seller-gstin-error" class="field__error">{{ message }}</span>
+            } @else {
+              <span id="seller-gstin-error" class="hint">Leave empty if not GST registered: invoices then show one tax-inclusive total.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="seller-phone">Mobile number</label>
+            <input id="seller-phone" class="input" type="tel" formControlName="phone" autocomplete="tel-national" inputmode="numeric"
+              placeholder="e.g. 9876543210" (input)="onPhoneInput($event)"
+              [class.is-invalid]="errorFor('phone')" [attr.aria-invalid]="!!errorFor('phone')" aria-describedby="seller-phone-error" />
+            @if (errorFor('phone'); as message) {
+              <span id="seller-phone-error" class="field__error">{{ message }}</span>
+            } @else {
+              <span id="seller-phone-error" class="hint">10-digit Indian mobile number. Printed on invoices.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="seller-email">Email</label>
+            <input id="seller-email" class="input" type="email" formControlName="email" autocomplete="email" inputmode="email"
+              autocapitalize="none" spellcheck="false" placeholder="e.g. name@company.com"
+              [class.is-invalid]="errorFor('email')" [attr.aria-invalid]="!!errorFor('email')" aria-describedby="seller-email-error" />
+            @if (errorFor('email'); as message) {
+              <span id="seller-email-error" class="field__error">{{ message }}</span>
+            } @else {
+              <span id="seller-email-error" class="hint">Printed on invoices.</span>
             }
           </div>
         </div>
@@ -89,6 +115,32 @@
               [class.is-invalid]="errorFor('ifsc')" [attr.aria-invalid]="!!errorFor('ifsc')" aria-describedby="seller-ifsc-error" />
             @if (errorFor('ifsc'); as message) {
               <span id="seller-ifsc-error" class="field__error">{{ message }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Signature</h2>
+        <div class="signature">
+          <div class="signature__preview">
+            @if (signature(); as src) {
+              <img [src]="src" alt="Your signature" />
+            } @else {
+              <span class="hint">No signature uploaded</span>
+            }
+          </div>
+          <div class="signature__actions">
+            <label class="btn btn--outline btn--sm" [class.is-disabled]="signatureBusy()">
+              <app-icon name="upload" [size]="16" /> {{ signature() ? 'Replace signature' : 'Upload signature' }}
+              <input type="file" class="sr-only" [accept]="signatureTypes" [disabled]="signatureBusy()" (change)="onSignatureFile($event)" />
+            </label>
+            @if (signature()) {
+              <button type="button" class="btn btn--outline btn--sm btn--danger-text" [disabled]="signatureBusy()" (click)="removeSignature()">Remove</button>
+            }
+            <span class="hint">PNG, JPG or WebP. Printed above “Authorised Signatory”. A scan on a white or transparent background works best. Saved immediately.</span>
+            @if (signatureError(); as message) {
+              <span class="field__error" role="alert">{{ message }}</span>
             }
           </div>
         </div>

@@ -12,8 +12,9 @@
 
   // Both, so no tinted page background shows below a short last page.
   html,
-  body {
-    background: var(--color-surface);
+  body,
+  app-shell {
+    background: var(--color-surface) !important;
   }
 
   app-shell .mobile-bar,

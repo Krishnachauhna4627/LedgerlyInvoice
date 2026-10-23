@@ -6,13 +6,17 @@ export interface Company {
   address: string | null;
   stateCode: string | null;
   gstin: string | null;
+  phone: string | null;
+  email: string | null;
   bankName: string | null;
   accountNo: string | null;
   ifsc: string | null;
   terms: string | null;
+  // Data URL of the uploaded signature image; saved separately from the other details.
+  signature: string | null;
 }
 
-export type CompanyInput = Omit<Company, 'id'>;
+export type CompanyInput = Omit<Company, 'id' | 'signature'>;
 
 export interface Client {
   id: number;

@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
-import { Invoice } from '../../../core/data/models';
+import { Invoice, InvoiceLine } from '../../../core/data/models';
 import { amountInWords } from '../../../core/gst/amount-in-words';
 import { round2 } from '../../../core/gst/gst';
 import { stateLabel } from '../../../core/gst/gst-states';
@@ -46,6 +46,11 @@ export class InvoiceDocument {
     }
     return [...groups.values()];
   });
+
+  // Per-unit price including tax, for sellers without a GSTIN.
+  protected inclusiveRate(line: InvoiceLine): number {
+    return line.quantity ? round2(line.lineTotal / line.quantity) : line.lineTotal;
+  }
 
   protected formatDate(iso: string | null): string {
     if (!iso) return '—';

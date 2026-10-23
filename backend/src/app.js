@@ -13,7 +13,8 @@ import { reportsRouter } from './modules/reports/reports.js';
 const app = express();
 
 app.use(cors({ origin: config.corsOrigin }));
-app.use(express.json());
+// Large enough for a signature image upload (see company.js).
+app.use(express.json({ limit: '300kb' }));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

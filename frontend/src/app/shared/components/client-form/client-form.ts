@@ -5,6 +5,7 @@ import { toApiError } from '../../../core/api/api-error';
 import { ClientService } from '../../../core/data/client.service';
 import { Client, ClientInput } from '../../../core/data/models';
 import { GST_STATES, GSTIN_PATTERN } from '../../../core/gst/gst-states';
+import { MOBILE_PATTERN, toMobileDigits } from '../../../core/ui/phone';
 import { ToastService } from '../../../core/ui/toast.service';
 
 type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email';
@@ -48,8 +49,7 @@ export class ClientForm implements OnInit {
     address: ['', Validators.maxLength(1000)],
     stateCode: ['', Validators.required],
     gstin: ['', gstinValidator],
-    // Indian mobile number, same rule as the server.
-    phone: ['', Validators.pattern(/^[6-9]\d{9}$/)],
+    phone: ['', Validators.pattern(MOBILE_PATTERN)],
     email: ['', [Validators.email, Validators.maxLength(254)]],
   });
   protected readonly submitted = signal(false);
@@ -77,13 +77,9 @@ export class ClientForm implements OnInit {
     }
   }
 
-  // Keep the mobile field to digits only, at most 10; a pasted +91 / 0 prefix is dropped.
   protected onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const digits = input.value
-      .replace(/\D/g, '')
-      .replace(/^(?:91|0)(?=\d{10}$)/, '')
-      .slice(0, 10);
+    const digits = toMobileDigits(input.value);
     if (digits !== input.value) {
       input.value = digits;
       this.form.controls.phone.setValue(digits);

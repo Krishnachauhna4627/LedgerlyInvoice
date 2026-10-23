@@ -240,6 +240,11 @@ h3 {
     font-variant-numeric: tabular-nums;
   }
 
+  .grand.grand--only {
+    padding-top: 0;
+    border-top: 0;
+  }
+
   .grand {
     padding-top: var(--space-2);
     border-top: 1px solid var(--color-border);
@@ -265,6 +270,16 @@ h3 {
   justify-items: end;
   gap: var(--space-10);
   text-align: right;
+}
+
+.sign--image {
+  gap: var(--space-1);
+}
+
+.sign__img {
+  max-width: 200px;
+  max-height: 70px;
+  object-fit: contain;
 }
 
 .sign__line {

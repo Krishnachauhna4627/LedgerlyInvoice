@@ -14,4 +14,12 @@ export class CompanyService {
   update(input: CompanyInput): Observable<Company> {
     return this.http.put<Company>('/api/company', input);
   }
+
+  uploadSignature(signature: string): Observable<Company> {
+    return this.http.put<Company>('/api/company/signature', { signature });
+  }
+
+  removeSignature(): Observable<Company> {
+    return this.http.delete<Company>('/api/company/signature');
+  }
 }
