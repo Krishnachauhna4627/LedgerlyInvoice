@@ -3,8 +3,10 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { toApiError } from '../../../../core/api/api-error';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { Modal } from '../../../../shared/components/modal/modal';
+import { LEGAL_TITLES, LegalContent, LegalDoc } from '../legal-content/legal-content';
 
-type Field = 'name' | 'username' | 'email' | 'phone' | 'company' | 'password';
+type Field = 'name' | 'username' | 'email' | 'phone' | 'company' | 'password' | 'acceptTerms';
 
 // Same rules as the backend (auth.validation.js); the backend has the final say.
 const MESSAGES: Record<Field, Record<string, string>> = {
@@ -28,11 +30,12 @@ const MESSAGES: Record<Field, Record<string, string>> = {
     minlength: 'Password must be at least 8 characters.',
     maxlength: 'Password is too long.',
   },
+  acceptTerms: { required: 'Please accept the Terms & Conditions and Privacy Policy.' },
 };
 
 @Component({
   selector: 'app-signup-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Modal, LegalContent],
   templateUrl: './signup-form.html',
   styleUrl: './signup-form.scss',
 })
@@ -49,10 +52,14 @@ export class SignupForm {
     phone: ['', [Validators.required, Validators.pattern(/^\+?(?:[\s-]*\d){10,15}[\s-]*$/)]],
     company: ['', [Validators.required, Validators.maxLength(150)]],
     password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+    acceptTerms: [false, Validators.requiredTrue],
   });
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  // Which legal document is open in the modal, if any.
+  protected readonly legalDoc = signal<LegalDoc | null>(null);
+  protected readonly legalTitles = LEGAL_TITLES;
 
   protected errorFor(field: Field): string | null {
     const control = this.form.controls[field];
@@ -66,6 +73,13 @@ export class SignupForm {
     return MESSAGES[field][key] ?? 'Please check this field.';
   }
 
+  // "I agree" in the legal modal ticks the checkbox for the user.
+  protected acceptLegal(): void {
+    this.form.controls.acceptTerms.setValue(true);
+    this.form.controls.acceptTerms.markAsTouched();
+    this.legalDoc.set(null);
+  }
+
   protected submit(): void {
     this.submitted.set(true);
     if (this.form.invalid || this.submitting()) {
@@ -73,7 +87,8 @@ export class SignupForm {
     }
     this.submitting.set(true);
     this.error.set(null);
-    this.auth.signup(this.form.getRawValue()).subscribe({
+    const { acceptTerms, ...body } = this.form.getRawValue();
+    this.auth.signup(body).subscribe({
       next: () => this.router.navigateByUrl('/dashboard'),
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);

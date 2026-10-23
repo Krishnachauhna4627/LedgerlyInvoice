@@ -1,0 +1,54 @@
+.legal {
+  display: grid;
+  gap: var(--space-3);
+  max-height: 60dvh;
+  overflow-y: auto;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+
+  h3 {
+    margin-top: var(--space-2);
+    font-size: var(--text-base);
+    font-weight: 700;
+  }
+
+  p,
+  li {
+    color: var(--color-text-muted);
+  }
+
+  ol,
+  ul {
+    display: grid;
+    gap: var(--space-1);
+    padding-left: var(--space-5);
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  li > ul {
+    margin-top: var(--space-1);
+  }
+
+  a {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+.legal .tagline {
+  display: grid;
+  color: var(--color-text);
+  font-weight: 800;
+  text-transform: uppercase;
+
+  span {
+    color: var(--color-success);
+  }
+}

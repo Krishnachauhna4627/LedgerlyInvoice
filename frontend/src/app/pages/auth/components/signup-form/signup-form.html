@@ -121,6 +121,27 @@
     </div>
   </div>
 
+  <div class="field">
+    <div class="terms">
+      <input
+        id="signup-terms"
+        type="checkbox"
+        formControlName="acceptTerms"
+        [attr.aria-invalid]="!!errorFor('acceptTerms')"
+        aria-describedby="signup-terms-error"
+      />
+      <label for="signup-terms">
+        I agree to the
+        <button type="button" class="link" (click)="legalDoc.set('terms')">Terms &amp; Conditions</button>
+        and
+        <button type="button" class="link" (click)="legalDoc.set('privacy')">Privacy Policy</button>
+      </label>
+    </div>
+    @if (errorFor('acceptTerms'); as message) {
+      <span id="signup-terms-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
   <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
     {{ submitting() ? 'Creating account…' : 'Create account' }}
   </button>
@@ -128,3 +149,13 @@
 
 <p class="divider">Already have an account?</p>
 <button type="button" class="btn btn--ghost btn--block" (click)="loginRequested.emit()">Log in</button>
+
+<app-modal [open]="!!legalDoc()" [title]="legalDoc() ? legalTitles[legalDoc()!] : ''" (closed)="legalDoc.set(null)">
+  @if (legalDoc(); as doc) {
+    <app-legal-content [doc]="doc" />
+    <div class="legal-actions">
+      <button type="button" class="btn btn--outline" (click)="legalDoc.set(null)">Close</button>
+      <button type="button" class="btn btn--primary" (click)="acceptLegal()">I agree</button>
+    </div>
+  }
+</app-modal>

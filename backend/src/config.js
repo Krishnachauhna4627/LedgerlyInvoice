@@ -15,7 +15,8 @@ function required(name) {
 
 export const config = {
   port: Number(process.env.PORT) || 3000,
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+  // Comma-separated list, e.g. http://localhost:4200,https://ledgerly-invoice.vercel.app
+  corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:4200').split(',').map((origin) => origin.trim()),
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
     port: Number(process.env.DB_PORT) || 3306,
