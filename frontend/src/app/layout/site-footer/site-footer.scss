@@ -1,0 +1,49 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+  background: var(--color-surface-inverse);
+  color: color-mix(in srgb, var(--color-on-primary) 75%, transparent);
+  font-size: var(--text-sm);
+}
+
+.footer {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-8);
+
+  @include bp.up(md) {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+}
+
+.business__name {
+  color: var(--color-on-primary);
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+address {
+  margin-top: var(--space-1);
+  font-style: normal;
+  line-height: 1.7;
+
+  a {
+    display: inline-block;
+    min-height: 44px;
+    color: var(--color-on-primary);
+    font-weight: 600;
+  }
+}
+
+.legal {
+  padding-top: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 15%, transparent);
+
+  @include bp.up(md) {
+    padding-top: 0;
+    border-top: 0;
+    text-align: right;
+  }
+}

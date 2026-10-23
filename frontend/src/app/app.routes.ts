@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
 
-const page = (title: string) => `${title} — Ledgerly Invoices`;
+const page = (title: string) => `${title} — Gogna`;
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', loadComponent: () => import('./pages/landing/landing').then((m) => m.Landing) },
