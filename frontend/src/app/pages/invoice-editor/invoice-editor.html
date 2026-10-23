@@ -126,14 +126,6 @@
                 }
               </select>
             </div>
-            <div class="field">
-              <label class="field__label" for="inv-irn">IRN (optional)</label>
-              <input id="inv-irn" class="input" formControlName="irn" autocomplete="off" spellcheck="false"
-                [class.is-invalid]="errorFor('irn')" [attr.aria-invalid]="!!errorFor('irn')" aria-describedby="inv-irn-error" />
-              @if (errorFor('irn'); as message) {
-                <span id="inv-irn-error" class="field__error">{{ message }}</span>
-              }
-            </div>
             <label class="check">
               <input type="checkbox" formControlName="reverseCharge" />
               <span>Reverse charge applicable</span>

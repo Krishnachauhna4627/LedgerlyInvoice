@@ -24,7 +24,6 @@ export const invoiceSchema = z
     dueDate: isoDate('Due date').nullish().transform((value) => value || null),
     placeOfSupplyCode: stateCode.nullish().transform((value) => value || null),
     reverseCharge: z.boolean().default(false),
-    irn: optionalText('IRN', 100),
     template: z.enum(INVOICE_TEMPLATES).default('classic'),
     status: z.enum(INVOICE_STATUSES).default('unpaid'),
     lines: z.array(lineSchema, { error: 'Add at least one item.' }).min(1, 'Add at least one item.').max(200),

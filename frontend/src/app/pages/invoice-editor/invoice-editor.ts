@@ -117,7 +117,6 @@ export class InvoiceEditor {
       placeOfSupplyCode: [''],
       template: this.fb.control<InvoiceTemplate>('classic'),
       reverseCharge: [false],
-      irn: ['', Validators.maxLength(100)],
       lines: this.fb.array([this.lineGroup()]),
     },
     { validators: dueAfterInvoice },
@@ -237,7 +236,6 @@ export class InvoiceEditor {
         placeOfSupplyCode: invoice.placeOfSupplyCode,
         template: invoice.template,
         reverseCharge: invoice.reverseCharge,
-        irn: isDuplicate ? '' : (invoice.irn ?? ''),
       },
       { emitEvent: false },
     );
@@ -324,7 +322,6 @@ export class InvoiceEditor {
       dueDate: v.dueDate || null,
       placeOfSupplyCode: v.placeOfSupplyCode || null,
       reverseCharge: v.reverseCharge,
-      irn: v.irn.trim() || null,
       template: v.template,
       status,
       lines: v.lines.map((l) => ({

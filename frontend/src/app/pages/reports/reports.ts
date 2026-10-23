@@ -127,12 +127,12 @@ export class Reports {
     downloadCsv(
       `sales-invoice-summary${this.fileSuffix()}.csv`,
       ['Invoice Number', 'Invoice Date', 'Seller Name', 'Seller GSTIN', 'Client Name', 'Client Address', 'Client State',
-        'Client GSTIN', 'Place of Supply', 'Reverse Charge', 'IRN', 'Item Count', 'Taxable Value', 'CGST', 'SGST', 'IGST',
+        'Client GSTIN', 'Place of Supply', 'Reverse Charge', 'Item Count', 'Taxable Value', 'CGST', 'SGST', 'IGST',
         'Total Tax', 'Grand Total'],
       rows.map((r) => [
         r.invoiceNumber, r.invoiceDate, r.sellerName, r.sellerGstin, r.clientName, r.clientAddress,
         stateLabel(r.clientStateCode), r.clientGstin, stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No',
-        r.irn, r.lines.length, r.subTotal, r.totalCgst, r.totalSgst, r.totalIgst, r.totalTax, r.grandTotal,
+        r.lines.length, r.subTotal, r.totalCgst, r.totalSgst, r.totalIgst, r.totalTax, r.grandTotal,
       ]),
     );
   }
@@ -141,12 +141,12 @@ export class Reports {
     downloadCsv(
       `sales-item-details${this.fileSuffix()}.csv`,
       ['Invoice Number', 'Invoice Date', 'Seller Name', 'Seller GSTIN', 'Client Name', 'Client State Code', 'Client GSTIN',
-        'Place of Supply', 'Reverse Charge', 'IRN', 'Item No.', 'Description', 'HSN/SAC', 'Quantity', 'Unit Price',
+        'Place of Supply', 'Reverse Charge', 'Item No.', 'Description', 'HSN/SAC', 'Quantity', 'Unit Price',
         'GST Rate (%)', 'Taxable Value', 'CGST', 'SGST', 'IGST', 'Total Tax', 'Line Total'],
       rows.flatMap((r) =>
         r.lines.map((l, index) => [
           r.invoiceNumber, r.invoiceDate, r.sellerName, r.sellerGstin, r.clientName, r.clientStateCode, r.clientGstin,
-          stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No', r.irn, index + 1, l.description, l.hsnSac,
+          stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No', index + 1, l.description, l.hsnSac,
           l.quantity, l.unitPrice, l.gstRate, l.taxableAmount, l.cgst, l.sgst, l.igst, l.totalTax, l.lineTotal,
         ]),
       ),

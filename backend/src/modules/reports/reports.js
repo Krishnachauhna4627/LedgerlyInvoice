@@ -101,7 +101,6 @@ reportsRouter.get('/sales/export', async (req, res) => {
       clientGstin: inv.client_gstin,
       placeOfSupplyCode: inv.place_of_supply_code,
       reverseCharge: Boolean(inv.reverse_charge),
-      irn: inv.irn,
       subTotal: inv.sub_total,
       totalCgst: inv.total_cgst,
       totalSgst: inv.total_sgst,

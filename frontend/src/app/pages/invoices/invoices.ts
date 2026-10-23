@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
 import { DisplayStatus, InvoiceListItem, InvoiceSort } from '../../core/data/models';
@@ -43,13 +43,19 @@ export class Invoices {
   private readonly invoiceService = inject(InvoiceService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  // Links (e.g. the dashboard tiles) can open the list pre-filtered: /invoices?period=this_month&status=overdue
+  private readonly urlFilters = inject(ActivatedRoute).snapshot.queryParamMap;
 
   protected readonly periods = PERIODS;
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly sorts = SORTS;
 
-  protected readonly period = signal<Period>('all');
-  protected readonly status = signal<StatusFilter>('all');
+  protected readonly period = signal<Period>(
+    PERIODS.find((p) => p.value === this.urlFilters.get('period'))?.value ?? 'all',
+  );
+  protected readonly status = signal<StatusFilter>(
+    STATUS_FILTERS.find((s) => s.value === this.urlFilters.get('status'))?.value ?? 'all',
+  );
   protected readonly sort = signal<InvoiceSort>('date_desc');
   protected readonly searchInput = signal('');
   private readonly search = toSignal(

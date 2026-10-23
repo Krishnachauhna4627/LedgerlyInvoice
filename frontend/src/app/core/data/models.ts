@@ -78,7 +78,6 @@ export interface Invoice extends InvoiceListItem {
   paidAt: string | null;
   template: InvoiceTemplate;
   reverseCharge: boolean;
-  irn: string | null;
   placeOfSupplyCode: string;
   isInterState: boolean;
   seller: Omit<Company, 'id'>;
@@ -102,7 +101,6 @@ export interface InvoiceInput {
   dueDate: string | null;
   placeOfSupplyCode: string | null;
   reverseCharge: boolean;
-  irn: string | null;
   template: InvoiceTemplate;
   status: InvoiceStatus;
   lines: { itemId: number | null; description: string; hsnSac: string | null; quantity: number; unitPrice: number; gstRate: number }[];
@@ -154,7 +152,6 @@ export interface SalesExportRow {
   clientGstin: string | null;
   placeOfSupplyCode: string;
   reverseCharge: boolean;
-  irn: string | null;
   subTotal: number;
   totalCgst: number;
   totalSgst: number;

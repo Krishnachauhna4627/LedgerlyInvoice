@@ -36,10 +36,6 @@
       <dd>{{ stateLabel(inv.placeOfSupplyCode) }}</dd>
       <dt>Reverse charge</dt>
       <dd>{{ inv.reverseCharge ? 'Yes' : 'No' }}</dd>
-      @if (inv.irn) {
-        <dt>IRN</dt>
-        <dd class="irn">{{ inv.irn }}</dd>
-      }
     </dl>
   </section>
 

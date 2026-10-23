@@ -48,7 +48,6 @@ function toDetailDto(row, lines) {
     paidAt: row.paid_at,
     template: row.template,
     reverseCharge: Boolean(row.reverse_charge),
-    irn: row.irn,
     placeOfSupplyCode: row.place_of_supply_code,
     isInterState: Boolean(row.is_inter_state),
     seller: {
@@ -180,7 +179,6 @@ async function buildInvoice(companyId, input) {
     status: input.status,
     template: input.template,
     reverse_charge: input.reverseCharge,
-    irn: input.irn,
     place_of_supply_code: placeOfSupplyCode,
     is_inter_state: isInterState,
     seller_name: seller.name,
