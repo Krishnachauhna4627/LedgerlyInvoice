@@ -35,6 +35,21 @@
   text-overflow: ellipsis;
 }
 
+.contact {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-sm);
+
+  a {
+    color: var(--color-text);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+}
+
 .row-actions {
   width: 1%;
   text-align: right;
@@ -77,6 +92,7 @@
   overflow-wrap: anywhere;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  text-decoration: none;
 }
 
 .card__actions {

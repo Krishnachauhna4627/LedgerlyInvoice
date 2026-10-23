@@ -34,8 +34,8 @@ export class Clients {
   protected readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
     if (!term) return this.clients();
-    return this.clients().filter(
-      (c) => c.name.toLowerCase().includes(term) || (c.gstin ?? '').toLowerCase().includes(term),
+    return this.clients().filter((c) =>
+      [c.name, c.gstin, c.phone, c.email].some((value) => (value ?? '').toLowerCase().includes(term)),
     );
   });
 

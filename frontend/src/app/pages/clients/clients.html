@@ -27,7 +27,7 @@
       <label class="search-box">
         <span class="sr-only">Search clients</span>
         <app-icon name="search" [size]="16" />
-        <input class="input" type="search" placeholder="Search by name or GSTIN" [value]="search()" (input)="search.set($any($event.target).value)" />
+        <input class="input" type="search" placeholder="Search by name, GSTIN, phone or email" [value]="search()" (input)="search.set($any($event.target).value)" />
       </label>
       <span class="count">{{ filtered().length }} of {{ clients().length }}</span>
     </div>
@@ -42,6 +42,7 @@
               <tr>
                 <th scope="col">Name</th>
                 <th scope="col">GSTIN</th>
+                <th scope="col">Contact</th>
                 <th scope="col">State</th>
                 <th scope="col">Address</th>
                 <th scope="col"><span class="sr-only">Actions</span></th>
@@ -52,6 +53,18 @@
                 <tr>
                   <td class="strong">{{ client.name }}</td>
                   <td [class.muted]="!client.gstin">{{ client.gstin || '—' }}</td>
+                  <td class="contact">
+                    @if (client.phone || client.email) {
+                      @if (client.phone) {
+                        <a [href]="'tel:' + client.phone">{{ client.phone }}</a>
+                      }
+                      @if (client.email) {
+                        <a [href]="'mailto:' + client.email">{{ client.email }}</a>
+                      }
+                    } @else {
+                      <span class="muted">—</span>
+                    }
+                  </td>
                   <td>{{ stateLabel(client.stateCode) }}</td>
                   <td class="muted address" [title]="client.address ?? ''">{{ client.address || '—' }}</td>
                   <td class="row-actions">
@@ -74,6 +87,12 @@
               <div class="card__main">
                 <span class="card__title">{{ client.name }}</span>
                 <span class="card__meta">{{ client.gstin || 'No GSTIN' }} · {{ stateLabel(client.stateCode) }}</span>
+                @if (client.phone) {
+                  <a class="card__meta" [href]="'tel:' + client.phone">{{ client.phone }}</a>
+                }
+                @if (client.email) {
+                  <a class="card__meta" [href]="'mailto:' + client.email">{{ client.email }}</a>
+                }
                 @if (client.address) {
                   <span class="card__meta">{{ client.address }}</span>
                 }

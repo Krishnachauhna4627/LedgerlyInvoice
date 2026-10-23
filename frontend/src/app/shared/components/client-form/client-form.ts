@@ -7,13 +7,15 @@ import { Client, ClientInput } from '../../../core/data/models';
 import { GST_STATES, GSTIN_PATTERN } from '../../../core/gst/gst-states';
 import { ToastService } from '../../../core/ui/toast.service';
 
-type Field = 'name' | 'address' | 'stateCode' | 'gstin';
+type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
   name: { required: 'Client name is required.', maxlength: 'Client name is too long.' },
   address: { maxlength: 'Address is too long.' },
   stateCode: { required: 'Choose a state.' },
   gstin: { pattern: 'Enter a valid 15-character GSTIN.', stateMismatch: 'GSTIN must start with the selected state code.' },
+  phone: { pattern: 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.' },
+  email: { email: 'Enter a valid email address.', maxlength: 'Email is too long.' },
 };
 
 // Same rules as the server: optional, 15-char format, first two digits = state code.
@@ -46,6 +48,9 @@ export class ClientForm implements OnInit {
     address: ['', Validators.maxLength(1000)],
     stateCode: ['', Validators.required],
     gstin: ['', gstinValidator],
+    // Indian mobile number, same rule as the server.
+    phone: ['', Validators.pattern(/^[6-9]\d{9}$/)],
+    email: ['', [Validators.email, Validators.maxLength(254)]],
   });
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
@@ -61,7 +66,27 @@ export class ClientForm implements OnInit {
   ngOnInit(): void {
     const c = this.client();
     if (c) {
-      this.form.setValue({ name: c.name, address: c.address ?? '', stateCode: c.stateCode, gstin: c.gstin ?? '' });
+      this.form.setValue({
+        name: c.name,
+        address: c.address ?? '',
+        stateCode: c.stateCode,
+        gstin: c.gstin ?? '',
+        phone: c.phone ?? '',
+        email: c.email ?? '',
+      });
+    }
+  }
+
+  // Keep the mobile field to digits only, at most 10; a pasted +91 / 0 prefix is dropped.
+  protected onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value
+      .replace(/\D/g, '')
+      .replace(/^(?:91|0)(?=\d{10}$)/, '')
+      .slice(0, 10);
+    if (digits !== input.value) {
+      input.value = digits;
+      this.form.controls.phone.setValue(digits);
     }
   }
 
@@ -81,6 +106,8 @@ export class ClientForm implements OnInit {
       address: v.address.trim() || null,
       stateCode: v.stateCode,
       gstin: v.gstin.trim().toUpperCase() || null,
+      phone: v.phone || null,
+      email: v.email.trim().toLowerCase() || null,
     };
     const existing = this.client();
     this.submitting.set(true);

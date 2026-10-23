@@ -20,6 +20,8 @@ export interface Client {
   address: string | null;
   stateCode: string;
   gstin: string | null;
+  phone: string | null;
+  email: string | null;
 }
 
 export type ClientInput = Omit<Client, 'id'>;

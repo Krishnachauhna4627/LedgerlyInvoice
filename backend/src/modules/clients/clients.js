@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { HttpError } from '../../http-error.js';
-import { gstin, idParam, optionalText, requiredText, stateCode } from '../../lib/validation.js';
+import { gstin, idParam, optionalEmail, optionalPhone, optionalText, requiredText, stateCode } from '../../lib/validation.js';
 import { requireAuth } from '../../middleware/require-auth.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -12,6 +12,8 @@ const clientSchema = z
     address: optionalText('Address', 1000),
     stateCode,
     gstin,
+    phone: optionalPhone,
+    email: optionalEmail,
   })
   .refine((c) => !c.gstin || c.gstin.startsWith(c.stateCode), {
     path: ['gstin'],
@@ -19,7 +21,15 @@ const clientSchema = z
   });
 
 export function toClientDto(row) {
-  return { id: row.id, name: row.name, address: row.address, stateCode: row.state_code, gstin: row.gstin };
+  return {
+    id: row.id,
+    name: row.name,
+    address: row.address,
+    stateCode: row.state_code,
+    gstin: row.gstin,
+    phone: row.phone,
+    email: row.email,
+  };
 }
 
 // Only ever returns a client that belongs to the given company.
@@ -31,7 +41,14 @@ export async function findClient(companyId, id) {
   return row;
 }
 
-const toRow = (b) => ({ name: b.name, address: b.address, state_code: b.stateCode, gstin: b.gstin });
+const toRow = (b) => ({
+  name: b.name,
+  address: b.address,
+  state_code: b.stateCode,
+  gstin: b.gstin,
+  phone: b.phone,
+  email: b.email,
+});
 
 export const clientsRouter = Router();
 clientsRouter.use(requireAuth);

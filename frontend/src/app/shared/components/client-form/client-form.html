@@ -12,6 +12,32 @@
     }
   </div>
 
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="client-phone">Mobile number</label>
+      <input id="client-phone" class="input" type="tel" formControlName="phone" autocomplete="tel-national" inputmode="numeric"
+        placeholder="e.g. 9876543210" (input)="onPhoneInput($event)"
+        [class.is-invalid]="errorFor('phone')" [attr.aria-invalid]="!!errorFor('phone')" aria-describedby="client-phone-error" />
+      @if (errorFor('phone'); as message) {
+        <span id="client-phone-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="client-phone-error" class="hint">Optional. 10-digit Indian mobile number.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="client-email">Email</label>
+      <input id="client-email" class="input" type="email" formControlName="email" autocomplete="email" inputmode="email"
+        autocapitalize="none" spellcheck="false" placeholder="e.g. name@company.com"
+        [class.is-invalid]="errorFor('email')" [attr.aria-invalid]="!!errorFor('email')" aria-describedby="client-email-error" />
+      @if (errorFor('email'); as message) {
+        <span id="client-email-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="client-email-error" class="hint">Optional.</span>
+      }
+    </div>
+  </div>
+
   <div class="field">
     <label class="field__label" for="client-address">Address</label>
     <textarea id="client-address" class="input" formControlName="address" rows="3" autocomplete="street-address"
