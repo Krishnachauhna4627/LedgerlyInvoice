@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
-import { AuthResponse, LoginRequest, SignupRequest, User } from './auth.models';
+import { AuthResponse, LoginRequest, PasswordChange, ProfileUpdate, SignupRequest, User } from './auth.models';
 
 const TOKEN_KEY = 'ledgerly.token';
 
@@ -25,6 +25,13 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/signup', body).pipe(map((res) => this.startSession(res)));
   }
 
+  // Emails the account a new password. The reply is the same whether or not the email has an account.
+  forgotPassword(email: string): Observable<string> {
+    return this.http
+      .post<{ message: string }>('/api/auth/forgot-password', { email })
+      .pipe(map(({ message }) => message));
+  }
+
   // Fetches the logged-in user once per visit; resolves to null (and logs out) if the token is no longer valid.
   loadCurrentUser(): Observable<User | null> {
     const cached = this.user();
@@ -41,6 +48,19 @@ export class AuthService {
         return of(null);
       }),
     );
+  }
+
+  updateProfile(body: ProfileUpdate): Observable<User> {
+    return this.http.put<{ user: User }>('/api/auth/me', body).pipe(
+      map(({ user }) => {
+        this.user.set(user);
+        return user;
+      }),
+    );
+  }
+
+  changePassword(body: PasswordChange): Observable<void> {
+    return this.http.put<void>('/api/auth/me/password', body);
   }
 
   logout(): void {

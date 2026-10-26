@@ -19,6 +19,19 @@ export interface LoginRequest {
   password: string;
 }
 
+// The fields a user can change on their own profile.
+export interface ProfileUpdate {
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+}
+
+export interface PasswordChange {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface SignupRequest {
   name: string;
   username: string;

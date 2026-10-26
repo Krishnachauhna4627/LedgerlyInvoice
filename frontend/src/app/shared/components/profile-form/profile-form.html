@@ -1,0 +1,55 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="profile-name">Full name *</label>
+    <input id="profile-name" class="input" formControlName="name" autocomplete="name"
+      [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="profile-name-error" />
+    @if (errorFor('name'); as message) {
+      <span id="profile-name-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="profile-username">Username *</label>
+    <input id="profile-username" class="input" formControlName="username" autocomplete="username"
+      autocapitalize="none" spellcheck="false"
+      [class.is-invalid]="errorFor('username')" [attr.aria-invalid]="!!errorFor('username')" aria-describedby="profile-username-error" />
+    @if (errorFor('username'); as message) {
+      <span id="profile-username-error" class="field__error">{{ message }}</span>
+    } @else {
+      <span id="profile-username-error" class="hint">You can log in with your username or email.</span>
+    }
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="profile-email">Email *</label>
+      <input id="profile-email" class="input" type="email" formControlName="email" autocomplete="email" inputmode="email"
+        autocapitalize="none" spellcheck="false"
+        [class.is-invalid]="errorFor('email')" [attr.aria-invalid]="!!errorFor('email')" aria-describedby="profile-email-error" />
+      @if (errorFor('email'); as message) {
+        <span id="profile-email-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="profile-phone">Phone number *</label>
+      <input id="profile-phone" class="input" type="tel" formControlName="phone" autocomplete="tel"
+        [class.is-invalid]="errorFor('phone')" [attr.aria-invalid]="!!errorFor('phone')" aria-describedby="profile-phone-error" />
+      @if (errorFor('phone'); as message) {
+        <span id="profile-phone-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="link-btn" (click)="passwordRequested.emit()">Change password</button>
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : 'Save changes' }}
+    </button>
+  </div>
+</form>

@@ -7,6 +7,9 @@ import { InvoiceService } from '../../core/invoices/invoice.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { IconName } from '../../shared/components/icon/icons';
 import { LogoMark } from '../../shared/components/logo-mark/logo-mark';
+import { Modal } from '../../shared/components/modal/modal';
+import { PasswordForm } from '../../shared/components/password-form/password-form';
+import { ProfileForm } from '../../shared/components/profile-form/profile-form';
 import { ToastHost } from '../../shared/components/toast-host/toast-host';
 
 interface NavItem {
@@ -18,7 +21,7 @@ interface NavItem {
 // Layout for every logged-in page: sidebar navigation + the page in <router-outlet>.
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, LogoMark, ToastHost],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, LogoMark, Modal, PasswordForm, ProfileForm, ToastHost],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
 })
@@ -49,6 +52,8 @@ export class AppShell {
       .join(''),
   );
   protected readonly menuOpen = signal(false);
+  // Which account dialog is open, if any.
+  protected readonly profileView = signal<'profile' | 'password' | null>(null);
 
   constructor() {
     this.invoices.refreshCount();

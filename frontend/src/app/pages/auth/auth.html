@@ -27,10 +27,16 @@
     </div>
 
     <div class="card">
-      @if (mode() === 'login') {
-        <app-login-form (signupRequested)="mode.set('signup')" />
-      } @else {
-        <app-signup-form (loginRequested)="mode.set('login')" />
+      @switch (mode()) {
+        @case ('login') {
+          <app-login-form (signupRequested)="mode.set('signup')" (forgotRequested)="mode.set('forgot')" />
+        }
+        @case ('signup') {
+          <app-signup-form (loginRequested)="mode.set('login')" />
+        }
+        @case ('forgot') {
+          <app-forgot-password-form (loginRequested)="mode.set('login')" />
+        }
       }
     </div>
   </main>

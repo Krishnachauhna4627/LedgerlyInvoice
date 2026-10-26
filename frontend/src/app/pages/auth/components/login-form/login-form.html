@@ -25,7 +25,10 @@
   </div>
 
   <div class="field">
-    <label class="field__label" for="login-password">Password</label>
+    <div class="label-row">
+      <label class="field__label" for="login-password">Password</label>
+      <button type="button" class="link" (click)="forgotRequested.emit()">Forgot password?</button>
+    </div>
     <input
       id="login-password"
       class="input"

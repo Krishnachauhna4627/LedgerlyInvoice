@@ -15,6 +15,7 @@ export class LoginForm {
   private readonly router = inject(Router);
 
   readonly signupRequested = output();
+  readonly forgotRequested = output();
 
   protected readonly form = inject(NonNullableFormBuilder).group({
     login: ['', Validators.required],
