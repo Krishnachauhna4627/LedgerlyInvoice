@@ -164,15 +164,16 @@ export async function getInvoice(companyId, id) {
   return toDetailDto({ ...row, signature: company?.signature }, lines);
 }
 
-// Next number in the "INV-<year>-0001" series for this company.
+// Next plain number (1, 2, 3...) for this company. Older "INV-<year>-0001" numbers still count
+// towards the sequence so numbering carries on from them.
 export async function nextInvoiceNumber(companyId) {
-  const prefix = `INV-${new Date().getFullYear()}-`;
-  const rows = await db('invoices').where('company_id', companyId).where('invoice_number', 'like', `${prefix}%`).pluck('invoice_number');
+  const rows = await db('invoices').where('company_id', companyId).pluck('invoice_number');
   const highest = rows.reduce((max, number) => {
-    const suffix = Number(number.slice(prefix.length));
-    return Number.isInteger(suffix) && suffix > max ? suffix : max;
+    const match = /^(?:INV-\d{4}-)?(\d+)$/.exec(number);
+    const value = match ? Number(match[1]) : 0;
+    return value > max ? value : max;
   }, 0);
-  return `${prefix}${String(highest + 1).padStart(4, '0')}`;
+  return String(highest + 1);
 }
 
 // Builds the full invoice row (snapshots + server-calculated totals) and its line rows.
