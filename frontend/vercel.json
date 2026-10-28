@@ -5,7 +5,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/ledgerly-frontend/browser",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://rica-flip-cups-friendly.trycloudflare.com/?utm_source=chatgpt.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://dat-demonstrated-pretty-arrive.trycloudflare.com/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
