@@ -1,0 +1,23 @@
+# Only used when the web root has to be this folder (some shared hosts don't let you point a
+# domain at public/). Sends every request into public/, so app/, vendor/, writable/ and .env
+# are never served. If you can point the (sub)domain at public/ instead, do that.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+
+	# Keep the "Authorization: Bearer ..." header (some hosts drop it).
+	RewriteCond %{HTTP:Authorization} .
+	RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+	RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+	Require all denied
+</IfModule>
+
+<FilesMatch "^\.">
+	Require all denied
+</FilesMatch>
