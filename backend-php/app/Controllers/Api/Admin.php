@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
 use App\Libraries\InvoiceService;
+use App\Libraries\LedgerService;
 use App\Models\ClientModel;
 use App\Models\CompanyModel;
 use App\Models\InvoiceModel;
@@ -46,7 +47,7 @@ class Admin extends BaseController
             'company'  => CompanyModel::toDto(model(CompanyModel::class)->getRow($companyId)),
             'clients'  => model(ClientModel::class)->listFor($companyId),
             'items'    => model(ItemModel::class)->listFor($companyId),
-            'invoices' => array_map(InvoiceModel::toListDto(...), $invoices),
+            'invoices' => array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($invoices)),
         ]);
     }
 

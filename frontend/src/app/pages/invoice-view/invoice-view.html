@@ -29,7 +29,7 @@
 
   <app-modal [open]="receiptOpen()" title="Record receipt" (closed)="receiptOpen.set(false)">
     @if (receiptOpen()) {
-      <app-receipt-form [clientId]="inv.clientId" [amount]="inv.totals.grandTotal" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
+      <app-receipt-form [clientId]="inv.clientId" [amount]="inv.amountDue" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
     }
   </app-modal>
 

@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/require-auth.js';
+import { round2 } from '../../lib/gst.js';
 import { listInvoices, today, whereDisplayStatus } from '../invoices/invoices.service.js';
+import { BALANCE_SQL } from '../receipts/ledger.js';
 
 // Drafts are not sales, so every report leaves them out.
 
@@ -25,6 +27,11 @@ function issuedInvoices(companyId, { from, to }) {
   return q;
 }
 
+function outstandingOf(balances) {
+  const dues = balances.map((row) => Number(row.balance)).filter((balance) => balance > 0);
+  return { amount: round2(dues.reduce((sum, balance) => sum + balance, 0)), count: dues.length };
+}
+
 export const reportsRouter = Router();
 reportsRouter.use(requireAuth);
 
@@ -33,9 +40,9 @@ reportsRouter.get('/dashboard', async (req, res) => {
   const monthStart = `${today().slice(0, 7)}-01`;
   const sumOf = (q) => q.count('* as count').sum('grand_total as amount').first();
 
-  const [thisMonth, outstanding, overdue, [{ clients }], [{ items }], recentInvoices] = await Promise.all([
+  const [thisMonth, balances, overdue, [{ clients }], [{ items }], recentInvoices] = await Promise.all([
     sumOf(issuedInvoices(companyId, { from: monthStart })),
-    sumOf(db('invoices').where({ company_id: companyId, status: 'unpaid' })),
+    db('clients').where({ company_id: companyId }).select(db.raw(`${BALANCE_SQL} AS balance`)),
     sumOf(whereDisplayStatus(db('invoices').where({ company_id: companyId }), 'overdue')),
     db('clients').where({ company_id: companyId }).count('* as clients'),
     db('items').where({ company_id: companyId }).count('* as items'),
@@ -44,7 +51,8 @@ reportsRouter.get('/dashboard', async (req, res) => {
 
   res.json({
     thisMonth: { sales: Number(thisMonth.amount ?? 0), invoiceCount: Number(thisMonth.count) },
-    outstanding: { amount: Number(outstanding.amount ?? 0), count: Number(outstanding.count) },
+    // What customers owe (their balances after receipts); advances don't reduce it. Count = customers with dues.
+    outstanding: outstandingOf(balances),
     overdue: { amount: Number(overdue.amount ?? 0), count: Number(overdue.count) },
     clientCount: Number(clients),
     itemCount: Number(items),

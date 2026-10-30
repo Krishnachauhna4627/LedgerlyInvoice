@@ -3,7 +3,7 @@ import { HttpError } from '../../http-error.js';
 import { calculateInvoice } from '../../lib/gst.js';
 import { findClient } from '../clients/clients.js';
 import { getCompanyRow } from '../company/company.js';
-import { settleInvoices } from '../receipts/ledger.js';
+import { settleInvoices, withAmountDue } from '../receipts/ledger.js';
 
 // Today's date in the server's local time zone, as 'YYYY-MM-DD'.
 export const today = () => new Date().toLocaleDateString('en-CA');
@@ -40,6 +40,8 @@ export function toListDto(row) {
     subTotal: row.sub_total,
     totalTax: row.total_tax,
     grandTotal: row.grand_total,
+    // What is still to be received on this invoice (see withAmountDue).
+    amountDue: row.amount_due ?? (row.status === 'paid' ? 0 : row.grand_total),
   };
 }
 
@@ -138,7 +140,7 @@ export async function listInvoices(companyId, { search, from, to, status, sort, 
   if (sort === 'status') query.orderBy(statusRank());
   for (const [column, direction] of SORTS[sort]) query.orderBy(column, direction);
   if (limit) query.limit(limit);
-  return (await query).map(toListDto);
+  return (await withAmountDue(await query)).map(toListDto);
 }
 
 async function findInvoiceRow(companyId, id) {
@@ -159,7 +161,7 @@ export async function getAnyInvoice(id) {
 }
 
 export async function getInvoice(companyId, id) {
-  const row = await findInvoiceRow(companyId, id);
+  const [row] = await withAmountDue([await findInvoiceRow(companyId, id)]);
   const lines = await db('invoice_items').where({ invoice_id: id }).orderBy('position');
   const company = await db('companies').where({ id: companyId }).first('signature');
   return toDetailDto({ ...row, signature: company?.signature }, lines);

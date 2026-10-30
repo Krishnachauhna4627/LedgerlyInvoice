@@ -87,3 +87,26 @@ export async function getLedger(client, { from, to }) {
     totals: { sales, receipts: received, closingBalance: balance },
   };
 }
+
+// Per customer: receipt money left over after the opening balance and the paid invoices, and the
+// oldest unpaid invoice (the one that leftover partly pays — see settleInvoices).
+const PART_PAYMENT_SQL = `clients.id,
+  COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = clients.id), 0)
+  - clients.opening_balance
+  - COALESCE((SELECT SUM(i.grand_total) FROM invoices i WHERE i.client_id = clients.id AND i.status = 'paid'), 0) AS leftover,
+  (SELECT i.id FROM invoices i WHERE i.client_id = clients.id AND i.status = 'unpaid'
+    ORDER BY i.invoice_date, i.id LIMIT 1) AS first_unpaid_id`;
+
+// Sets amount_due on invoice rows: 0 when paid; for the customer's oldest unpaid invoice, its total
+// minus any part payment; otherwise the full total.
+export async function withAmountDue(rows) {
+  const clientIds = [...new Set(rows.filter((r) => r.status === 'unpaid' && r.client_id).map((r) => r.client_id))];
+  const parts = clientIds.length ? await db('clients').whereIn('clients.id', clientIds).select(db.raw(PART_PAYMENT_SQL)) : [];
+  const partByClient = new Map(parts.map((p) => [p.id, p]));
+  return rows.map((row) => {
+    const part = partByClient.get(row.client_id);
+    const leftover = part && part.first_unpaid_id === row.id ? Number(part.leftover) : 0;
+    const due = row.status === 'paid' ? 0 : leftover > 0 ? Math.max(round2(row.grand_total - leftover), 0) : row.grand_total;
+    return { ...row, amount_due: due };
+  });
+}

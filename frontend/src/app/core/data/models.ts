@@ -111,6 +111,8 @@ export interface InvoiceListItem {
   subTotal: number;
   totalTax: number;
   grandTotal: number;
+  // Still to be received: 0 when paid; less than the total when receipts part-paid it (oldest invoices first).
+  amountDue: number;
 }
 
 export interface InvoiceLine {
@@ -183,6 +185,7 @@ export interface InvoiceQuery {
 
 export interface DashboardSummary {
   thisMonth: { sales: number; invoiceCount: number };
+  // Total of customer balances still due, and how many customers owe something.
   outstanding: { amount: number; count: number };
   overdue: { amount: number; count: number };
   clientCount: number;

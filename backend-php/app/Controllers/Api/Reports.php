@@ -4,7 +4,9 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
+use App\Libraries\Gst;
 use App\Libraries\InvoiceService;
+use App\Libraries\LedgerService;
 use App\Models\InvoiceModel;
 use CodeIgniter\Database\BaseBuilder;
 
@@ -24,12 +26,17 @@ class Reports extends BaseController
         $sumOf      = static fn (BaseBuilder $q): array => $q->select('COUNT(*) AS count, SUM(grand_total) AS amount', false)->get()->getRowArray();
 
         $thisMonth   = $sumOf($this->issuedInvoices($companyId, ['from' => $monthStart]));
-        $outstanding = $sumOf($db->table('invoices')->where(['company_id' => $companyId, 'status' => 'unpaid']));
+        // What customers owe (their balances after receipts); advances don't reduce it. Count = customers with dues.
+        $balances = array_column(
+            $db->table('clients')->select(LedgerService::BALANCE_SQL . ' AS balance', false)->where('company_id', $companyId)->get()->getResultArray(),
+            'balance',
+        );
+        $dues = array_filter(array_map('floatval', $balances), static fn (float $balance): bool => $balance > 0);
         $overdue     = $sumOf(InvoiceModel::whereDisplayStatus($db->table('invoices')->where('company_id', $companyId), 'overdue'));
 
         return $this->json([
             'thisMonth'      => ['sales' => (float) ($thisMonth['amount'] ?? 0), 'invoiceCount' => (int) $thisMonth['count']],
-            'outstanding'    => ['amount' => (float) ($outstanding['amount'] ?? 0), 'count' => (int) $outstanding['count']],
+            'outstanding'    => ['amount' => Gst::round2(array_sum($dues)), 'count' => count($dues)],
             'overdue'        => ['amount' => (float) ($overdue['amount'] ?? 0), 'count' => (int) $overdue['count']],
             'clientCount'    => $db->table('clients')->where('company_id', $companyId)->countAllResults(),
             'itemCount'      => $db->table('items')->where('company_id', $companyId)->countAllResults(),

@@ -20,6 +20,17 @@ class LedgerService
         + COALESCE((SELECT SUM(i.grand_total) FROM invoices i WHERE i.client_id = clients.id AND i.status <> 'draft'), 0)
         - COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = clients.id), 0)";
 
+    /**
+     * Per customer: receipt money left over after the opening balance and the paid invoices, and the
+     * oldest unpaid invoice (the one that leftover partly pays — see settleInvoices()).
+     */
+    private const PART_PAYMENT_SQL = "clients.id,
+        COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = clients.id), 0)
+        - clients.opening_balance
+        - COALESCE((SELECT SUM(i.grand_total) FROM invoices i WHERE i.client_id = clients.id AND i.status = 'paid'), 0) AS leftover,
+        (SELECT i.id FROM invoices i WHERE i.client_id = clients.id AND i.status = 'unpaid'
+          ORDER BY i.invoice_date, i.id LIMIT 1) AS first_unpaid_id";
+
     private BaseConnection $db;
 
     public function __construct()
@@ -65,6 +76,36 @@ class LedgerService
                 ]);
             }
         }
+    }
+
+    /**
+     * Sets amount_due on invoice rows: 0 when paid; for the customer's oldest unpaid invoice, its total
+     * minus any part payment; otherwise the full total.
+     *
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function withAmountDue(array $rows): array
+    {
+        $clientIds = array_values(array_unique(array_map(
+            static fn (array $r): int => (int) $r['client_id'],
+            array_filter($rows, static fn (array $r): bool => $r['status'] === 'unpaid' && $r['client_id'] !== null),
+        )));
+        $parts = $clientIds === [] ? [] : $this->db->table('clients')
+            ->select(self::PART_PAYMENT_SQL, false)
+            ->whereIn('clients.id', $clientIds)
+            ->get()->getResultArray();
+        $partByClient = array_column($parts, null, 'id');
+
+        return array_map(static function (array $row) use ($partByClient): array {
+            $part     = $partByClient[$row['client_id']] ?? null;
+            $leftover = $part !== null && (int) $part['first_unpaid_id'] === (int) $row['id'] ? (float) $part['leftover'] : 0.0;
+            $total    = (float) $row['grand_total'];
+            $due      = $row['status'] === 'paid' ? 0.0 : ($leftover > 0 ? max(Gst::round2($total - $leftover), 0.0) : $total);
+
+            return [...$row, 'amount_due' => $due];
+        }, $rows);
     }
 
     /**

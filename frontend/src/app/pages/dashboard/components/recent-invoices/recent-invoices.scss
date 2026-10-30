@@ -120,3 +120,11 @@
   background: var(--color-primary-soft);
   color: var(--color-primary);
 }
+
+// Part-paid invoices: the full invoice total under what is still due.
+.of-total {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}

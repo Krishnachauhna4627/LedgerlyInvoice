@@ -32,7 +32,8 @@ export class StatTiles {
     const s = this.summary();
     return [
       { label: 'Sales this month', value: inr.transform(s.thisMonth.sales), note: plural(s.thisMonth.invoiceCount, 'invoice'), icon: 'rupee', link: '/invoices', query: { period: 'this_month' } },
-      { label: 'Outstanding', value: inr.transform(s.outstanding.amount), note: `${plural(s.outstanding.count, 'invoice')} unpaid`, icon: 'receipt', link: '/invoices', query: { status: 'unpaid' } },
+      // Sum of customer balances still due (after receipts).
+      { label: 'Outstanding', value: inr.transform(s.outstanding.amount), note: `${plural(s.outstanding.count, 'customer')} with dues`, icon: 'receipt', link: '/clients' },
       {
         label: 'Overdue',
         value: inr.transform(s.overdue.amount),

@@ -77,7 +77,7 @@ class InvoiceService
             $builder->limit($query['limit']);
         }
 
-        return array_map(InvoiceModel::toListDto(...), $builder->get()->getResultArray());
+        return array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($builder->get()->getResultArray()));
     }
 
     /**
@@ -85,7 +85,7 @@ class InvoiceService
      */
     public function getInvoice(int $companyId, int $id): array
     {
-        $row     = $this->findInvoiceRow($companyId, $id);
+        $row     = (new LedgerService())->withAmountDue([$this->findInvoiceRow($companyId, $id)])[0];
         $lines   = $this->db->table('invoice_items')->where('invoice_id', $id)->orderBy('position')->get()->getResultArray();
         $company = $this->db->table('companies')->select('signature')->where('id', $companyId)->get()->getRowArray();
 

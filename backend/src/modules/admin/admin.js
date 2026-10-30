@@ -6,6 +6,7 @@ import { requireAdmin, requireAuth } from '../../middleware/require-auth.js';
 import { clientsWithBalance, toClientDto } from '../clients/clients.js';
 import { getCompanyRow, toCompanyDto } from '../company/company.js';
 import { getAnyInvoice, toListDto } from '../invoices/invoices.service.js';
+import { withAmountDue } from '../receipts/ledger.js';
 import { toItemDto } from '../items/items.js';
 
 // Super-user views across every company. Read-only; the only place that skips company scoping.
@@ -95,7 +96,7 @@ adminRouter.get('/users/:id', async (req, res) => {
     company: toCompanyDto(company),
     clients: clients.map(toClientDto),
     items: items.map(toItemDto),
-    invoices: invoices.map(toListDto),
+    invoices: (await withAmountDue(invoices)).map(toListDto),
   });
 });
 

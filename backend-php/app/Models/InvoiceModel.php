@@ -69,6 +69,8 @@ class InvoiceModel extends Model
             'subTotal'      => (float) $row['sub_total'],
             'totalTax'      => (float) $row['total_tax'],
             'grandTotal'    => (float) $row['grand_total'],
+            // What is still to be received on this invoice (see LedgerService::withAmountDue()).
+            'amountDue' => (float) ($row['amount_due'] ?? ($row['status'] === 'paid' ? 0 : $row['grand_total'])),
         ];
     }
 

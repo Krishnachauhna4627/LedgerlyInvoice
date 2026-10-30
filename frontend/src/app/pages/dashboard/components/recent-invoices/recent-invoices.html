@@ -24,7 +24,12 @@
             <tr>
               <td><a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a></td>
               <td class="strong">{{ inv.clientName }}</td>
-              <td class="num strong">{{ inv.grandTotal | inr }}</td>
+              <td class="num strong">
+                {{ inv.amountDue | inr }}
+                @if (inv.amountDue > 0 && inv.amountDue < inv.grandTotal) {
+                  <span class="of-total">of {{ inv.grandTotal | inr }}</span>
+                }
+              </td>
               <td><app-status-badge [status]="inv.displayStatus" /></td>
               <td class="muted">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</td>
               <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}</td>
@@ -43,7 +48,7 @@
               <span class="card__meta">#{{ inv.invoiceNumber }} · {{ inv.invoiceDate | date: 'd MMM y' }}</span>
             </span>
             <span class="card__side">
-              <span class="card__amount">{{ inv.grandTotal | inr }}</span>
+              <span class="card__amount">{{ inv.amountDue | inr }}</span>
               <app-status-badge [status]="inv.displayStatus" />
             </span>
           </a>

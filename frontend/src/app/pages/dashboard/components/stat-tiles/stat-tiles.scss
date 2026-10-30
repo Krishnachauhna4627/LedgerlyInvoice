@@ -28,6 +28,8 @@
 }
 
 .tile {
+  // The value's font scales with the tile's width (see .tile__value).
+  container-type: inline-size;
   display: grid;
   align-content: start;
   gap: var(--space-1);
@@ -85,12 +87,12 @@
   color: var(--color-danger);
 }
 
+// Shrinks to fit narrow tiles instead of being cut off ("₹1,00,082…"); wraps only as a last resort.
 .tile__value {
-  overflow: hidden;
-  font-size: var(--text-2xl);
+  overflow-wrap: anywhere;
+  font-size: clamp(var(--text-lg), 13cqi, var(--text-2xl));
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
 }
 
 .tile__note {

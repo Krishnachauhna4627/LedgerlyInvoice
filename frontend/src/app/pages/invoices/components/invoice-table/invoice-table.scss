@@ -118,3 +118,11 @@ input[type='checkbox'] {
 .card__menu {
   margin: -6px -6px 0 0;
 }
+
+// Part-paid invoices: the full invoice total under what is still due.
+.of-total {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
