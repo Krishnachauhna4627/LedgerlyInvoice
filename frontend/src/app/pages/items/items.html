@@ -1,31 +1,31 @@
-<app-page-header title="Items / Services" subtitle="Products and services with HSN/SAC and GST rate, used to fill invoice lines.">
+<app-page-header title="Products/Services" subtitle="With HSN/SAC and GST rate, used to fill invoice lines.">
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
-    <app-icon name="plus" [size]="16" /> Add item
+    <app-icon name="plus" [size]="16" /> Add product/service
   </button>
 </app-page-header>
 
 <div class="page-body">
   @if (loading()) {
-    <div class="panel empty-state"><p>Loading items…</p></div>
+    <div class="panel empty-state"><p>Loading products/services…</p></div>
   } @else if (loadError()) {
     <div class="panel empty-state">
-      <p class="empty-state__title">Couldn't load items</p>
+      <p class="empty-state__title">Couldn't load products/services</p>
       <p>{{ loadError() }}</p>
       <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
   } @else if (items().length === 0) {
     <div class="panel empty-state">
       <span class="empty-icon"><app-icon name="box" [size]="26" /></span>
-      <p class="empty-state__title">No items yet</p>
+      <p class="empty-state__title">No products/services yet</p>
       <p>Save the products and services you sell, with their HSN/SAC and GST rate, to fill invoice lines in one click.</p>
       <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
-        <app-icon name="plus" [size]="16" /> Add your first item
+        <app-icon name="plus" [size]="16" /> Add your first product/service
       </button>
     </div>
   } @else {
     <div class="toolbar">
       <label class="search-box">
-        <span class="sr-only">Search items</span>
+        <span class="sr-only">Search products/services</span>
         <app-icon name="search" [size]="16" />
         <input class="input" type="search" placeholder="Search by name or HSN/SAC" [value]="search()" (input)="search.set($any($event.target).value)" />
       </label>
@@ -34,7 +34,7 @@
 
     <div class="panel">
       @if (filtered().length === 0) {
-        <div class="empty-state"><p>No items match "{{ search() }}".</p></div>
+        <div class="empty-state"><p>No products/services match "{{ search() }}".</p></div>
       } @else {
         <div class="table-scroll desktop">
           <table class="data-table">
@@ -93,22 +93,22 @@
   }
 </div>
 
-<app-modal [open]="formOpen()" [title]="editing() ? 'Edit item' : 'Add item'" (closed)="formOpen.set(false)">
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit product/service' : 'Add product/service'" (closed)="formOpen.set(false)">
   @if (formOpen()) {
     <app-item-form [item]="editing()" (saved)="onSaved($event)" (cancelled)="formOpen.set(false)" />
   }
 </app-modal>
 
-<app-modal [open]="!!deleting()" title="Delete item?" size="sm" (closed)="deleting.set(null)">
+<app-modal [open]="!!deleting()" title="Delete product/service?" size="sm" (closed)="deleting.set(null)">
   @if (deleting(); as item) {
     <p class="confirm-text">
-      <strong>{{ item.name }}</strong> will be removed from your saved items. Invoices that already use it keep their
+      <strong>{{ item.name }}</strong> will be removed from your saved products/services. Invoices that already use it keep their
       own copy of the line.
     </p>
     <div class="confirm-actions">
       <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
       <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
-        {{ deleteBusy() ? 'Deleting…' : 'Delete item' }}
+        {{ deleteBusy() ? 'Deleting…' : 'Delete product/service' }}
       </button>
     </div>
   }

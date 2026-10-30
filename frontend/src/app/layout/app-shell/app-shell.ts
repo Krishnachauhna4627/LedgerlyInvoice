@@ -34,10 +34,10 @@ export class AppShell {
   protected readonly nav: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard', icon: 'layout' },
     { label: 'Invoices', path: '/invoices', icon: 'file-text' },
-    { label: 'Clients', path: '/clients', icon: 'users' },
-    { label: 'Items', path: '/items', icon: 'box' },
+    { label: 'Customers', path: '/clients', icon: 'users' },
+    { label: 'Products/Services', path: '/items', icon: 'box' },
     { label: 'Reports', path: '/reports', icon: 'bar-chart' },
-    { label: 'Settings', path: '/settings', icon: 'settings' },
+    { label: 'Business Details', path: '/settings', icon: 'settings' },
   ];
   // Only shown to the super user.
   protected readonly adminNav: NavItem[] = [{ label: 'Users', path: '/admin/users', icon: 'shield' }];

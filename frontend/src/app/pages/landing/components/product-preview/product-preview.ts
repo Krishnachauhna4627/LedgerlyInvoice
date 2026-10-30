@@ -15,7 +15,7 @@ export class ProductPreview {
   protected readonly tabs: { label: string; icon: IconName }[] = [
     { label: 'Invoice', icon: 'file-text' },
     { label: 'Customers', icon: 'users' },
-    { label: 'Items', icon: 'box' },
+    { label: 'Products/Services', icon: 'box' },
     { label: 'Records', icon: 'receipt' },
     { label: 'Sales Report', icon: 'bar-chart' },
     { label: 'Seller Details', icon: 'building' },

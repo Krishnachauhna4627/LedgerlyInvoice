@@ -239,7 +239,7 @@ class Validation extends BaseConfig
 
         // GSTIN must start with the state code: checked in the Clients controller.
         $this->client = [
-            'name'      => self::requiredText('Client name', 150),
+            'name'      => self::requiredText('Customer name', 150),
             'address'   => self::optionalText('Address', 1000),
             'stateCode' => self::stateCode(false),
             'gstin'     => self::GSTIN,
@@ -248,7 +248,7 @@ class Validation extends BaseConfig
         ];
 
         $this->item = [
-            'name'      => self::requiredText('Item name', 200),
+            'name'      => self::requiredText('Product/service name', 200),
             'hsnSac'    => self::optionalText('HSN/SAC', 20),
             'unit'      => self::UNIT,
             'unitPrice' => self::money('Rate'),
@@ -259,7 +259,7 @@ class Validation extends BaseConfig
         $this->invoice = [
             'clientId' => [
                 'rules'  => ['js_integer', 'greater_than[0]'],
-                'errors' => ['js_integer' => 'Choose a client.', 'greater_than' => 'Choose a client.'],
+                'errors' => ['js_integer' => 'Choose a customer.', 'greater_than' => 'Choose a customer.'],
             ],
             'invoiceNumber' => self::requiredText('Invoice number', 40),
             'invoiceDate'   => [
@@ -276,7 +276,7 @@ class Validation extends BaseConfig
             'status'   => self::oneOf(self::INVOICE_STATUSES),
             'lines'    => [
                 'rules'  => ['list_size[1,200]'],
-                'errors' => ['list_size' => 'Add at least one item.'],
+                'errors' => ['list_size' => 'Add at least one product/service.'],
             ],
             'lines.*.itemId' => [
                 'rules'  => ['permit_empty', 'js_number', 'js_integer', 'greater_than[0]'],
@@ -286,7 +286,7 @@ class Validation extends BaseConfig
                     'greater_than' => 'Too small: expected number to be >0',
                 ],
             ],
-            'lines.*.description' => self::requiredText('Item', 200),
+            'lines.*.description' => self::requiredText('Product/service', 200),
             'lines.*.narration'   => self::optionalText('Narration', 500),
             'lines.*.hsnSac'      => self::optionalText('HSN/SAC', 20),
             'lines.*.quantity'    => [

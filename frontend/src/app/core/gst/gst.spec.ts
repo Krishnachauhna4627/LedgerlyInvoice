@@ -44,4 +44,10 @@ describe('calculateInvoice', () => {
     expect(totals.totalIgst).toBe(9180);
     expect(totals.grandTotal).toBe(60180);
   });
+
+  it('adds no GST under reverse charge: the taxable amount is the total', () => {
+    const { lines: amounts, totals } = calculateInvoice(lines, '03', '07', true);
+    expect(totals).toEqual({ subTotal: 51000, totalCgst: 0, totalSgst: 0, totalIgst: 0, totalTax: 0, grandTotal: 51000 });
+    expect(amounts[0].lineTotal).toBe(50000);
+  });
 });

@@ -23,7 +23,7 @@ class ItemModel extends Model
     {
         $row = $this->where('company_id', $companyId)->find($id);
         if (! $row) {
-            throw new HttpError(404, 'Item not found.');
+            throw new HttpError(404, 'Product/service not found.');
         }
 
         return $row;

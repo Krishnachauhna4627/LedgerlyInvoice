@@ -220,18 +220,18 @@ class InvoiceService
         if (! $seller['state_code']) {
             throw new HttpError(
                 400,
-                'Please complete your Seller Details in Settings, including the state, before saving an invoice.',
+                'Please complete your Business Details, including the state, before saving an invoice.',
             );
         }
 
         try {
             $client = model(ClientModel::class)->findOwned($companyId, (int) $input['clientId']);
         } catch (HttpError) {
-            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved client.']);
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved customer.']);
         }
 
         $placeOfSupplyCode = $input['placeOfSupplyCode'] ?? $client['state_code'];
-        $calc              = Gst::calculateInvoice($input['lines'], $seller['state_code'], $placeOfSupplyCode);
+        $calc              = Gst::calculateInvoice($input['lines'], $seller['state_code'], $placeOfSupplyCode, (bool) $input['reverseCharge']);
         $totals            = $calc['totals'];
 
         $invoice = [

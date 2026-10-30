@@ -1,11 +1,11 @@
-<app-page-header title="Settings" subtitle="Your business details, printed on every new invoice." />
+<app-page-header title="Business Details" subtitle="Printed on every new invoice." />
 
 <div class="page-body">
   @if (loading()) {
-    <div class="panel empty-state"><p>Loading settings…</p></div>
+    <div class="panel empty-state"><p>Loading business details…</p></div>
   } @else if (loadError()) {
     <div class="panel empty-state">
-      <p class="empty-state__title">Couldn't load settings</p>
+      <p class="empty-state__title">Couldn't load business details</p>
       <p>{{ loadError() }}</p>
       <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
@@ -163,7 +163,7 @@
         <span class="hint">Changes apply to invoices you save from now on; issued invoices keep their details.</span>
         <button type="button" class="btn btn--outline" [disabled]="saving() || form.pristine" (click)="reset()">Discard changes</button>
         <button type="submit" class="btn btn--primary" [disabled]="saving()">
-          <app-icon name="save" [size]="18" /> {{ saving() ? 'Saving…' : 'Save settings' }}
+          <app-icon name="save" [size]="18" /> {{ saving() ? 'Saving…' : 'Save business details' }}
         </button>
       </div>
     </form>

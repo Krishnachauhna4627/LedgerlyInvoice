@@ -21,18 +21,39 @@
   color: var(--color-primary);
 }
 
+// The table fits the panel (no sideways scrolling): columns share the width, text wraps,
+// and the edit/delete column is always visible. Below lg the cards are shown instead.
 .desktop {
   display: none;
 
-  @include bp.up(md) {
+  @include bp.up(lg) {
     display: block;
   }
 }
 
+.fit {
+  table-layout: fixed;
+
+  th,
+  td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  th:nth-child(1) { width: 20%; }
+  th:nth-child(2) { width: 17%; }
+  th:nth-child(3) { width: 21%; }
+  th:nth-child(4) { width: 14%; }
+}
+
+// Long addresses show two lines; the full text is in the cell's tooltip.
 .address {
-  max-width: 320px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .contact {
@@ -50,8 +71,9 @@
   }
 }
 
-.row-actions {
-  width: 1%;
+.fit .row-actions {
+  width: 112px;
+  white-space: nowrap;
   text-align: right;
 }
 
@@ -60,7 +82,7 @@
   padding: 0;
   list-style: none;
 
-  @include bp.up(md) {
+  @include bp.up(lg) {
     display: none;
   }
 }

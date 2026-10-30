@@ -1,6 +1,8 @@
 @let inv = invoice();
 <!-- A seller without a GSTIN can't charge GST separately: one tax-inclusive amount per line, no tax breakdown. -->
 @let gst = !!inv.seller.gstin;
+<!-- Reverse charge: no GST is added, so tax columns and totals are hidden and the taxable amount is final. -->
+@let showTax = gst && !inv.reverseCharge;
 <article class="doc" [attr.aria-label]="(gst ? 'Tax invoice ' : 'Invoice ') + inv.invoiceNumber">
   <!--
     When printed, this table's head and foot repeat on every A4 page (browsers repeat <thead>/<tfoot>);
@@ -84,7 +86,7 @@
           <th>HSN/SAC</th>
           <th class="num">Qty</th>
           <th>Unit</th>
-          @if (gst) {
+          @if (showTax) {
             <th class="num">Rate (₹)</th>
             <th class="num">GST %</th>
             <th class="num">Taxable (₹)</th>
@@ -92,7 +94,7 @@
             <th class="num">Total (₹)</th>
           } @else {
             <th class="num">Rate (₹)</th>
-            <th class="num">Amount (₹)</th>
+            <th class="num">{{ gst ? 'Taxable (₹)' : 'Amount (₹)' }}</th>
           }
         </tr>
       </thead>
@@ -109,12 +111,15 @@
             <td>{{ line.hsnSac || '—' }}</td>
             <td class="num">{{ line.quantity | number: '1.0-3' }}</td>
             <td>{{ line.unit || '—' }}</td>
-            @if (gst) {
+            @if (showTax) {
               <td class="num">{{ line.unitPrice | inr: false }}</td>
               <td class="num">{{ line.gstRate }}%</td>
               <td class="num">{{ line.taxableAmount | inr: false }}</td>
               <td class="num">{{ line.totalTax | inr: false }}</td>
               <td class="num">{{ line.lineTotal | inr: false }}</td>
+            } @else if (gst) {
+              <td class="num">{{ line.unitPrice | inr: false }}</td>
+              <td class="num">{{ line.taxableAmount | inr: false }}</td>
             } @else {
               <td class="num">{{ inclusiveRate(line) | inr: false }}</td>
               <td class="num">{{ line.lineTotal | inr: false }}</td>
@@ -123,7 +128,7 @@
         }
         <!-- In <tbody>, not <tfoot>, so a multi-page print shows the total only once, after the last line. -->
         <tr class="total-row">
-          @if (gst) {
+          @if (showTax) {
             <td colspan="7">Total</td>
             <td class="num">{{ inv.totals.subTotal | inr: false }}</td>
             <td class="num">{{ inv.totals.totalTax | inr: false }}</td>
@@ -139,7 +144,10 @@
   <section class="summary">
     <div class="summary__left">
       <p class="words"><span class="k">Amount in words:</span> {{ words() }}</p>
-      @if (gst) {
+      @if (gst && inv.reverseCharge) {
+        <p class="words">Tax is payable by the recipient on reverse charge basis. No GST is charged on this invoice.</p>
+      }
+      @if (showTax) {
       <h3>HSN/SAC summary</h3>
       <div class="table-scroll">
         <table class="hsn">
@@ -179,7 +187,7 @@
     </div>
 
     <dl class="totals">
-      @if (gst) {
+      @if (showTax) {
       <dt>Sub-total</dt>
       <dd>{{ inv.totals.subTotal | inr }}</dd>
       @if (inv.isInterState) {
@@ -192,8 +200,8 @@
         <dd>{{ inv.totals.totalSgst | inr }}</dd>
       }
       }
-      <dt class="grand" [class.grand--only]="!gst">{{ gst ? 'Grand total' : 'Total' }}</dt>
-      <dd class="grand" [class.grand--only]="!gst">{{ inv.totals.grandTotal | inr }}</dd>
+      <dt class="grand" [class.grand--only]="!showTax">{{ showTax ? 'Grand total' : gst ? 'Taxable amount' : 'Total' }}</dt>
+      <dd class="grand" [class.grand--only]="!showTax">{{ inv.totals.grandTotal | inr }}</dd>
     </dl>
   </section>
 
@@ -208,10 +216,13 @@
         <p class="muted">Not provided.</p>
       }
     </div>
-    <div>
-      <h3>Terms &amp; conditions</h3>
-      <p class="pre">{{ inv.seller.terms || '—' }}</p>
-    </div>
+    <!-- Only when the seller has written terms; otherwise nothing is printed here. -->
+    @if (inv.seller.terms?.trim(); as terms) {
+      <div>
+        <h3>Terms &amp; conditions</h3>
+        <p class="pre">{{ terms }}</p>
+      </div>
+    }
   </section>
 
   <footer class="sign" [class.sign--image]="!!inv.seller.signature">

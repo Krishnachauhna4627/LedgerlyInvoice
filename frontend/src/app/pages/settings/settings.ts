@@ -188,7 +188,7 @@ export class Settings {
         this.fill(company);
         // Keep the sidebar's company name in step.
         this.auth.user.update((u) => u && { ...u, company: { ...u.company, name: company.name } });
-        this.toast.success('Settings saved');
+        this.toast.success('Business details saved');
         this.saving.set(false);
         this.submitted.set(false);
       },

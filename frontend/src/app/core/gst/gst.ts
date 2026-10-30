@@ -26,9 +26,10 @@ export interface InvoiceTotals {
   grandTotal: number;
 }
 
-export function calculateLine(line: LineInput, isInterState: boolean): LineAmounts {
+// Under reverse charge no GST is added: the taxable amount is the final amount.
+export function calculateLine(line: LineInput, isInterState: boolean, reverseCharge = false): LineAmounts {
   const taxableAmount = round2((Number(line.quantity) || 0) * (Number(line.unitPrice) || 0));
-  const totalTax = round2((taxableAmount * (Number(line.gstRate) || 0)) / 100);
+  const totalTax = reverseCharge ? 0 : round2((taxableAmount * (Number(line.gstRate) || 0)) / 100);
   const cgst = isInterState ? 0 : round2(totalTax / 2);
   const sgst = isInterState ? 0 : round2(totalTax - cgst);
   const igst = isInterState ? totalTax : 0;
@@ -39,10 +40,11 @@ export function calculateInvoice(
   lines: LineInput[],
   sellerStateCode: string | null,
   placeOfSupplyCode: string | null,
+  reverseCharge = false,
 ): { isInterState: boolean; lines: LineAmounts[]; totals: InvoiceTotals } {
   // Without both codes we can't tell; treat as intra-state like the server does when they match.
   const isInterState = !!sellerStateCode && !!placeOfSupplyCode && sellerStateCode !== placeOfSupplyCode;
-  const amounts = lines.map((line) => calculateLine(line, isInterState));
+  const amounts = lines.map((line) => calculateLine(line, isInterState, reverseCharge));
   const sum = (key: keyof LineAmounts) => round2(amounts.reduce((total, a) => total + a[key], 0));
   const subTotal = sum('taxableAmount');
   const totalTax = sum('totalTax');

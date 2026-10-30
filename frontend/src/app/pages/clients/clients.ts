@@ -78,7 +78,7 @@ export class Clients {
     this.clientService.delete(client.id).subscribe({
       next: () => {
         this.clients.update((list) => list.filter((c) => c.id !== client.id));
-        this.toast.success('Client deleted');
+        this.toast.success('Customer deleted');
         this.deleting.set(null);
         this.deleteBusy.set(false);
       },

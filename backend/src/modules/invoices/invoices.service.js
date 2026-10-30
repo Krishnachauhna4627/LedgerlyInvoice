@@ -182,15 +182,15 @@ async function buildInvoice(companyId, input) {
   if (!seller.state_code) {
     throw new HttpError(
       400,
-      'Please complete your Seller Details in Settings, including the state, before saving an invoice.',
+      'Please complete your Business Details, including the state, before saving an invoice.',
     );
   }
   const client = await findClient(companyId, input.clientId).catch(() => {
-    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved client.' });
+    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved customer.' });
   });
 
   const placeOfSupplyCode = input.placeOfSupplyCode ?? client.state_code;
-  const { isInterState, lines, totals } = calculateInvoice(input.lines, seller.state_code, placeOfSupplyCode);
+  const { isInterState, lines, totals } = calculateInvoice(input.lines, seller.state_code, placeOfSupplyCode, input.reverseCharge);
 
   const invoice = {
     company_id: companyId,

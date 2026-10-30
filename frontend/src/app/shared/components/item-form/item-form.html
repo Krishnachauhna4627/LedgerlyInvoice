@@ -4,7 +4,7 @@
   }
 
   <div class="field">
-    <label class="field__label" for="item-name">Item / service name *</label>
+    <label class="field__label" for="item-name">Product/service name *</label>
     <input id="item-name" class="input" formControlName="name" autocomplete="off"
       [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="item-name-error" />
     @if (errorFor('name'); as message) {
@@ -43,14 +43,12 @@
 
     <div class="field">
       <label class="field__label" for="item-gst">GST % *</label>
-      <input id="item-gst" class="input" type="number" formControlName="gstRate" min="0" max="100" step="0.01"
-        inputmode="decimal" list="item-gst-rates"
-        [class.is-invalid]="errorFor('gstRate')" [attr.aria-invalid]="!!errorFor('gstRate')" aria-describedby="item-gst-error" />
-      <datalist id="item-gst-rates">
+      <select id="item-gst" class="input" formControlName="gstRate"
+        [class.is-invalid]="errorFor('gstRate')" [attr.aria-invalid]="!!errorFor('gstRate')" aria-describedby="item-gst-error">
         @for (rate of rates; track rate) {
-          <option [value]="rate"></option>
+          <option [ngValue]="rate">{{ rate }}%</option>
         }
-      </datalist>
+      </select>
       @if (errorFor('gstRate'); as message) {
         <span id="item-gst-error" class="field__error">{{ message }}</span>
       }
@@ -60,7 +58,7 @@
   <div class="actions">
     <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
     <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-      {{ submitting() ? 'Saving…' : item() ? 'Save changes' : 'Add item' }}
+      {{ submitting() ? 'Saving…' : item() ? 'Save changes' : 'Add product/service' }}
     </button>
   </div>
 </form>

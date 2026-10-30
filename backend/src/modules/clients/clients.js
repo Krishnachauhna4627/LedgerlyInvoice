@@ -8,7 +8,7 @@ import { validate } from '../../middleware/validate.js';
 
 const clientSchema = z
   .object({
-    name: requiredText('Client name', 150),
+    name: requiredText('Customer name', 150),
     address: optionalText('Address', 1000),
     stateCode,
     gstin,
@@ -36,7 +36,7 @@ export function toClientDto(row) {
 export async function findClient(companyId, id) {
   const row = await db('clients').where({ id, company_id: companyId }).first();
   if (!row) {
-    throw new HttpError(404, 'Client not found.');
+    throw new HttpError(404, 'Customer not found.');
   }
   return row;
 }

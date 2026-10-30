@@ -15,5 +15,5 @@ import { SignupForm } from './components/signup-form/signup-form';
 })
 export class Auth {
   protected readonly mode = signal<'login' | 'signup' | 'forgot'>('login');
-  protected readonly perks = ['GST-ready invoices in seconds', 'Customers and items in one place', 'Export to PDF or Excel'];
+  protected readonly perks = ['GST-ready invoices in seconds', 'Customers and products/services in one place', 'Export to PDF or Excel'];
 }

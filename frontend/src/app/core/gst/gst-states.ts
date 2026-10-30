@@ -22,5 +22,5 @@ export function stateLabel(code: string | null | undefined): string {
 
 export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
-// Common GST slabs, offered as suggestions on rate inputs.
-export const GST_RATES = [0, 0.25, 3, 5, 12, 18, 28];
+// GST rates offered in the product/service dropdown (and as suggestions on invoice lines).
+export const GST_RATES = [0, 0.25, 3, 5, 18];

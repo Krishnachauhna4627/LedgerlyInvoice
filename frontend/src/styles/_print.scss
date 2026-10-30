@@ -4,9 +4,12 @@
     size: A4;
     margin: 12mm;
 
-    @bottom-right {
+    // "Page 1 of 3" on every printed page (Chrome / Edge print this; the total is counted by the browser).
+    @bottom-center {
       content: 'Page ' counter(page) ' of ' counter(pages);
-      font-size: 9px;
+      font-family: var(--font-family);
+      font-size: 10px;
+      color: var(--color-text-muted);
     }
   }
 

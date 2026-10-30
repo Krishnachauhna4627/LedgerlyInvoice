@@ -7,6 +7,10 @@ import { InrPipe } from '../../../../shared/pipes/inr.pipe';
   imports: [InrPipe],
   template: `
     <dl class="totals">
+      @if (reverseCharge()) {
+        <dt class="grand">Taxable amount</dt>
+        <dd class="grand">{{ totals().subTotal | inr }}</dd>
+      } @else {
       <dt>Sub-total</dt>
       <dd>{{ totals().subTotal | inr }}</dd>
       @if (isInterState()) {
@@ -20,9 +24,13 @@ import { InrPipe } from '../../../../shared/pipes/inr.pipe';
       }
       <dt class="grand">Grand total</dt>
       <dd class="grand">{{ totals().grandTotal | inr }}</dd>
+      }
     </dl>
     <p class="words">{{ words() }}</p>
-    <p class="supply">{{ isInterState() ? 'Inter-state supply — IGST applies.' : 'Intra-state supply — CGST + SGST apply.' }}</p>
+    <p class="supply">
+      {{ reverseCharge() ? 'Reverse charge — no GST added; the taxable amount is the final amount.'
+        : isInterState() ? 'Inter-state supply — IGST applies.' : 'Intra-state supply — CGST + SGST apply.' }}
+    </p>
   `,
   styles: `
     :host {
@@ -56,5 +64,6 @@ import { InrPipe } from '../../../../shared/pipes/inr.pipe';
 export class TotalsSummary {
   readonly totals = input.required<InvoiceTotals>();
   readonly isInterState = input(false);
+  readonly reverseCharge = input(false);
   readonly words = input('');
 }

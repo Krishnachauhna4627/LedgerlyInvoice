@@ -39,9 +39,9 @@ export class Dashboard {
     if (!s) return [];
     return [
       { label: 'Add your seller details', hint: 'Business address, state and GSTIN.', link: '/settings', done: this.sellerReady(), icon: 'building' },
-      { label: 'Add a client', hint: 'Save who you bill, with their GSTIN.', link: '/clients', done: s.clientCount > 0, icon: 'users' },
-      { label: 'Add an item', hint: 'Products or services with HSN/SAC and GST rate.', link: '/items', done: s.itemCount > 0, icon: 'box' },
-      { label: 'Create your first invoice', hint: 'Bill a client in seconds.', link: '/invoices/new', done: s.recentInvoices.length > 0, icon: 'file-text' },
+      { label: 'Add a customer', hint: 'Save who you bill, with their GSTIN.', link: '/clients', done: s.clientCount > 0, icon: 'users' },
+      { label: 'Add a product/service', hint: 'With HSN/SAC and GST rate.', link: '/items', done: s.itemCount > 0, icon: 'box' },
+      { label: 'Create your first invoice', hint: 'Bill a customer in seconds.', link: '/invoices/new', done: s.recentInvoices.length > 0, icon: 'file-text' },
     ];
   });
   protected readonly setupDone = computed(() => this.steps().every((s) => s.done));

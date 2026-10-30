@@ -13,19 +13,20 @@ export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 export const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 // Tax for one line. Intra-state GST is split into CGST + SGST; SGST takes the remainder so the
-// two halves always add up to the line's tax exactly.
-export function calculateLine({ quantity, unitPrice, gstRate }, isInterState) {
+// two halves always add up to the line's tax exactly. Under reverse charge no GST is added:
+// the taxable amount is the final amount.
+export function calculateLine({ quantity, unitPrice, gstRate }, isInterState, reverseCharge = false) {
   const taxableAmount = round2(quantity * unitPrice);
-  const totalTax = round2((taxableAmount * gstRate) / 100);
+  const totalTax = reverseCharge ? 0 : round2((taxableAmount * gstRate) / 100);
   const cgst = isInterState ? 0 : round2(totalTax / 2);
   const sgst = isInterState ? 0 : round2(totalTax - cgst);
   const igst = isInterState ? totalTax : 0;
   return { taxableAmount, cgst, sgst, igst, totalTax, lineTotal: round2(taxableAmount + totalTax) };
 }
 
-export function calculateInvoice(lines, sellerStateCode, placeOfSupplyCode) {
+export function calculateInvoice(lines, sellerStateCode, placeOfSupplyCode, reverseCharge = false) {
   const isInterState = placeOfSupplyCode !== sellerStateCode;
-  const calculated = lines.map((line) => ({ ...line, ...calculateLine(line, isInterState) }));
+  const calculated = lines.map((line) => ({ ...line, ...calculateLine(line, isInterState, reverseCharge) }));
   const sum = (key) => round2(calculated.reduce((total, line) => total + line[key], 0));
   const totals = {
     subTotal: sum('taxableAmount'),

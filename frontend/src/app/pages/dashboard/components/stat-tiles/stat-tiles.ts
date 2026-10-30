@@ -42,8 +42,8 @@ export class StatTiles {
         link: '/invoices',
         query: { status: 'overdue' },
       },
-      { label: 'Clients', value: String(s.clientCount), icon: 'users', link: '/clients' },
-      { label: 'Items', value: String(s.itemCount), icon: 'box', link: '/items' },
+      { label: 'Customers', value: String(s.clientCount), icon: 'users', link: '/clients' },
+      { label: 'Products/Services', value: String(s.itemCount), icon: 'box', link: '/items' },
     ];
   });
 }

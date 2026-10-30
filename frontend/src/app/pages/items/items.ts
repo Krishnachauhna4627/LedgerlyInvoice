@@ -76,7 +76,7 @@ export class Items {
     this.itemService.delete(item.id).subscribe({
       next: () => {
         this.items.update((list) => list.filter((i) => i.id !== item.id));
-        this.toast.success('Item deleted');
+        this.toast.success('Product/service deleted');
         this.deleting.set(null);
         this.deleteBusy.set(false);
       },

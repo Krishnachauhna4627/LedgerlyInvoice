@@ -1,5 +1,5 @@
 <div class="head" aria-hidden="true">
-  <span>Item</span>
+  <span>Product/Service</span>
   <span>HSN/SAC</span>
   <span>Qty</span>
   <span>Unit</span>
@@ -22,17 +22,17 @@
     <li class="line" [formGroup]="$any(line)">
       <div class="cell cell--item">
         <div class="item-label">
-          <label class="field__label" [for]="'line-' + i + '-item'">Item {{ i + 1 }}</label>
+          <label class="field__label" [for]="'line-' + i + '-item'">Product/Service {{ i + 1 }}</label>
           <button type="button" class="link-btn" (click)="newItem.emit(i)">
-            <app-icon name="plus" [size]="14" /> New item
+            <app-icon name="plus" [size]="14" /> New product/service
           </button>
         </div>
         <app-search-picker
           [inputId]="'line-' + i + '-item'"
           [options]="itemOptions()"
           [selectedLabel]="line.get('description')?.value"
-          placeholder="Search saved items…"
-          emptyText="No saved items match. Use “New item”."
+          placeholder="Search saved products/services…"
+          emptyText="No saved products/services match. Use “New product/service”."
           [invalid]="!!err(i, 'description')"
           [describedBy]="'line-' + i + '-item-error'"
           (picked)="picked.emit({ index: i, itemId: $event })"
@@ -40,7 +40,7 @@
         @if (err(i, 'description'); as message) {
           <span class="field__error" [id]="'line-' + i + '-item-error'">{{ message }}</span>
         }
-        <label class="sr-only" [for]="'line-' + i + '-narration'">Short narration for item {{ i + 1 }}</label>
+        <label class="sr-only" [for]="'line-' + i + '-narration'">Short narration for product/service {{ i + 1 }}</label>
         <input class="input narration" [id]="'line-' + i + '-narration'" formControlName="narration" maxlength="500"
           placeholder="Narration, e.g. Chain 22K" autocomplete="off" />
       </div>
@@ -102,7 +102,7 @@
 
       <div class="cell cell--remove">
         <button type="button" class="icon-button icon-button--danger" [disabled]="lines().length === 1"
-          [attr.aria-label]="'Remove item ' + (i + 1)" [title]="lines().length === 1 ? 'An invoice needs at least one line' : 'Remove line'"
+          [attr.aria-label]="'Remove product/service ' + (i + 1)" [title]="lines().length === 1 ? 'An invoice needs at least one line' : 'Remove line'"
           (click)="removed.emit(i)">
           <app-icon name="trash" [size]="16" />
         </button>

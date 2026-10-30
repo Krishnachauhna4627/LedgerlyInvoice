@@ -7,7 +7,7 @@ import { requireAuth } from '../../middleware/require-auth.js';
 import { validate } from '../../middleware/validate.js';
 
 const itemSchema = z.object({
-  name: requiredText('Item name', 200),
+  name: requiredText('Product/service name', 200),
   hsnSac: optionalText('HSN/SAC', 20),
   unit,
   unitPrice: money('Rate'),
@@ -28,7 +28,7 @@ export function toItemDto(row) {
 async function findItem(companyId, id) {
   const row = await db('items').where({ id, company_id: companyId }).first();
   if (!row) {
-    throw new HttpError(404, 'Item not found.');
+    throw new HttpError(404, 'Product/service not found.');
   }
   return row;
 }

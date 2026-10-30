@@ -7,8 +7,8 @@
     <ul class="stats">
       <li class="panel"><span>Invoices</span><strong>{{ d.user.stats.invoices }}</strong></li>
       <li class="panel"><span>Billed</span><strong>{{ d.user.stats.billedTotal | inr }}</strong></li>
-      <li class="panel"><span>Clients</span><strong>{{ d.user.stats.clients }}</strong></li>
-      <li class="panel"><span>Items</span><strong>{{ d.user.stats.items }}</strong></li>
+      <li class="panel"><span>Customers</span><strong>{{ d.user.stats.clients }}</strong></li>
+      <li class="panel"><span>Products/Services</span><strong>{{ d.user.stats.items }}</strong></li>
     </ul>
 
     <div class="details">
@@ -72,9 +72,9 @@
     </section>
 
     <section class="panel">
-      <h2 class="section-title head">Clients ({{ d.clients.length }})</h2>
+      <h2 class="section-title head">Customers ({{ d.clients.length }})</h2>
       @if (d.clients.length === 0) {
-        <div class="empty-state"><p>No clients yet.</p></div>
+        <div class="empty-state"><p>No customers yet.</p></div>
       } @else {
         <div class="table-scroll">
           <table class="data-table">
@@ -102,9 +102,9 @@
     </section>
 
     <section class="panel">
-      <h2 class="section-title head">Items ({{ d.items.length }})</h2>
+      <h2 class="section-title head">Products/Services ({{ d.items.length }})</h2>
       @if (d.items.length === 0) {
-        <div class="empty-state"><p>No items yet.</p></div>
+        <div class="empty-state"><p>No products/services yet.</p></div>
       } @else {
         <div class="table-scroll">
           <table class="data-table">

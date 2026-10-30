@@ -29,6 +29,15 @@
   }
 }
 
+.notice--success {
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+
+  app-icon {
+    color: var(--color-success);
+  }
+}
+
 .editor {
   overflow: visible;
 }

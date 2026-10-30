@@ -49,12 +49,12 @@ export const routes: Routes = [
       },
       {
         path: 'clients',
-        title: page('Clients'),
+        title: page('Customers'),
         loadComponent: () => import('./pages/clients/clients').then((m) => m.Clients),
       },
       {
         path: 'items',
-        title: page('Items'),
+        title: page('Products/Services'),
         loadComponent: () => import('./pages/items/items').then((m) => m.Items),
       },
       {
@@ -64,7 +64,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        title: page('Settings'),
+        title: page('Business Details'),
         loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings),
       },
       // Super user only.

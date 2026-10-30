@@ -4,7 +4,7 @@
   }
 
   <div class="field">
-    <label class="field__label" for="client-name">Client name *</label>
+    <label class="field__label" for="client-name">Customer name *</label>
     <input id="client-name" class="input" formControlName="name" autocomplete="organization"
       [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="client-name-error" />
     @if (errorFor('name'); as message) {
@@ -77,7 +77,7 @@
   <div class="actions">
     <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
     <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-      {{ submitting() ? 'Saving…' : client() ? 'Save changes' : 'Add client' }}
+      {{ submitting() ? 'Saving…' : client() ? 'Save changes' : 'Add customer' }}
     </button>
   </div>
 </form>

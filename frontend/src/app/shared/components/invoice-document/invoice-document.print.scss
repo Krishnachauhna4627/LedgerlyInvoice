@@ -54,9 +54,18 @@
   }
 
   // The printable width (A4 minus margins) is below the md breakpoint, so set the A4 layout here.
+  // The totals box grows with the amounts, so large totals are never cut off.
   .summary {
-    grid-template-columns: minmax(0, 1fr) 240px;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
+  }
+
+  .totals {
+    min-width: 240px;
+
+    dt {
+      white-space: nowrap;
+    }
   }
 
   .table-scroll {

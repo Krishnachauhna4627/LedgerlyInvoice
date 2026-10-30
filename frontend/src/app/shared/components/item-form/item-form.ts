@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/ui/toast.service';
 type Field = 'name' | 'hsnSac' | 'unitPrice' | 'gstRate';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
-  name: { required: 'Item name is required.', maxlength: 'Item name is too long.' },
+  name: { required: 'Product/service name is required.', maxlength: 'Product/service name is too long.' },
   hsnSac: { maxlength: 'HSN/SAC is too long.' },
   unitPrice: { required: 'Rate is required.', min: "Rate can't be negative." },
   gstRate: { required: 'GST % is required.', min: "GST % can't be negative.", max: 'GST % must be 100 or less.' },
@@ -31,7 +31,7 @@ export class ItemForm implements OnInit {
   readonly saved = output<Item>();
   readonly cancelled = output();
 
-  protected readonly rates = GST_RATES;
+  protected rates = GST_RATES;
   protected readonly units = UNITS;
   protected readonly form = inject(NonNullableFormBuilder).group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
@@ -54,6 +54,8 @@ export class ItemForm implements OnInit {
         unitPrice: i.unitPrice,
         gstRate: i.gstRate,
       });
+      // Keep an older rate (e.g. 12 or 28) selectable so editing doesn't silently change it.
+      if (!GST_RATES.includes(i.gstRate)) this.rates = [...GST_RATES, i.gstRate].sort((a, b) => a - b);
     }
   }
 
@@ -80,7 +82,7 @@ export class ItemForm implements OnInit {
     this.error.set(null);
     (existing ? this.items.update(existing.id, input) : this.items.create(input)).subscribe({
       next: (item) => {
-        this.toast.success(existing ? 'Item updated' : 'Item added');
+        this.toast.success(existing ? 'Product/service updated' : 'Product/service added');
         this.saved.emit(item);
       },
       error: (err: unknown) => {

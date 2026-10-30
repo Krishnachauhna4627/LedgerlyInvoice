@@ -55,10 +55,10 @@ const MESSAGES: Record<string, string> = {
 };
 
 const FIELD_REQUIRED: Record<string, string> = {
-  clientId: 'Choose a client.',
+  clientId: 'Choose a customer.',
   invoiceNumber: 'Invoice number is required.',
   invoiceDate: 'Invoice date is required.',
-  description: 'Choose an item for this line.',
+  description: 'Choose a product/service for this line.',
   quantity: 'Quantity is required.',
   unitPrice: 'Rate is required.',
   gstRate: 'GST % is required.',
@@ -89,7 +89,8 @@ export class InvoiceEditor {
 
   private readonly invoiceId = Number(this.route.snapshot.paramMap.get('id')) || null;
   private readonly duplicateFrom = Number(this.route.snapshot.queryParamMap.get('from')) || null;
-  protected readonly mode: Mode = this.invoiceId ? 'edit' : this.duplicateFrom ? 'duplicate' : 'new';
+  // A duplicate becomes a plain new invoice once it is saved (see startNextInvoice).
+  protected readonly mode = signal<Mode>(this.invoiceId ? 'edit' : this.duplicateFrom ? 'duplicate' : 'new');
 
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
@@ -102,11 +103,13 @@ export class InvoiceEditor {
   protected readonly orphanClient = signal<Invoice['client'] | null>(null);
 
   protected readonly submitted = signal(false);
-  protected readonly saving = signal<InvoiceStatus | null>(null);
+  protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly showClientDialog = signal(false);
-  // Index of the line that asked for "New item", or null when the dialog is closed.
+  // Index of the line that asked for "New product/service", or null when the dialog is closed.
   protected readonly newItemLine = signal<number | null>(null);
+  // The invoice saved just before the form was cleared for the next one.
+  protected readonly lastSaved = signal<Invoice | null>(null);
 
   protected readonly form = this.fb.group(
     {
@@ -123,7 +126,7 @@ export class InvoiceEditor {
   );
 
   // Form value as a signal so totals and client details recompute as the user types.
-  private readonly value = signal(this.form.getRawValue());
+  protected readonly value = signal(this.form.getRawValue());
 
   protected readonly selectedClient = computed(() => {
     const id = this.value().clientId;
@@ -144,17 +147,14 @@ export class InvoiceEditor {
   protected readonly calculation = computed(() => {
     const v = this.value();
     const placeOfSupply = v.placeOfSupplyCode || this.selectedClient()?.stateCode || null;
-    return calculateInvoice(v.lines, this.sellerStateCode(), placeOfSupply);
+    return calculateInvoice(v.lines, this.sellerStateCode(), placeOfSupply, v.reverseCharge);
   });
 
   protected readonly words = computed(() => amountInWords(this.calculation().totals.grandTotal));
 
-  // Drafts can be saved as drafts again; issued invoices keep their paid/unpaid status.
-  protected readonly canSaveDraft = computed(() => this.mode !== 'edit' || this.existing()?.status === 'draft');
-
   protected readonly title = computed(() => {
-    if (this.mode === 'edit') return `Edit ${this.existing()?.invoiceNumber ?? 'invoice'}`;
-    return this.mode === 'duplicate' ? 'Duplicate invoice' : 'New invoice';
+    if (this.mode() === 'edit') return `Edit ${this.existing()?.invoiceNumber ?? 'invoice'}`;
+    return this.mode() === 'duplicate' ? 'Duplicate invoice' : 'New invoice';
   });
 
   protected readonly cancelLink = this.invoiceId ? `/invoices/${this.invoiceId}` : '/invoices';
@@ -194,7 +194,7 @@ export class InvoiceEditor {
       : this.duplicateFrom
         ? this.invoices.get(this.duplicateFrom)
         : of(null);
-    const number$ = this.mode === 'edit' ? of(null) : this.invoices.nextNumber().pipe(map((r) => r.invoiceNumber));
+    const number$ = this.mode() === 'edit' ? of(null) : this.invoices.nextNumber().pipe(map((r) => r.invoiceNumber));
 
     forkJoin({
       company: inject(CompanyService).get(),
@@ -209,7 +209,7 @@ export class InvoiceEditor {
         this.items.set(items);
         if (source) this.fillFrom(source, clients);
         if (number) this.form.controls.invoiceNumber.setValue(number);
-        if (this.mode === 'edit') this.existing.set(source);
+        if (this.mode() === 'edit') this.existing.set(source);
         this.value.set(this.form.getRawValue());
         this.loading.set(false);
       },
@@ -223,7 +223,7 @@ export class InvoiceEditor {
   private fillFrom(invoice: Invoice, clients: Client[]): void {
     const clientExists = clients.some((c) => c.id === invoice.clientId);
     this.orphanClient.set(clientExists ? null : invoice.client);
-    const isDuplicate = this.mode === 'duplicate';
+    const isDuplicate = this.mode() === 'duplicate';
     const invoiceDate = isDuplicate ? todayIso() : invoice.invoiceDate;
 
     this.lines.clear();
@@ -304,7 +304,7 @@ export class InvoiceEditor {
     return MESSAGES[key] ?? 'Please check this field.';
   };
 
-  protected save(kind: 'draft' | 'final'): void {
+  protected save(): void {
     this.submitted.set(true);
     this.form.markAllAsTouched();
     this.error.set(null);
@@ -315,8 +315,8 @@ export class InvoiceEditor {
     if (this.saving()) return;
 
     const existing = this.existing();
-    const status: InvoiceStatus =
-      kind === 'draft' ? 'draft' : existing && existing.status !== 'draft' ? existing.status : 'unpaid';
+    // New invoices (and old drafts) are saved as unpaid; issued invoices keep their paid/unpaid status.
+    const status: InvoiceStatus = existing && existing.status !== 'draft' ? existing.status : 'unpaid';
     const v = this.form.getRawValue();
     const input: InvoiceInput = {
       clientId: v.clientId,
@@ -339,12 +339,18 @@ export class InvoiceEditor {
       })),
     };
 
-    this.saving.set(status);
+    this.saving.set(true);
     const request$ = this.invoiceId ? this.invoices.update(this.invoiceId, input) : this.invoices.create(input);
     request$.subscribe({
       next: (saved) => {
-        this.toast.success(status === 'draft' ? 'Draft saved.' : `Invoice ${saved.invoiceNumber} saved.`);
-        this.router.navigate(['/invoices', saved.id]);
+        this.toast.success(`Invoice ${saved.invoiceNumber} saved.`);
+        // Edits open the saved invoice; new bills clear the form so the next one can be made straight away.
+        if (this.invoiceId) {
+          this.router.navigate(['/invoices', saved.id]);
+        } else {
+          this.lastSaved.set(saved);
+          this.startNextInvoice();
+        }
       },
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);
@@ -356,7 +362,35 @@ export class InvoiceEditor {
           }
         }
         this.error.set(message);
-        this.saving.set(null);
+        this.saving.set(false);
+      },
+    });
+  }
+
+  // Blank form with the next invoice number; keeps the chosen template.
+  private startNextInvoice(): void {
+    const template = this.form.controls.template.value;
+    this.lines.clear();
+    this.lines.push(this.lineGroup());
+    this.form.reset({
+      clientId: null,
+      invoiceNumber: '',
+      invoiceDate: todayIso(),
+      dueDate: addDays(todayIso(), DUE_IN_DAYS),
+      placeOfSupplyCode: '',
+      template,
+      reverseCharge: false,
+    });
+    this.orphanClient.set(null);
+    this.submitted.set(false);
+    this.saving.set(false);
+    this.mode.set('new');
+    if (this.duplicateFrom) this.router.navigate(['/invoices/new'], { replaceUrl: true });
+    window.scrollTo({ top: 0 });
+
+    this.invoices.nextNumber().subscribe({
+      next: (r) => {
+        if (!this.form.controls.invoiceNumber.dirty) this.form.controls.invoiceNumber.setValue(r.invoiceNumber);
       },
     });
   }

@@ -6,7 +6,7 @@ export const INVOICE_TEMPLATES = ['classic', 'modern', 'minimal'];
 
 const lineSchema = z.object({
   itemId: z.coerce.number().int().positive().nullish().transform((value) => value ?? null),
-  description: requiredText('Item', 200),
+  description: requiredText('Product/service', 200),
   narration: optionalText('Narration', 500),
   hsnSac: optionalText('HSN/SAC', 20),
   quantity: z.coerce
@@ -20,7 +20,7 @@ const lineSchema = z.object({
 
 export const invoiceSchema = z
   .object({
-    clientId: z.coerce.number({ error: 'Choose a client.' }).int().positive('Choose a client.'),
+    clientId: z.coerce.number({ error: 'Choose a customer.' }).int().positive('Choose a customer.'),
     invoiceNumber: requiredText('Invoice number', 40),
     invoiceDate: isoDate('Invoice date'),
     dueDate: isoDate('Due date').nullish().transform((value) => value || null),
@@ -28,7 +28,7 @@ export const invoiceSchema = z
     reverseCharge: z.boolean().default(false),
     template: z.enum(INVOICE_TEMPLATES).default('classic'),
     status: z.enum(INVOICE_STATUSES).default('unpaid'),
-    lines: z.array(lineSchema, { error: 'Add at least one item.' }).min(1, 'Add at least one item.').max(200),
+    lines: z.array(lineSchema, { error: 'Add at least one product/service.' }).min(1, 'Add at least one product/service.').max(200),
   })
   .refine((inv) => !inv.dueDate || inv.dueDate >= inv.invoiceDate, {
     path: ['dueDate'],

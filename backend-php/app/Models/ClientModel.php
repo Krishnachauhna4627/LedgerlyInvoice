@@ -20,7 +20,7 @@ class ClientModel extends Model
     {
         $row = $this->where('company_id', $companyId)->find($id);
         if (! $row) {
-            throw new HttpError(404, 'Client not found.');
+            throw new HttpError(404, 'Customer not found.');
         }
 
         return $row;

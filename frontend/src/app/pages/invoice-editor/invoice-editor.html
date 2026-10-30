@@ -1,4 +1,4 @@
-<app-page-header [title]="title()" subtitle="Fill in the client, invoice details and items. Totals update as you type.">
+<app-page-header [title]="title()" subtitle="Fill in the customer, invoice details and products/services. Totals update as you type.">
   <a class="btn btn--outline btn--sm" [routerLink]="cancelLink">Cancel</a>
 </app-page-header>
 
@@ -11,17 +11,26 @@
       <a class="btn btn--outline btn--sm back" routerLink="/invoices">Back to invoices</a>
     </div>
   } @else {
+    @if (lastSaved(); as saved) {
+      <div class="notice notice--success" role="status">
+        <app-icon name="check" [size]="18" />
+        <span>
+          Invoice {{ saved.invoiceNumber }} saved.
+          <a [routerLink]="['/invoices', saved.id]">View / print it</a> or fill in the next one below.
+        </span>
+      </div>
+    }
     @if (!sellerStateCode()) {
       <div class="notice" role="alert">
         <app-icon name="alert-circle" [size]="18" />
         <span>
           Your seller details aren't complete. Add your business state in
-          <a routerLink="/settings">Settings</a> before saving an invoice — it decides whether CGST+SGST or IGST applies.
+          <a routerLink="/settings">Business Details</a> before saving an invoice — it decides whether CGST+SGST or IGST applies.
         </span>
       </div>
     }
 
-    <form class="panel editor" [formGroup]="form" (ngSubmit)="save('final')" novalidate>
+    <form class="panel editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
       <div class="panel__body sections">
         @if (error()) {
           <div class="form-alert" role="alert">{{ error() }}</div>
@@ -33,21 +42,21 @@
 
           @if (clients().length === 0) {
             <div class="empty-clients">
-              <p>You haven't saved any clients yet. Add your first client to bill them.</p>
+              <p>You haven't saved any customers yet. Add your first customer to bill them.</p>
               <button type="button" class="btn btn--primary btn--sm" (click)="showClientDialog.set(true)">
-                <app-icon name="plus" [size]="16" /> New client
+                <app-icon name="plus" [size]="16" /> New customer
               </button>
             </div>
           } @else {
             <div class="client-pick">
               <div class="field">
-                <label class="field__label" for="client-picker">Client</label>
+                <label class="field__label" for="client-picker">Customer</label>
                 <app-search-picker
                   inputId="client-picker"
                   [options]="clientOptions()"
                   [selectedLabel]="selectedClient()?.name ?? ''"
-                  placeholder="Search client by name or GSTIN…"
-                  emptyText="No clients match. Use “New client”."
+                  placeholder="Search customer by name or GSTIN…"
+                  emptyText="No customers match. Use “New customer”."
                   [invalid]="!!errorFor('clientId')"
                   describedBy="client-error"
                   (picked)="pickClient($event)"
@@ -57,14 +66,14 @@
                 }
               </div>
               <button type="button" class="btn btn--outline new-client" (click)="showClientDialog.set(true)">
-                <app-icon name="plus" [size]="16" /> New client
+                <app-icon name="plus" [size]="16" /> New customer
               </button>
             </div>
           }
 
           @if (orphanClient(); as old) {
             <p class="hint-warn">
-              This invoice was billed to <strong>{{ old.name }}</strong>, who has since been deleted. Choose a saved client to save changes.
+              This invoice was billed to <strong>{{ old.name }}</strong>, who has since been deleted. Choose a saved customer to save changes.
             </p>
           }
 
@@ -109,13 +118,13 @@
             <div class="field">
               <label class="field__label" for="inv-pos">Place of supply</label>
               <select id="inv-pos" class="input" formControlName="placeOfSupplyCode" aria-describedby="inv-pos-hint">
-                <option value="">Same as client's state</option>
+                <option value="">Same as customer's state</option>
                 @for (state of states; track state.code) {
                   <option [value]="state.code">{{ state.code }} — {{ state.name }}</option>
                 }
               </select>
               <span id="inv-pos-hint" class="hint">
-                {{ calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
+                {{ value().reverseCharge ? 'Reverse charge: no GST added' : calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
               </span>
             </div>
             <div class="field">
@@ -147,7 +156,7 @@
             (added)="addLine()"
           />
           <div class="summary">
-            <app-totals-summary [totals]="calculation().totals" [isInterState]="calculation().isInterState" [words]="words()" />
+            <app-totals-summary [totals]="calculation().totals" [isInterState]="calculation().isInterState" [reverseCharge]="value().reverseCharge" [words]="words()" />
           </div>
         </section>
       </div>
@@ -158,14 +167,9 @@
           <strong>{{ calculation().totals.grandTotal | inr }}</strong>
         </p>
         <div class="footer__actions">
-          @if (canSaveDraft()) {
-            <button type="button" class="btn btn--outline" [disabled]="!!saving()" (click)="save('draft')">
-              {{ saving() === 'draft' ? 'Saving…' : 'Save as draft' }}
-            </button>
-          }
-          <button type="submit" class="btn btn--primary" [disabled]="!!saving()">
+          <button type="submit" class="btn btn--primary" [disabled]="saving()">
             <app-icon name="save" [size]="18" />
-            {{ saving() && saving() !== 'draft' ? 'Saving…' : mode === 'edit' && existing()?.status !== 'draft' ? 'Save changes' : 'Save invoice' }}
+            {{ saving() ? 'Saving…' : mode() === 'edit' && existing()?.status !== 'draft' ? 'Save changes' : 'Save invoice' }}
           </button>
         </div>
       </div>
@@ -173,13 +177,13 @@
   }
 </div>
 
-<app-modal [open]="showClientDialog()" title="Add client" (closed)="showClientDialog.set(false)">
+<app-modal [open]="showClientDialog()" title="Add customer" (closed)="showClientDialog.set(false)">
   @if (showClientDialog()) {
     <app-client-form (saved)="onClientCreated($event)" (cancelled)="showClientDialog.set(false)" />
   }
 </app-modal>
 
-<app-modal [open]="newItemLine() !== null" title="Add item" (closed)="newItemLine.set(null)">
+<app-modal [open]="newItemLine() !== null" title="Add product/service" (closed)="newItemLine.set(null)">
   @if (newItemLine() !== null) {
     <app-item-form (saved)="onItemCreated($event)" (cancelled)="newItemLine.set(null)" />
   }

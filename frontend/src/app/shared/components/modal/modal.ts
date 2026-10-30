@@ -2,7 +2,7 @@ import { Component, ElementRef, effect, input, output, viewChild } from '@angula
 import { Icon } from '../icon/icon';
 
 // Accessible dialog built on <dialog>: focus trap, Esc to close, backdrop.
-// <app-modal [open]="showForm()" title="Add client" (closed)="showForm.set(false)">…form…</app-modal>
+// <app-modal [open]="showForm()" title="Add customer" (closed)="showForm.set(false)">…form…</app-modal>
 @Component({
   selector: 'app-modal',
   imports: [Icon],
