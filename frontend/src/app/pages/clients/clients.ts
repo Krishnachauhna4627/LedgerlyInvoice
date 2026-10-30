@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { Client } from '../../core/data/models';
@@ -8,10 +9,11 @@ import { ClientForm } from '../../shared/components/client-form/client-form';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { BalancePipe } from '../../shared/pipes/balance.pipe';
 
 @Component({
   selector: 'app-clients-page',
-  imports: [PageHeader, Icon, Modal, ClientForm],
+  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, RouterLink],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
 })

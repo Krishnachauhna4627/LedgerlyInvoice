@@ -8,6 +8,7 @@ import { clientsRouter } from './modules/clients/clients.js';
 import { companyRouter } from './modules/company/company.js';
 import { invoicesRouter } from './modules/invoices/invoices.routes.js';
 import { itemsRouter } from './modules/items/items.js';
+import { receiptsRouter } from './modules/receipts/receipts.js';
 import { reportsRouter } from './modules/reports/reports.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/company', companyRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/items', itemsRouter);
 app.use('/api/invoices', invoicesRouter);
+app.use('/api/receipts', receiptsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/admin', adminRouter);
 

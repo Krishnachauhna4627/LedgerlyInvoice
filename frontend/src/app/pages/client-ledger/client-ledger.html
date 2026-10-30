@@ -1,0 +1,69 @@
+<app-page-header class="no-print" [title]="ledger()?.client?.name ?? 'Customer ledger'" subtitle="Account ledger: sales, receipts and balance, date-wise.">
+  <a class="btn btn--outline btn--sm" routerLink="/clients"><app-icon name="arrow-left" [size]="16" /> Customers</a>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="exportCsv()">
+    <app-icon name="download" [size]="16" /> Excel (CSV)
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="print()">
+    <app-icon name="printer" [size]="16" /> Print / Save PDF
+  </button>
+  <button type="button" class="btn btn--primary btn--sm" [disabled]="!ledger()" (click)="receiptOpen.set(true)">
+    <app-icon name="plus" [size]="16" /> Record receipt
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  <div class="panel panel__body filter-bar no-print">
+    <div class="field">
+      <label class="field__label" for="ledger-from">From</label>
+      <input id="ledger-from" class="input" type="date" [value]="from()" (change)="setDate('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="ledger-range-error" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="ledger-to">To</label>
+      <input id="ledger-to" class="input" type="date" [value]="to()" (change)="setDate('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="ledger-range-error" />
+    </div>
+    @if (rangeInvalid()) {
+      <span id="ledger-range-error" class="field__error span-all">"From" must be on or before "To".</span>
+    }
+  </div>
+
+  @if (loading() && !ledger()) {
+    <div class="panel empty-state"><p>Loading ledger…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load the ledger</p>
+      <p>{{ loadError() }}</p>
+      <a class="btn btn--outline btn--sm" routerLink="/clients">Back to customers</a>
+    </div>
+  } @else if (ledger(); as l) {
+    <ul class="summary-tiles no-print">
+      <li class="summary-tile">
+        <span class="summary-tile__label">Opening balance</span>
+        <span class="summary-tile__value">{{ l.openingBalance | balance }}</span>
+      </li>
+      <li class="summary-tile">
+        <span class="summary-tile__label">Sales</span>
+        <span class="summary-tile__value">{{ l.totals.sales | inr }}</span>
+      </li>
+      <li class="summary-tile">
+        <span class="summary-tile__label">Received</span>
+        <span class="summary-tile__value">{{ l.totals.receipts | inr }}</span>
+      </li>
+      <li class="summary-tile summary-tile--main">
+        <span class="summary-tile__label">{{ l.totals.closingBalance > 0 ? 'Due' : l.totals.closingBalance < 0 ? 'Advance' : 'Closing balance' }}</span>
+        <span class="summary-tile__value" [class.amount--due]="l.totals.closingBalance > 0" [class.amount--advance]="l.totals.closingBalance < 0">
+          {{ l.totals.closingBalance | balance }}
+        </span>
+      </li>
+    </ul>
+
+    <app-ledger-document [ledger]="l" [company]="company()" />
+  }
+</div>
+
+<app-modal [open]="receiptOpen()" title="Record receipt" (closed)="receiptOpen.set(false)">
+  @if (receiptOpen()) {
+    <app-receipt-form [clientId]="ledger()?.client?.id ?? null" [amount]="dueAmount()" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
+  }
+</app-modal>

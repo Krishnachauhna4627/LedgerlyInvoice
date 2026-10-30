@@ -146,6 +146,8 @@ class InvoiceService
         } catch (DatabaseException $e) {
             throw self::duplicateNumberError($e);
         }
+        // Receipts decide paid / unpaid (oldest invoices first), whatever status was sent.
+        (new LedgerService())->settleInvoices((int) $invoice['client_id']);
 
         return $this->getInvoice($companyId, $id);
     }
@@ -170,6 +172,11 @@ class InvoiceService
         } catch (DatabaseException $e) {
             throw self::duplicateNumberError($e);
         }
+        $ledger = new LedgerService();
+        $ledger->settleInvoices((int) $invoice['client_id']);
+        if ((int) $existing['client_id'] !== (int) $invoice['client_id']) {
+            $ledger->settleInvoices($existing['client_id'] === null ? null : (int) $existing['client_id']);
+        }
 
         return $this->getInvoice($companyId, $id);
     }
@@ -190,8 +197,9 @@ class InvoiceService
 
     public function deleteInvoice(int $companyId, int $id): void
     {
-        $this->findInvoiceRow($companyId, $id);
+        $existing = $this->findInvoiceRow($companyId, $id);
         $this->db->table('invoices')->where('id', $id)->delete();
+        (new LedgerService())->settleInvoices($existing['client_id'] === null ? null : (int) $existing['client_id']);
     }
 
     /**

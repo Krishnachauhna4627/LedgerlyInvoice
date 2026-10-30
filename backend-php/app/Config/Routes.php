@@ -31,6 +31,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
 
     $routes->group('clients', ['filter' => 'auth'], static function (RouteCollection $routes) {
         $routes->get('/', 'Clients::index');
+        $routes->get('(:segment)/ledger', 'Clients::ledger/$1');
         $routes->get('(:segment)', 'Clients::show/$1');
         $routes->post('/', 'Clients::create');
         $routes->put('(:segment)', 'Clients::update/$1');
@@ -53,6 +54,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
         $routes->put('(:segment)', 'Invoices::update/$1');
         $routes->patch('(:segment)/status', 'Invoices::setStatus/$1');
         $routes->delete('(:segment)', 'Invoices::delete/$1');
+    });
+
+    $routes->group('receipts', ['filter' => 'auth'], static function (RouteCollection $routes) {
+        $routes->get('/', 'Receipts::index');
+        $routes->post('/', 'Receipts::create');
+        $routes->put('(:segment)', 'Receipts::update/$1');
+        $routes->delete('(:segment)', 'Receipts::delete/$1');
     });
 
     $routes->group('reports', ['filter' => 'auth'], static function (RouteCollection $routes) {

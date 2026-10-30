@@ -77,9 +77,6 @@
       <span class="bulk__count">{{ selectedRows().length }} selected</span>
       <button type="button" class="btn btn--outline btn--sm" (click)="exportCsv()"><app-icon name="download" [size]="16" /> Export</button>
       <button type="button" class="btn btn--outline btn--sm" (click)="printInvoices()"><app-icon name="printer" [size]="16" /> Print / PDF</button>
-      <button type="button" class="btn btn--outline btn--sm" [disabled]="busy()" (click)="markSelectedPaid()">
-        <app-icon name="check-circle" [size]="16" /> Mark as paid
-      </button>
       <button type="button" class="btn btn--outline btn--sm bulk__delete" [disabled]="busy()" (click)="pendingDelete.set(selectedRows())">
         <app-icon name="trash" [size]="16" /> Delete
       </button>
@@ -128,6 +125,12 @@
 @if (menu(); as m) {
   <app-row-menu [invoice]="m.invoice" [anchor]="m.anchor" (action)="onAction(m.invoice, $event)" (closed)="menu.set(null)" />
 }
+
+<app-modal [open]="!!receiptFor()" title="Record receipt" (closed)="receiptFor.set(null)">
+  @if (receiptFor(); as inv) {
+    <app-receipt-form [clientId]="inv.clientId" [amount]="inv.grandTotal" (saved)="onReceiptSaved()" (cancelled)="receiptFor.set(null)" />
+  }
+</app-modal>
 
 <app-modal
   size="sm"

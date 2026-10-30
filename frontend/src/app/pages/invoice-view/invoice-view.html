@@ -3,12 +3,13 @@
     <app-status-badge [status]="inv.displayStatus" />
     <a class="btn btn--outline btn--sm" [routerLink]="['/invoices', inv.id, 'edit']"><app-icon name="pencil" [size]="16" /> Edit</a>
     <a class="btn btn--outline btn--sm" routerLink="/invoices/new" [queryParams]="{ from: inv.id }"><app-icon name="copy" [size]="16" /> Duplicate</a>
-    @if (inv.status === 'paid') {
-      <button type="button" class="btn btn--outline btn--sm" [disabled]="busy()" (click)="setStatus('unpaid')">Mark as unpaid</button>
-    } @else {
-      <button type="button" class="btn btn--outline btn--sm" [disabled]="busy()" (click)="setStatus('paid')">
-        <app-icon name="check-circle" [size]="16" /> Mark as paid
-      </button>
+    @if (inv.clientId) {
+      <a class="btn btn--outline btn--sm" [routerLink]="['/clients', inv.clientId]"><app-icon name="receipt" [size]="16" /> Customer ledger</a>
+      @if (inv.status === 'unpaid') {
+        <button type="button" class="btn btn--outline btn--sm" (click)="receiptOpen.set(true)">
+          <app-icon name="rupee" [size]="16" /> Record receipt
+        </button>
+      }
     }
     <button type="button" class="btn btn--primary btn--sm" (click)="print()"><app-icon name="printer" [size]="16" /> Print / Save PDF</button>
     <button type="button" class="icon-button icon-button--danger" aria-label="Delete invoice" title="Delete invoice" (click)="confirmDelete.set(true)">
@@ -25,6 +26,12 @@
     </div>
     <p class="print-hint no-print">Tip: in the print dialog choose “Save as PDF” to download a PDF.</p>
   </div>
+
+  <app-modal [open]="receiptOpen()" title="Record receipt" (closed)="receiptOpen.set(false)">
+    @if (receiptOpen()) {
+      <app-receipt-form [clientId]="inv.clientId" [amount]="inv.totals.grandTotal" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
+    }
+  </app-modal>
 
   <app-modal [open]="confirmDelete()" title="Delete invoice?" size="sm" (closed)="confirmDelete.set(false)">
     <p>Invoice <strong>{{ inv.invoiceNumber }}</strong> for {{ inv.client.name }} will be deleted permanently. This can't be undone.</p>

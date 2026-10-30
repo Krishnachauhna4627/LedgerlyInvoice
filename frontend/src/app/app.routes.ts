@@ -48,9 +48,19 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/invoice-view/invoice-view').then((m) => m.InvoiceView),
       },
       {
+        path: 'payments',
+        title: page('Payments'),
+        loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
+      },
+      {
         path: 'clients',
         title: page('Customers'),
         loadComponent: () => import('./pages/clients/clients').then((m) => m.Clients),
+      },
+      {
+        path: 'clients/:id',
+        title: page('Customer ledger'),
+        loadComponent: () => import('./pages/client-ledger/client-ledger').then((m) => m.ClientLedger),
       },
       {
         path: 'items',

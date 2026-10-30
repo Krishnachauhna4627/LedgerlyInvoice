@@ -44,6 +44,7 @@
                 <th scope="col">GSTIN</th>
                 <th scope="col">Contact</th>
                 <th scope="col">State</th>
+                <th scope="col" class="num">Balance</th>
                 <th scope="col">Address</th>
                 <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
               </tr>
@@ -51,7 +52,7 @@
             <tbody>
               @for (client of filtered(); track client.id) {
                 <tr>
-                  <td class="strong">{{ client.name }}</td>
+                  <td class="strong"><a class="name-link" [routerLink]="['/clients', client.id]" title="Open ledger">{{ client.name }}</a></td>
                   <td [class.muted]="!client.gstin">{{ client.gstin || '—' }}</td>
                   <td class="contact">
                     @if (client.phone || client.email) {
@@ -66,6 +67,7 @@
                     }
                   </td>
                   <td>{{ stateLabel(client.stateCode) }}</td>
+                  <td class="num" [class.amount--due]="client.balance > 0" [class.amount--advance]="client.balance < 0">{{ client.balance | balance }}</td>
                   <td class="muted" [title]="client.address ?? ''"><span class="address">{{ client.address || '—' }}</span></td>
                   <td class="row-actions">
                     <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" (click)="openForm(client)">
@@ -85,7 +87,10 @@
           @for (client of filtered(); track client.id) {
             <li class="card">
               <div class="card__main">
-                <span class="card__title">{{ client.name }}</span>
+                <a class="card__title name-link" [routerLink]="['/clients', client.id]">{{ client.name }}</a>
+                <span class="card__meta">
+                  Balance: <span [class.amount--due]="client.balance > 0" [class.amount--advance]="client.balance < 0">{{ client.balance | balance }}</span>
+                </span>
                 <span class="card__meta">{{ client.gstin || 'No GSTIN' }} · {{ stateLabel(client.stateCode) }}</span>
                 @if (client.phone) {
                   <a class="card__meta" [href]="'tel:' + client.phone">{{ client.phone }}</a>
@@ -122,7 +127,7 @@
 <app-modal [open]="!!deleting()" title="Delete customer?" size="sm" (closed)="deleting.set(null)">
   @if (deleting(); as client) {
     <p class="confirm-text">
-      <strong>{{ client.name }}</strong> will be removed from your saved clients. Invoices already issued to them keep
+      <strong>{{ client.name }}</strong> will be removed from your saved customers. Invoices already issued to them keep
       their own copy of the customer's details.
     </p>
     <div class="confirm-actions">

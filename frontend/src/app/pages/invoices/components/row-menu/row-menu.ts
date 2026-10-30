@@ -13,7 +13,7 @@ import { InvoiceListItem } from '../../../../core/data/models';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { IconName } from '../../../../shared/components/icon/icons';
 
-export type RowAction = 'view' | 'edit' | 'duplicate' | 'paid' | 'unpaid' | 'delete';
+export type RowAction = 'view' | 'edit' | 'duplicate' | 'receipt' | 'ledger' | 'delete';
 
 const MENU_WIDTH = 200;
 
@@ -45,11 +45,13 @@ export class RowMenu {
       { action: 'view', label: 'View', icon: 'eye' },
       { action: 'edit', label: 'Edit', icon: 'pencil' },
       { action: 'duplicate', label: 'Duplicate', icon: 'copy' },
-      inv.status === 'paid'
-        ? { action: 'unpaid', label: 'Mark as unpaid', icon: 'receipt' }
-        : { action: 'paid', label: 'Mark as paid', icon: 'check-circle' },
-      { action: 'delete', label: 'Delete', icon: 'trash', danger: true },
     ];
+    // Paid / unpaid follows the customer's receipts, so payments are recorded rather than ticked.
+    if (inv.clientId) {
+      if (inv.status === 'unpaid') list.push({ action: 'receipt', label: 'Record receipt', icon: 'rupee' });
+      list.push({ action: 'ledger', label: 'Customer ledger', icon: 'receipt' });
+    }
+    list.push({ action: 'delete', label: 'Delete', icon: 'trash', danger: true });
     return list;
   });
 

@@ -3,7 +3,7 @@ import { db } from '../../db.js';
 import { HttpError } from '../../http-error.js';
 import { idParam } from '../../lib/validation.js';
 import { requireAdmin, requireAuth } from '../../middleware/require-auth.js';
-import { toClientDto } from '../clients/clients.js';
+import { clientsWithBalance, toClientDto } from '../clients/clients.js';
 import { getCompanyRow, toCompanyDto } from '../company/company.js';
 import { getAnyInvoice, toListDto } from '../invoices/invoices.service.js';
 import { toItemDto } from '../items/items.js';
@@ -80,7 +80,7 @@ adminRouter.get('/users/:id', async (req, res) => {
   const companyId = row.company_id;
   const [company, clients, items, invoices] = await Promise.all([
     getCompanyRow(companyId),
-    db('clients').where({ company_id: companyId }).orderBy('name'),
+    clientsWithBalance().where({ company_id: companyId }).orderBy('name'),
     db('items').where({ company_id: companyId }).orderBy('name'),
     db('invoices')
       .where({ company_id: companyId })

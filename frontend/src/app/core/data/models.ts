@@ -26,9 +26,52 @@ export interface Client {
   gstin: string | null;
   phone: string | null;
   email: string | null;
+  // Owed before using the app: positive = due (Dr), negative = advance (Cr).
+  openingBalance: number;
+  // Opening balance + sales − receipts (calculated by the server); same sign rule.
+  balance: number;
 }
 
-export type ClientInput = Omit<Client, 'id'>;
+export type ClientInput = Omit<Client, 'id' | 'balance'>;
+
+export type ReceiptMode = 'cash' | 'bank';
+
+export interface Receipt {
+  id: number;
+  clientId: number;
+  clientName: string;
+  receiptDate: string;
+  mode: ReceiptMode;
+  amount: number;
+  // Short narration: cheque no., UPI ref, "part payment"…
+  reference: string | null;
+}
+
+export type ReceiptInput = Omit<Receipt, 'id' | 'clientName'>;
+
+export interface LedgerEntry {
+  type: 'sale' | 'receipt';
+  // Invoice id for a sale, receipt id for a receipt.
+  id: number;
+  date: string;
+  invoiceNumber: string | null;
+  mode: ReceiptMode | null;
+  reference: string | null;
+  debit: number;
+  credit: number;
+  // Running balance after this entry: positive = Dr (due), negative = Cr (advance).
+  balance: number;
+}
+
+export interface Ledger {
+  client: Client;
+  from: string | null;
+  to: string | null;
+  // Balance carried in from before `from` (includes the customer's opening balance).
+  openingBalance: number;
+  entries: LedgerEntry[];
+  totals: { sales: number; receipts: number; closingBalance: number };
+}
 
 export interface Item {
   id: number;

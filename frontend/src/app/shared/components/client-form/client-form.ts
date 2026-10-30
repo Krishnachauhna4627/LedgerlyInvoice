@@ -8,7 +8,7 @@ import { GST_STATES, GSTIN_PATTERN } from '../../../core/gst/gst-states';
 import { MOBILE_PATTERN, toMobileDigits } from '../../../core/ui/phone';
 import { ToastService } from '../../../core/ui/toast.service';
 
-type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email';
+type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email' | 'openingAmount';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
   name: { required: 'Customer name is required.', maxlength: 'Customer name is too long.' },
@@ -17,6 +17,7 @@ const MESSAGES: Record<Field, Record<string, string>> = {
   gstin: { pattern: 'Enter a valid 15-character GSTIN.', stateMismatch: 'GSTIN must start with the selected state code.' },
   phone: { pattern: 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.' },
   email: { email: 'Enter a valid email address.', maxlength: 'Email is too long.' },
+  openingAmount: { min: "Opening balance can't be negative.", max: 'Opening balance is too large.' },
 };
 
 // Same rules as the server: optional, 15-char format, first two digits = state code.
@@ -44,13 +45,17 @@ export class ClientForm implements OnInit {
   readonly cancelled = output();
 
   protected readonly states = GST_STATES;
-  protected readonly form = inject(NonNullableFormBuilder).group({
+  private readonly fb = inject(NonNullableFormBuilder);
+  protected readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     address: ['', Validators.maxLength(1000)],
     stateCode: ['', Validators.required],
     gstin: ['', gstinValidator],
     phone: ['', Validators.pattern(MOBILE_PATTERN)],
     email: ['', [Validators.email, Validators.maxLength(254)]],
+    // Stored as one signed number (due = positive); entered as an amount plus Due / Advance.
+    openingAmount: [0 as number | null, [Validators.min(0), Validators.max(9_999_999_999)]],
+    openingType: this.fb.control<'due' | 'advance'>('due'),
   });
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
@@ -73,6 +78,8 @@ export class ClientForm implements OnInit {
         gstin: c.gstin ?? '',
         phone: c.phone ?? '',
         email: c.email ?? '',
+        openingAmount: Math.abs(c.openingBalance),
+        openingType: c.openingBalance < 0 ? 'advance' : 'due',
       });
     }
   }
@@ -104,6 +111,7 @@ export class ClientForm implements OnInit {
       gstin: v.gstin.trim().toUpperCase() || null,
       phone: v.phone || null,
       email: v.email.trim().toLowerCase() || null,
+      openingBalance: (v.openingType === 'advance' ? -1 : 1) * (Number(v.openingAmount) || 0),
     };
     const existing = this.client();
     this.submitting.set(true);
@@ -115,7 +123,9 @@ export class ClientForm implements OnInit {
       },
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);
-        for (const [field, msg] of Object.entries(fieldErrors)) this.form.get(field)?.setErrors({ server: msg });
+        for (const [field, msg] of Object.entries(fieldErrors)) {
+          this.form.get(field === 'openingBalance' ? 'openingAmount' : field)?.setErrors({ server: msg });
+        }
         this.error.set(message);
         this.submitting.set(false);
       },

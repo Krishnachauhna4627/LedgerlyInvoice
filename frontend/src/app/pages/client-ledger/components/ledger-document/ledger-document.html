@@ -1,0 +1,64 @@
+@let l = ledger();
+<article class="ledger" [attr.aria-label]="'Account ledger of ' + l.client.name">
+  <header class="ledger__head">
+    <h2>{{ company()?.name }}</h2>
+    @if (address()) {
+      <p>{{ address() }}</p>
+    }
+  </header>
+  <p class="ledger__title">Account Ledger</p>
+  <div class="ledger__meta">
+    <span>Account : <strong>{{ l.client.name }}</strong></span>
+    <span>{{ period() }}</span>
+  </div>
+  <div class="ledger__meta ledger__meta--end">
+    <span>Opening Bal. = Rs. {{ l.openingBalance | balance: false }}</span>
+  </div>
+
+  <div class="table-scroll">
+    <table class="ledger__table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Vch/Bill No</th>
+          <th>Account</th>
+          <th class="num">Debit (Rs.)</th>
+          <th class="num">Credit (Rs.)</th>
+          <th class="num">Balance (Rs.)</th>
+          <th>Short Narration</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of l.entries; track e.type + e.id) {
+          <tr>
+            <td class="nowrap">{{ formatDmy(e.date) }}</td>
+            <td>{{ e.type === 'sale' ? 'Sale' : 'Rcpt' }}</td>
+            <td class="nowrap">
+              @if (e.type === 'sale') {
+                <a [routerLink]="['/invoices', e.id]">{{ e.invoiceNumber }}</a>
+              }
+            </td>
+            <td>{{ account(e) }}</td>
+            <td class="num">{{ e.debit ? (e.debit | inr: false) : '' }}</td>
+            <td class="num">{{ e.credit ? (e.credit | inr: false) : '' }}</td>
+            <td class="num nowrap">{{ e.balance | balance: false }}</td>
+            <td>{{ e.reference }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty">No sales or receipts in this period.</td>
+          </tr>
+        }
+        <tr class="ledger__total">
+          <td colspan="4" class="num">Total</td>
+          <td class="num">{{ l.totals.sales | inr: false }}</td>
+          <td class="num">{{ l.totals.receipts | inr: false }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="ledger__closing">Closing Bal. = Rs. {{ l.totals.closingBalance | balance: false }}</p>
+</article>

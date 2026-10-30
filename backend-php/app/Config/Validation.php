@@ -191,6 +191,11 @@ class Validation extends BaseConfig
     /**
      * @var array<string, array<string, mixed>>
      */
+    public array $receipt = [];
+
+    /**
+     * @var array<string, array<string, mixed>>
+     */
     public array $item = [];
 
     /**
@@ -245,6 +250,39 @@ class Validation extends BaseConfig
             'gstin'     => self::GSTIN,
             'phone'     => self::OPTIONAL_PHONE,
             'email'     => self::OPTIONAL_EMAIL,
+            // Owed before using the app: positive = due (Dr), negative = advance (Cr).
+            'openingBalance' => [
+                'rules'  => ['permit_empty', 'js_number', 'greater_than_equal_to[-9999999999]', 'less_than_equal_to[9999999999]'],
+                'errors' => [
+                    'js_number'             => 'Opening balance must be a number.',
+                    'greater_than_equal_to' => 'Opening balance is too large.',
+                    'less_than_equal_to'    => 'Opening balance is too large.',
+                ],
+            ],
+        ];
+
+        $this->receipt = [
+            'clientId' => [
+                'rules'  => ['js_integer', 'greater_than[0]'],
+                'errors' => ['js_integer' => 'Choose a customer.', 'greater_than' => 'Choose a customer.'],
+            ],
+            'receiptDate' => [
+                'rules'  => ['string', 'iso_date'],
+                'errors' => ['string' => 'Receipt date is required.', 'iso_date' => 'Receipt date must be a valid date.'],
+            ],
+            'mode' => [
+                'rules'  => ['in_list[cash,bank]'],
+                'errors' => ['in_list' => 'Choose cash or bank.'],
+            ],
+            'amount' => [
+                'rules'  => ['js_number', 'greater_than[0]', 'less_than_equal_to[9999999999]'],
+                'errors' => [
+                    'js_number'          => 'Amount must be a number.',
+                    'greater_than'       => 'Amount must be more than 0.',
+                    'less_than_equal_to' => 'Amount is too large.',
+                ],
+            ],
+            'reference' => self::optionalText('Narration', 100),
         ];
 
         $this->item = [

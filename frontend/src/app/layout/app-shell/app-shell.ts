@@ -34,6 +34,7 @@ export class AppShell {
   protected readonly nav: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard', icon: 'layout' },
     { label: 'Invoices', path: '/invoices', icon: 'file-text' },
+    { label: 'Payments', path: '/payments', icon: 'rupee' },
     { label: 'Customers', path: '/clients', icon: 'users' },
     { label: 'Products/Services', path: '/items', icon: 'box' },
     { label: 'Reports', path: '/reports', icon: 'bar-chart' },

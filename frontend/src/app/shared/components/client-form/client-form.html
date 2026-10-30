@@ -74,6 +74,27 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="client-opening">Opening balance (₹)</label>
+      <input id="client-opening" class="input" type="number" formControlName="openingAmount" min="0" step="0.01" inputmode="decimal"
+        [class.is-invalid]="errorFor('openingAmount')" [attr.aria-invalid]="!!errorFor('openingAmount')" aria-describedby="client-opening-error" />
+      @if (errorFor('openingAmount'); as message) {
+        <span id="client-opening-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="client-opening-error" class="hint">Optional. Balance before you started billing here.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="client-opening-type">Opening balance is</label>
+      <select id="client-opening-type" class="input" formControlName="openingType">
+        <option value="due">Due — customer owes you (Dr)</option>
+        <option value="advance">Advance — customer paid you (Cr)</option>
+      </select>
+    </div>
+  </div>
+
   <div class="actions">
     <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
     <button type="submit" class="btn btn--primary" [disabled]="submitting()">

@@ -41,10 +41,15 @@
     vertical-align: top;
   }
 
-  th:nth-child(1) { width: 20%; }
-  th:nth-child(2) { width: 17%; }
-  th:nth-child(3) { width: 21%; }
-  th:nth-child(4) { width: 14%; }
+  th:nth-child(1) { width: 18%; }
+  th:nth-child(2) { width: 15%; }
+  th:nth-child(3) { width: 19%; }
+  th:nth-child(4) { width: 12%; }
+  th:nth-child(5) { width: 14%; }
+
+  .num {
+    white-space: nowrap;
+  }
 }
 
 // Long addresses show two lines; the full text is in the cell's tooltip.
@@ -54,6 +59,16 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+}
+
+.name-link {
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
 }
 
 .contact {

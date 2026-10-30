@@ -3,6 +3,7 @@ import { HttpError } from '../../http-error.js';
 import { calculateInvoice } from '../../lib/gst.js';
 import { findClient } from '../clients/clients.js';
 import { getCompanyRow } from '../company/company.js';
+import { settleInvoices } from '../receipts/ledger.js';
 
 // Today's date in the server's local time zone, as 'YYYY-MM-DD'.
 export const today = () => new Date().toLocaleDateString('en-CA');
@@ -270,6 +271,8 @@ export async function createInvoice(companyId, input) {
       await trx('invoice_items').insert(lineRows.map((l) => ({ ...l, invoice_id: invoiceId })));
       return invoiceId;
     });
+    // Receipts decide paid / unpaid (oldest invoices first), whatever status was sent.
+    await settleInvoices(invoice.client_id);
     return getInvoice(companyId, id);
   } catch (err) {
     throw duplicateNumberError(err);
@@ -286,6 +289,8 @@ export async function updateInvoice(companyId, id, input) {
       await trx('invoice_items').where({ invoice_id: id }).delete();
       await trx('invoice_items').insert(lineRows.map((l) => ({ ...l, invoice_id: id })));
     });
+    await settleInvoices(invoice.client_id);
+    if (existing.client_id !== invoice.client_id) await settleInvoices(existing.client_id);
     return getInvoice(companyId, id);
   } catch (err) {
     throw duplicateNumberError(err);
@@ -301,6 +306,7 @@ export async function setInvoiceStatus(companyId, id, status) {
 }
 
 export async function deleteInvoice(companyId, id) {
-  await findInvoiceRow(companyId, id);
+  const existing = await findInvoiceRow(companyId, id);
   await db('invoices').where({ id }).delete();
+  await settleInvoices(existing.client_id);
 }

@@ -1,0 +1,137 @@
+// Laid out like a printed account ledger (one table, ruled cells, grey header bars).
+// On narrow screens only the table scrolls sideways, never the page.
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.ledger {
+  display: block;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+}
+
+.ledger__head {
+  text-align: center;
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  p {
+    font-weight: 600;
+  }
+}
+
+.ledger__title {
+  margin-top: var(--space-3);
+  padding: var(--space-1);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ledger__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-top: 0;
+  background: var(--color-bg);
+}
+
+.ledger__meta--end {
+  justify-content: flex-end;
+}
+
+.ledger__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--color-bg);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .empty {
+    padding: var(--space-4);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+}
+
+.ledger__total td {
+  font-weight: 700;
+}
+
+.ledger__closing {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-top: 0;
+  background: var(--color-bg);
+  font-weight: 600;
+  text-align: right;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+@media print {
+  .ledger {
+    padding: 0;
+    border: 0;
+    font-size: 11px;
+  }
+
+  .table-scroll {
+    overflow: visible;
+  }
+
+  .ledger__title,
+  .ledger__table th,
+  .ledger__meta,
+  .ledger__closing {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .ledger__table a {
+    color: inherit;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+}

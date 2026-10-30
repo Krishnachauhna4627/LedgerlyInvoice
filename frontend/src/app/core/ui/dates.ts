@@ -9,6 +9,16 @@ export function addDays(iso: string, days: number): string {
   return toIsoDate(new Date(y, m - 1, d + days));
 }
 
+// Indian financial year (1 April – 31 March) containing the given date.
+export function financialYear(iso = todayIso()): { from: string; to: string } {
+  const [y, m] = iso.split('-').map(Number);
+  const start = m >= 4 ? y : y - 1;
+  return { from: `${start}-04-01`, to: `${start + 1}-03-31` };
+}
+
+// 'YYYY-MM-DD' → 'DD-MM-YYYY', as printed on ledgers.
+export const formatDmy = (iso: string | null): string => (iso ? iso.split('-').reverse().join('-') : '—');
+
 export type Period = 'this_month' | 'last_3_months' | 'last_6_months' | 'this_year' | 'all';
 
 export const PERIODS: { value: Period; label: string }[] = [

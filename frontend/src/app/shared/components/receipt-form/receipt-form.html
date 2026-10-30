@@ -1,0 +1,70 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="receipt-client">Customer *</label>
+    <select id="receipt-client" class="input" formControlName="clientId"
+      [class.is-invalid]="errorFor('clientId')" [attr.aria-invalid]="!!errorFor('clientId')" aria-describedby="receipt-client-error">
+      <option [ngValue]="null">Select customer</option>
+      @for (c of clients(); track c.id) {
+        <option [ngValue]="c.id">{{ c.name }}</option>
+      }
+    </select>
+    @if (errorFor('clientId'); as message) {
+      <span id="receipt-client-error" class="field__error">{{ message }}</span>
+    } @else if (selected(); as c) {
+      <span id="receipt-client-error" class="hint">Current balance: {{ c.balance | balance }}</span>
+    }
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="receipt-date">Date *</label>
+      <input id="receipt-date" class="input" type="date" formControlName="receiptDate"
+        [class.is-invalid]="errorFor('receiptDate')" [attr.aria-invalid]="!!errorFor('receiptDate')" aria-describedby="receipt-date-error" />
+      @if (errorFor('receiptDate'); as message) {
+        <span id="receipt-date-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="receipt-mode">Mode of payment *</label>
+      <select id="receipt-mode" class="input" formControlName="mode"
+        [class.is-invalid]="errorFor('mode')" [attr.aria-invalid]="!!errorFor('mode')" aria-describedby="receipt-mode-error">
+        <option value="bank">Bank</option>
+        <option value="cash">Cash</option>
+      </select>
+      @if (errorFor('mode'); as message) {
+        <span id="receipt-mode-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="receipt-amount">Amount (₹) *</label>
+    <input id="receipt-amount" class="input" type="number" formControlName="amount" min="0.01" step="0.01" inputmode="decimal"
+      [class.is-invalid]="errorFor('amount')" [attr.aria-invalid]="!!errorFor('amount')" aria-describedby="receipt-amount-error" />
+    @if (errorFor('amount'); as message) {
+      <span id="receipt-amount-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="receipt-reference">Short narration</label>
+    <input id="receipt-reference" class="input" formControlName="reference" maxlength="100" autocomplete="off"
+      placeholder="Optional — cheque no., UPI ref, part payment…"
+      [class.is-invalid]="errorFor('reference')" [attr.aria-invalid]="!!errorFor('reference')" aria-describedby="receipt-reference-error" />
+    @if (errorFor('reference'); as message) {
+      <span id="receipt-reference-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : receipt() ? 'Save changes' : 'Save receipt' }}
+    </button>
+  </div>
+</form>

@@ -10,6 +10,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { InvoiceTable, MenuRequest } from './components/invoice-table/invoice-table';
 import { RowAction, RowMenu } from './components/row-menu/row-menu';
 import { exportInvoicesCsv } from './invoice-csv';
@@ -36,7 +37,7 @@ const SORTS: { value: InvoiceSort; label: string }[] = [
 // Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
 @Component({
   selector: 'app-invoices-page',
-  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu],
+  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu, ReceiptForm],
   templateUrl: './invoices.html',
   styleUrl: './invoices.scss',
 })
@@ -76,6 +77,8 @@ export class Invoices {
   protected readonly menu = signal<MenuRequest | null>(null);
   protected readonly pendingDelete = signal<InvoiceListItem[] | null>(null);
   protected readonly busy = signal(false);
+  // Invoice whose customer the "Record receipt" dialog is for.
+  protected readonly receiptFor = signal<InvoiceListItem | null>(null);
 
   private readonly query = computed(() => ({
     ...periodRange(this.period()),
@@ -184,9 +187,11 @@ export class Invoices {
       case 'duplicate':
         this.router.navigate(['/invoices/new'], { queryParams: { from: invoice.id } });
         break;
-      case 'paid':
-      case 'unpaid':
-        this.setStatus([invoice], action);
+      case 'receipt':
+        this.receiptFor.set(invoice);
+        break;
+      case 'ledger':
+        this.router.navigate(['/clients', invoice.clientId]);
         break;
       case 'delete':
         this.pendingDelete.set([invoice]);
@@ -194,29 +199,10 @@ export class Invoices {
     }
   }
 
-  protected markSelectedPaid(): void {
-    this.setStatus(this.selectedRows().filter((r) => r.status !== 'paid'), 'paid');
-  }
-
-  private setStatus(invoices: InvoiceListItem[], status: 'paid' | 'unpaid'): void {
-    if (!invoices.length) {
-      this.toast.success('Those invoices are already paid.');
-      return;
-    }
-    this.busy.set(true);
-    forkJoin(invoices.map((inv) => this.invoiceService.setStatus(inv.id, status))).subscribe({
-      next: () => {
-        this.busy.set(false);
-        const what = invoices.length === 1 ? invoices[0].invoiceNumber : `${invoices.length} invoices`;
-        this.toast.success(`${what} marked as ${status}.`);
-        this.reload();
-      },
-      error: (err: unknown) => {
-        this.busy.set(false);
-        this.toast.error(toApiError(err).message);
-        this.reload();
-      },
-    });
+  // A receipt can settle invoices (oldest first), so reload to show their new status.
+  protected onReceiptSaved(): void {
+    this.receiptFor.set(null);
+    this.reload();
   }
 
   protected confirmDelete(): void {
