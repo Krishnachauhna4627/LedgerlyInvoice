@@ -114,18 +114,18 @@ class InvoiceService
 
     /**
      * Next plain number (1, 2, 3...) for this company. Older "INV-<year>-0001" numbers still count
-     * towards the sequence so numbering carries on from them.
+     * towards the sequence so numbering carries on from them. Worked out in SQL, so it stays fast with many invoices.
      */
     public function nextInvoiceNumber(int $companyId): string
     {
-        $rows    = $this->db->table('invoices')->select('invoice_number')->where('company_id', $companyId)->get()->getResultArray();
-        $highest = 0;
-        foreach ($rows as $row) {
-            $value   = preg_match('/^(?:INV-\d{4}-)?(\d+)$/', $row['invoice_number'], $match) ? (float) $match[1] : 0;
-            $highest = max($highest, $value);
-        }
+        $row = $this->db->table('invoices')
+            ->select("MAX(CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS DECIMAL(65,0))) AS highest", false)
+            ->where('company_id', $companyId)
+            // utf8mb4_bin: match case-sensitively like /^(?:INV-\d{4}-)?(\d+)$/ (the column collation is case-insensitive).
+            ->where("invoice_number COLLATE utf8mb4_bin REGEXP '^(INV-[0-9]{4}-)?[0-9]+$'", null, false)
+            ->get()->getRowArray();
 
-        return number_format($highest + 1, 0, '', '');
+        return number_format((float) ($row['highest'] ?? 0) + 1, 0, '', '');
     }
 
     /**

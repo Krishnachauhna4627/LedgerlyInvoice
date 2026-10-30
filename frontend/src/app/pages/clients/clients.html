@@ -50,7 +50,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (client of filtered(); track client.id) {
+              @for (client of page.rows(); track client.id) {
                 <tr>
                   <td class="strong"><a class="name-link" [routerLink]="['/clients', client.id]" title="Open ledger">{{ client.name }}</a></td>
                   <td [class.muted]="!client.gstin">{{ client.gstin || '—' }}</td>
@@ -84,7 +84,7 @@
         </div>
 
         <ul class="cards">
-          @for (client of filtered(); track client.id) {
+          @for (client of page.rows(); track client.id) {
             <li class="card">
               <div class="card__main">
                 <a class="card__title name-link" [routerLink]="['/clients', client.id]">{{ client.name }}</a>
@@ -113,6 +113,7 @@
             </li>
           }
         </ul>
+        <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
       }
     </div>
   }

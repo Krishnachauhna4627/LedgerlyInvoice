@@ -1,17 +1,19 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toApiError } from '../../core/api/api-error';
 import { ItemService } from '../../core/data/item.service';
 import { Item } from '../../core/data/models';
+import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { ItemForm } from '../../shared/components/item-form/item-form';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 @Component({
   selector: 'app-items-page',
-  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe],
+  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe, ShowMore],
   templateUrl: './items.html',
   styleUrl: './items.scss',
 })
@@ -37,7 +39,14 @@ export class Items {
     );
   });
 
+  protected readonly page = paged(this.filtered);
+
   constructor() {
+    // A new search starts again from the first page.
+    effect(() => {
+      this.search();
+      this.page.reset();
+    });
     this.load();
   }
 

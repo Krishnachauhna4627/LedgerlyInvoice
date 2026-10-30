@@ -6,12 +6,14 @@ import { Client, Receipt, ReceiptMode } from '../../core/data/models';
 import { ReceiptService } from '../../core/data/receipt.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy } from '../../core/ui/dates';
+import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { round2 } from '../../core/gst/gst';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
+import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
@@ -19,7 +21,7 @@ export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Ba
 // /payments — every receipt from customers, with filters and cash / bank totals.
 @Component({
   selector: 'app-payments-page',
-  imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, RouterLink],
+  imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, RouterLink, ShowMore],
   templateUrl: './payments.html',
   styleUrl: './payments.scss',
 })
@@ -28,6 +30,7 @@ export class Payments {
   private readonly toast = inject(ToastService);
 
   protected readonly receipts = signal<Receipt[]>([]);
+  protected readonly page = paged(this.receipts);
   protected readonly clients = signal<Client[]>([]);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
@@ -91,6 +94,7 @@ export class Payments {
     if (name === 'clientId') this.clientId.set(value ? Number(value) : null);
     else if (name === 'mode') this.mode.set(value as ReceiptMode | '');
     else this[name].set(value);
+    this.page.reset();
     this.load();
   }
 

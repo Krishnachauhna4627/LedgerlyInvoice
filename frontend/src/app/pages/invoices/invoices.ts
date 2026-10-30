@@ -6,11 +6,13 @@ import { toApiError } from '../../core/api/api-error';
 import { DisplayStatus, InvoiceListItem, InvoiceSort } from '../../core/data/models';
 import { InvoiceService } from '../../core/invoices/invoice.service';
 import { PERIODS, Period, periodRange } from '../../core/ui/dates';
+import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
+import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InvoiceTable, MenuRequest } from './components/invoice-table/invoice-table';
 import { RowAction, RowMenu } from './components/row-menu/row-menu';
 import { exportInvoicesCsv } from './invoice-csv';
@@ -37,7 +39,7 @@ const SORTS: { value: InvoiceSort; label: string }[] = [
 // Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
 @Component({
   selector: 'app-invoices-page',
-  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu, ReceiptForm],
+  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu, ReceiptForm, ShowMore],
   templateUrl: './invoices.html',
   styleUrl: './invoices.scss',
 })
@@ -100,6 +102,7 @@ export class Invoices {
     const status = this.status();
     return status === 'all' ? this.rows() : this.rows().filter((r) => r.displayStatus === status);
   });
+  protected readonly page = paged(this.visible);
 
   protected readonly selectedRows = computed(() => this.visible().filter((r) => this.selected().has(r.id)));
 
@@ -130,11 +133,13 @@ export class Invoices {
         this.loading.set(false);
       });
 
-    // Changing filters clears the selection so bulk actions never hit rows you can't see.
+    // Changing filters clears the selection so bulk actions never hit rows you can't see,
+    // and goes back to the first page.
     effect(() => {
       this.query();
       this.status();
       this.selected.set(new Set());
+      this.page.reset();
     });
   }
 

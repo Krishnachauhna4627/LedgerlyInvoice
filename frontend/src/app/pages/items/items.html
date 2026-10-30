@@ -49,7 +49,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of filtered(); track item.id) {
+              @for (item of page.rows(); track item.id) {
                 <tr>
                   <td class="strong">{{ item.name }}</td>
                   <td [class.muted]="!item.hsnSac">{{ item.hsnSac || '—' }}</td>
@@ -71,7 +71,7 @@
         </div>
 
         <ul class="cards">
-          @for (item of filtered(); track item.id) {
+          @for (item of page.rows(); track item.id) {
             <li class="card">
               <div class="card__main">
                 <span class="card__title">{{ item.name }}</span>
@@ -88,6 +88,7 @@
             </li>
           }
         </ul>
+        <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
       }
     </div>
   }

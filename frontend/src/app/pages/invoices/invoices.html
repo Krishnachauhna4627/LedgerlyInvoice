@@ -111,13 +111,14 @@
     } @else {
       <app-invoice-table
         [class.is-loading]="loading()"
-        [invoices]="visible()"
+        [invoices]="page.rows()"
         [selected]="selected()"
         [menuFor]="menu()?.invoice?.id ?? null"
         (toggle)="toggle($event)"
         (toggleAll)="toggleAll($event)"
         (openMenu)="toggleMenu($event)"
       />
+      <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
     }
   </section>
 </div>

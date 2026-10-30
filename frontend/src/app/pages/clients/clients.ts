@@ -1,19 +1,21 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { Client } from '../../core/data/models';
 import { stateLabel } from '../../core/gst/gst-states';
+import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { ClientForm } from '../../shared/components/client-form/client-form';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { ShowMore } from '../../shared/components/show-more/show-more';
 import { BalancePipe } from '../../shared/pipes/balance.pipe';
 
 @Component({
   selector: 'app-clients-page',
-  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, RouterLink],
+  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, RouterLink, ShowMore],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
 })
@@ -41,7 +43,14 @@ export class Clients {
     );
   });
 
+  protected readonly page = paged(this.filtered);
+
   constructor() {
+    // A new search starts again from the first page.
+    effect(() => {
+      this.search();
+      this.page.reset();
+    });
     this.load();
   }
 
