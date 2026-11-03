@@ -4,6 +4,9 @@ import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { CompanyService } from '../../core/data/company.service';
 import { Company, Ledger } from '../../core/data/models';
+import { createLedgerPdf } from '../../core/ledger/ledger-pdf';
+import { openPdfInNewTab } from '../../core/pdf/open-pdf';
+import { ToastService } from '../../core/ui/toast.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy } from '../../core/ui/dates';
 import { Icon } from '../../shared/components/icon/icon';
@@ -23,6 +26,7 @@ import { LedgerDocument } from './components/ledger-document/ledger-document';
 })
 export class ClientLedger {
   private readonly clients = inject(ClientService);
+  private readonly toast = inject(ToastService);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
 
   protected readonly ledger = signal<Ledger | null>(null);
@@ -30,6 +34,7 @@ export class ClientLedger {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly receiptOpen = signal(false);
+  protected readonly pdfBusy = signal(false);
 
   // The period starts as the current financial year (1 April – 31 March).
   protected readonly from = signal(financialYear().from);
@@ -74,6 +79,21 @@ export class ClientLedger {
 
   protected print(): void {
     window.print();
+  }
+
+  // Makes a real PDF of the ledger and opens it in a new tab (works on phones, where printing often doesn't).
+  protected async openPdf(): Promise<void> {
+    const ledger = this.ledger();
+    if (!ledger || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      await openPdfInNewTab(() => createLedgerPdf(ledger, this.company()), `Ledger-${ledger.client.name}`);
+    } catch (err) {
+      console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
   }
 
   protected exportCsv(): void {

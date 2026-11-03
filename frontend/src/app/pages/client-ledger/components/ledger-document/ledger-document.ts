@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Company, Ledger, LedgerEntry } from '../../../../core/data/models';
+import { ledgerAccount, ledgerPeriod, oneLineAddress } from '../../../../core/ledger/ledger-labels';
 import { formatDmy } from '../../../../core/ui/dates';
 import { BalancePipe } from '../../../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
@@ -19,26 +20,10 @@ export class LedgerDocument {
 
   protected readonly formatDmy = formatDmy;
 
-  protected readonly address = computed(() =>
-    (this.company()?.address ?? '')
-      .split(/\n+/)
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .join(', '),
-  );
+  protected readonly address = computed(() => oneLineAddress(this.company()?.address));
+  protected readonly period = computed(() => ledgerPeriod(this.ledger()));
 
-  protected readonly period = computed(() => {
-    const { from, to } = this.ledger();
-    if (from && to) return `From ${formatDmy(from)} to ${formatDmy(to)}`;
-    if (from) return `From ${formatDmy(from)}`;
-    return to ? `Up to ${formatDmy(to)}` : 'All entries';
-  });
-
-  // "Account" column: Sales for invoices, Cash, or the business's bank account for bank receipts.
   protected account(entry: LedgerEntry): string {
-    if (entry.type === 'sale') return 'Sales';
-    if (entry.mode === 'cash') return 'Cash';
-    const c = this.company();
-    return [c?.bankName, c?.accountNo].filter(Boolean).join(' ') || 'Bank';
+    return ledgerAccount(entry, this.company());
   }
 }

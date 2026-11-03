@@ -4,7 +4,10 @@
     <app-icon name="download" [size]="16" /> Excel (CSV)
   </button>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="print()">
-    <app-icon name="printer" [size]="16" /> Print / Save PDF
+    <app-icon name="printer" [size]="16" /> Print
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger() || pdfBusy()" (click)="openPdf()">
+    <app-icon name="file-text" [size]="16" /> {{ pdfBusy() ? 'Making PDF…' : 'Open PDF' }}
   </button>
   <button type="button" class="btn btn--primary btn--sm" [disabled]="!ledger()" (click)="receiptOpen.set(true)">
     <app-icon name="plus" [size]="16" /> Record receipt

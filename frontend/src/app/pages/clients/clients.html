@@ -70,6 +70,9 @@
                   <td class="num" [class.amount--due]="client.balance > 0" [class.amount--advance]="client.balance < 0">{{ client.balance | balance }}</td>
                   <td class="muted" [title]="client.address ?? ''"><span class="address">{{ client.address || '—' }}</span></td>
                   <td class="row-actions">
+                    <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View customer ledger">
+                      <app-icon name="eye" [size]="16" />
+                    </a>
                     <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
                       <app-icon name="pencil" [size]="16" />
                     </button>
@@ -103,6 +106,9 @@
                 }
               </div>
               <div class="card__actions">
+                <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View customer ledger">
+                  <app-icon name="eye" [size]="16" />
+                </a>
                 <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
                   <app-icon name="pencil" [size]="16" />
                 </button>
