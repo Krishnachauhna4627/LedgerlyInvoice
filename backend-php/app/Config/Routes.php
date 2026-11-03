@@ -75,3 +75,23 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
         $routes->get('invoices/(:segment)', 'Admin::invoice/$1');
     });
 });
+
+/*
+ * Angular frontend (built into public/ by build-frontend.sh).
+ * Real files (js/css/images) are served directly by the web server; every other
+ * non-API URL returns the SPA's index.html so Angular routing works on refresh.
+ * Keep this LAST so it never shadows an API route.
+ */
+$spa = static function () {
+    $index = FCPATH . 'index.html';
+    if (! is_file($index)) {
+        throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Frontend not built. Run build-frontend.sh');
+    }
+
+    return service('response')
+        ->setContentType('text/html')
+        ->setHeader('Cache-Control', 'no-cache')
+        ->setBody(file_get_contents($index));
+};
+$routes->get('/', $spa);
+$routes->get('^(?!api(/|$)).*', $spa);

@@ -124,3 +124,12 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+#-------------------------
+# Angular build copied into public/ by build-frontend.sh (not committed)
+#-------------------------
+/public/*
+!/public/index.php
+!/public/.htaccess
+!/public/robots.txt
+!/public/favicon.ico
