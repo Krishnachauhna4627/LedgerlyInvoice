@@ -290,6 +290,8 @@ select.input {
 }
 
 .summary-tile {
+  // The value's font scales with the tile's width (see .summary-tile__value).
+  container-type: inline-size;
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -309,9 +311,11 @@ select.input {
   color: var(--color-text-muted);
 }
 
+// Shrinks to fit the tile on one line ("₹34,52,36,617.00 Cr"); wraps only as a last resort.
 .summary-tile__value {
   overflow-wrap: anywhere;
-  font-size: var(--text-lg);
+  font-size: clamp(var(--text-xs), 8.5cqi, var(--text-lg));
+  line-height: 1.25;
   font-weight: 600;
   color: var(--color-text);
 }
