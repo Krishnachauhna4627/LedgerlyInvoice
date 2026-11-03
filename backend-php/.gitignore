@@ -133,3 +133,6 @@ _modules/*
 !/public/.htaccess
 !/public/robots.txt
 !/public/favicon.ico
+
+# Server settings for deploy.sh
+/deploy.env
