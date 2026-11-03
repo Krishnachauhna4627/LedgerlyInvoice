@@ -1,9 +1,9 @@
-<app-page-header title="Sales report" subtitle="Drafts are not included.">
+<app-page-header title="Sales report">
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('summary')">
-    <app-icon name="download" [size]="16" /> {{ exporting() === 'summary' ? 'Exporting…' : 'Invoice summary (CSV)' }}
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'summary' ? 'Exporting…' : 'Invoice summary' }}
   </button>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('items')">
-    <app-icon name="download" [size]="16" /> {{ exporting() === 'items' ? 'Exporting…' : 'Product/service details (CSV)' }}
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'items' ? 'Exporting…' : 'Product/service details' }}
   </button>
 </app-page-header>
 

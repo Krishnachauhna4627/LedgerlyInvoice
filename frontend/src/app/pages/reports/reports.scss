@@ -31,6 +31,8 @@
 }
 
 .tile {
+  // The value's font scales with the tile's width (see .tile__value).
+  container-type: inline-size;
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -54,9 +56,11 @@
   color: var(--color-text-muted);
 }
 
+// Shrinks to fit the tile on one line ("₹1,49,06,424.00"); wraps only as a last resort.
 .tile__value {
   overflow-wrap: anywhere;
-  font-size: var(--text-lg);
+  font-size: clamp(var(--text-xs), 10cqi, var(--text-lg));
+  line-height: 1.25;
   font-weight: 600;
   color: var(--color-text);
 }
