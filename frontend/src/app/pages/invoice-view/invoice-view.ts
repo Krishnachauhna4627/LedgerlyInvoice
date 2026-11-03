@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { Invoice } from '../../core/data/models';
+import { createInvoicePdf } from '../../core/invoices/invoice-pdf';
 import { InvoiceService } from '../../core/invoices/invoice.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -12,7 +13,7 @@ import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 
-// /invoices/:id — the printable invoice plus actions (edit, duplicate, record receipt, ledger, print, delete).
+// /invoices/:id — the printable invoice plus actions (edit, duplicate, record receipt, ledger, print, PDF, delete).
 @Component({
   selector: 'app-invoice-view-page',
   imports: [RouterLink, Icon, InvoiceDocument, Modal, PageHeader, StatusBadge, InrPipe, ReceiptForm],
@@ -30,6 +31,7 @@ export class InvoiceView {
   protected readonly busy = signal(false);
   protected readonly confirmDelete = signal(false);
   protected readonly receiptOpen = signal(false);
+  protected readonly pdfBusy = signal(false);
 
   constructor() {
     this.load();
@@ -50,6 +52,38 @@ export class InvoiceView {
 
   protected print(): void {
     window.print();
+  }
+
+  // Makes a real PDF and opens it in a new tab (works on phones, where printing often doesn't).
+  protected async openPdf(): Promise<void> {
+    const inv = this.invoice();
+    if (!inv || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+
+    // Open the tab right away, while the click still counts: browsers block tabs opened later.
+    const tab = window.open('', '_blank');
+    tab?.document.write('<title>Preparing PDF…</title><p style="font-family:sans-serif">Preparing PDF…</p>');
+
+    try {
+      const url = URL.createObjectURL(await createInvoicePdf(inv));
+      if (tab && !tab.closed) {
+        tab.location.href = url;
+      } else {
+        // The tab was blocked or closed: download the file instead.
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Invoice-${inv.invoiceNumber.replace(/[^\w-]+/g, '-')}.pdf`;
+        link.click();
+      }
+      // Give the new tab time to load it before freeing the memory.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      console.error('Open PDF failed', err);
+      tab?.close();
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
   }
 
   protected delete(): void {
