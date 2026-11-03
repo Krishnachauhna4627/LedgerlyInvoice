@@ -35,13 +35,36 @@ address {
   margin-top: var(--space-1);
   font-style: normal;
   line-height: 1.7;
+}
+
+.contact {
+  display: grid;
+  margin-top: var(--space-2);
+  line-height: 1.5;
 
   a {
-    display: inline-block;
-    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    // Tall tap area (44px) without adding visible space between lines.
+    padding-block: var(--space-3);
+    margin-block: calc(-1 * var(--space-3));
     color: var(--color-on-primary);
     font-weight: 600;
   }
+}
+
+.contact__title {
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
+.whatsapp {
+  gap: var(--space-1);
+}
+
+.whatsapp__icon {
+  flex-shrink: 0;
+  color: var(--color-whatsapp);
 }
 
 .legal {
