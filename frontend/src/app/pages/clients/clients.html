@@ -46,7 +46,7 @@
                 <th scope="col">State</th>
                 <th scope="col" class="num">Balance</th>
                 <th scope="col">Address</th>
-                <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
+                <th scope="col" class="row-actions">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -70,10 +70,10 @@
                   <td class="num" [class.amount--due]="client.balance > 0" [class.amount--advance]="client.balance < 0">{{ client.balance | balance }}</td>
                   <td class="muted" [title]="client.address ?? ''"><span class="address">{{ client.address || '—' }}</span></td>
                   <td class="row-actions">
-                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" (click)="openForm(client)">
+                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
                       <app-icon name="pencil" [size]="16" />
                     </button>
-                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" (click)="deleting.set(client)">
+                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete customer" (click)="deleting.set(client)">
                       <app-icon name="trash" [size]="16" />
                     </button>
                   </td>
@@ -103,10 +103,10 @@
                 }
               </div>
               <div class="card__actions">
-                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" (click)="openForm(client)">
+                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
                   <app-icon name="pencil" [size]="16" />
                 </button>
-                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" (click)="deleting.set(client)">
+                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete customer" (click)="deleting.set(client)">
                   <app-icon name="trash" [size]="16" />
                 </button>
               </div>
