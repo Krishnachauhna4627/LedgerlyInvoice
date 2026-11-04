@@ -13,7 +13,7 @@ class ReceiptModel extends Model
 {
     protected $table         = 'receipts';
     protected $returnType    = 'array';
-    protected $allowedFields = ['company_id', 'client_id', 'receipt_date', 'mode', 'amount', 'reference'];
+    protected $allowedFields = ['company_id', 'client_id', 'receipt_number', 'receipt_date', 'mode', 'amount', 'reference'];
 
     public const MODES = ['cash', 'bank'];
 
@@ -26,6 +26,20 @@ class ReceiptModel extends Model
             ->select('receipts.*, clients.name AS client_name')
             ->join('clients', 'clients.id = receipts.client_id')
             ->where('receipts.company_id', $companyId);
+    }
+
+    /**
+     * Next plain number (1, 2, 3...) for this company's receipts: one more than the highest numeric one.
+     */
+    public function nextReceiptNumber(int $companyId): string
+    {
+        $row = $this->db->table('receipts')
+            ->select('MAX(CAST(receipt_number AS DECIMAL(65,0))) AS highest', false)
+            ->where('company_id', $companyId)
+            ->where("receipt_number REGEXP '^[0-9]+$'", null, false)
+            ->get()->getRowArray();
+
+        return number_format((float) ($row['highest'] ?? 0) + 1, 0, '', '');
     }
 
     /**
@@ -73,13 +87,14 @@ class ReceiptModel extends Model
     public static function toDto(array $row): array
     {
         return [
-            'id'          => (int) $row['id'],
-            'clientId'    => (int) $row['client_id'],
-            'clientName'  => $row['client_name'],
-            'receiptDate' => $row['receipt_date'],
-            'mode'        => $row['mode'],
-            'amount'      => (float) $row['amount'],
-            'reference'   => $row['reference'],
+            'id'            => (int) $row['id'],
+            'clientId'      => (int) $row['client_id'],
+            'clientName'    => $row['client_name'],
+            'receiptNumber' => $row['receipt_number'],
+            'receiptDate'   => $row['receipt_date'],
+            'mode'          => $row['mode'],
+            'amount'        => (float) $row['amount'],
+            'reference'     => $row['reference'],
         ];
     }
 
@@ -93,11 +108,12 @@ class ReceiptModel extends Model
     public static function toRow(array $body, int $clientId): array
     {
         return [
-            'client_id'    => $clientId,
-            'receipt_date' => $body['receiptDate'],
-            'mode'         => $body['mode'],
-            'amount'       => $body['amount'],
-            'reference'    => $body['reference'],
+            'client_id'      => $clientId,
+            'receipt_number' => $body['receiptNumber'],
+            'receipt_date'   => $body['receiptDate'],
+            'mode'           => $body['mode'],
+            'amount'         => $body['amount'],
+            'reference'      => $body['reference'],
         ];
     }
 }

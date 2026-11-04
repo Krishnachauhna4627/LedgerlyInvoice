@@ -10,7 +10,7 @@
     <app-icon name="file-text" [size]="16" /> {{ pdfBusy() ? 'Making PDF…' : 'Open PDF' }}
   </button>
   <button type="button" class="btn btn--primary btn--sm" [disabled]="!ledger()" (click)="receiptOpen.set(true)">
-    <app-icon name="plus" [size]="16" /> Record receipt
+    <app-icon name="plus" [size]="16" /> Record Receipt
   </button>
 </app-page-header>
 
@@ -65,7 +65,7 @@
   }
 </div>
 
-<app-modal [open]="receiptOpen()" title="Record receipt" (closed)="receiptOpen.set(false)">
+<app-modal [open]="receiptOpen()" title="Record Receipt" (closed)="receiptOpen.set(false)">
   @if (receiptOpen()) {
     <app-receipt-form [clientId]="ledger()?.client?.id ?? null" [amount]="dueAmount()" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
   }

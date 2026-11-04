@@ -58,6 +58,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
 
     $routes->group('receipts', ['filter' => 'auth'], static function (RouteCollection $routes) {
         $routes->get('/', 'Receipts::index');
+        $routes->get('next-number', 'Receipts::nextNumber');
         $routes->post('/', 'Receipts::create');
         $routes->put('(:segment)', 'Receipts::update/$1');
         $routes->delete('(:segment)', 'Receipts::delete/$1');

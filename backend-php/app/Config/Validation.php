@@ -282,7 +282,8 @@ class Validation extends BaseConfig
                     'less_than_equal_to' => 'Amount is too large.',
                 ],
             ],
-            'reference' => self::optionalText('Narration', 100),
+            'receiptNumber' => self::requiredText('Receipt No.', 40),
+            'reference'     => self::optionalText('Narration', 100),
         ];
 
         $this->item = [

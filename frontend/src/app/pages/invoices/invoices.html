@@ -127,7 +127,7 @@
   <app-row-menu [invoice]="m.invoice" [anchor]="m.anchor" (action)="onAction(m.invoice, $event)" (closed)="menu.set(null)" />
 }
 
-<app-modal [open]="!!receiptFor()" title="Record receipt" (closed)="receiptFor.set(null)">
+<app-modal [open]="!!receiptFor()" title="Record Receipt" (closed)="receiptFor.set(null)">
   @if (receiptFor(); as inv) {
     <app-receipt-form [clientId]="inv.clientId" [amount]="inv.amountDue" (saved)="onReceiptSaved()" (cancelled)="receiptFor.set(null)" />
   }

@@ -7,7 +7,7 @@
       <a class="btn btn--outline btn--sm" [routerLink]="['/clients', inv.clientId]"><app-icon name="receipt" [size]="16" /> Customer ledger</a>
       @if (inv.status === 'unpaid') {
         <button type="button" class="btn btn--outline btn--sm" (click)="receiptOpen.set(true)">
-          <app-icon name="rupee" [size]="16" /> Record receipt
+          <app-icon name="rupee" [size]="16" /> Record Receipt
         </button>
       }
     }
@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <app-modal [open]="receiptOpen()" title="Record receipt" (closed)="receiptOpen.set(false)">
+  <app-modal [open]="receiptOpen()" title="Record Receipt" (closed)="receiptOpen.set(false)">
     @if (receiptOpen()) {
       <app-receipt-form [clientId]="inv.clientId" [amount]="inv.amountDue" (saved)="onReceiptSaved()" (cancelled)="receiptOpen.set(false)" />
     }

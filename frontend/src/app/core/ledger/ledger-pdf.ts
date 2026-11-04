@@ -67,7 +67,7 @@ export async function createLedgerPdf(ledger: Ledger, company: Company | null): 
       ? ledger.entries.map((e) => [
           formatDmy(e.date),
           e.type === 'sale' ? 'Sale' : 'Rcpt',
-          e.type === 'sale' ? (e.invoiceNumber ?? '') : '',
+          (e.type === 'sale' ? e.invoiceNumber : e.receiptNumber) ?? '',
           ledgerAccount(e, company),
           e.debit ? money(e.debit) : '',
           e.credit ? money(e.credit) : '',

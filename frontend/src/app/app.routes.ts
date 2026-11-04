@@ -49,7 +49,7 @@ export const routes: Routes = [
       },
       {
         path: 'payments',
-        title: page('Payments'),
+        title: page('Receipts'),
         loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
       },
       {

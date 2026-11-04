@@ -40,6 +40,8 @@ export interface Receipt {
   id: number;
   clientId: number;
   clientName: string;
+  // Receipt No., unique per company, like the invoice number.
+  receiptNumber: string;
   receiptDate: string;
   mode: ReceiptMode;
   amount: number;
@@ -55,6 +57,7 @@ export interface LedgerEntry {
   id: number;
   date: string;
   invoiceNumber: string | null;
+  receiptNumber: string | null;
   mode: ReceiptMode | null;
   reference: string | null;
   debit: number;

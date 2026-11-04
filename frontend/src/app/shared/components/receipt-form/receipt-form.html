@@ -4,6 +4,15 @@
   }
 
   <div class="field">
+    <label class="field__label" for="receipt-number">Receipt No. *</label>
+    <input id="receipt-number" class="input" formControlName="receiptNumber" maxlength="40" autocomplete="off"
+      [class.is-invalid]="errorFor('receiptNumber')" [attr.aria-invalid]="!!errorFor('receiptNumber')" aria-describedby="receipt-number-error" />
+    @if (errorFor('receiptNumber'); as message) {
+      <span id="receipt-number-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="field">
     <label class="field__label" for="receipt-client">Customer *</label>
     <select id="receipt-client" class="input" formControlName="clientId"
       [class.is-invalid]="errorFor('clientId')" [attr.aria-invalid]="!!errorFor('clientId')" aria-describedby="receipt-client-error">

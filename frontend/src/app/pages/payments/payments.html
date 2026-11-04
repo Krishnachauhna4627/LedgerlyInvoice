@@ -1,9 +1,9 @@
-<app-page-header title="Payments" subtitle="Money received from customers. Each receipt lowers the customer's balance.">
+<app-page-header title="Receipts" subtitle="Money received from customers. Each receipt lowers the customer's balance.">
   <button type="button" class="btn btn--outline btn--sm" [disabled]="receipts().length === 0" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export (CSV)
   </button>
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
-    <app-icon name="plus" [size]="16" /> Record receipt
+    <app-icon name="plus" [size]="16" /> Record Receipt
   </button>
 </app-page-header>
 
@@ -79,6 +79,7 @@
         <table class="data-table">
           <thead>
             <tr>
+              <th scope="col">Receipt No.</th>
               <th scope="col">Date</th>
               <th scope="col">Customer</th>
               <th scope="col">Mode</th>
@@ -90,6 +91,7 @@
           <tbody>
             @for (r of page.rows(); track r.id) {
               <tr>
+                <td class="strong">{{ r.receiptNumber || '—' }}</td>
                 <td>{{ formatDmy(r.receiptDate) }}</td>
                 <td class="strong"><a [routerLink]="['/clients', r.clientId]" title="Open ledger">{{ r.clientName }}</a></td>
                 <td>{{ modeLabel[r.mode] }}</td>
@@ -114,7 +116,7 @@
           <li class="card">
             <div class="card__main">
               <a class="card__title" [routerLink]="['/clients', r.clientId]">{{ r.clientName }}</a>
-              <span class="card__meta">{{ formatDmy(r.receiptDate) }} · {{ modeLabel[r.mode] }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
+              <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }} · {{ modeLabel[r.mode] }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
               <span class="card__amount">{{ r.amount | inr }}</span>
             </div>
             <div class="card__actions">
@@ -133,7 +135,7 @@
   </div>
 </div>
 
-<app-modal [open]="formOpen()" [title]="editing() ? 'Edit receipt' : 'Record receipt'" (closed)="formOpen.set(false)">
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit Receipt' : 'Record Receipt'" (closed)="formOpen.set(false)">
   @if (formOpen()) {
     <app-receipt-form [receipt]="editing()" (saved)="onSaved()" (cancelled)="formOpen.set(false)" />
   }

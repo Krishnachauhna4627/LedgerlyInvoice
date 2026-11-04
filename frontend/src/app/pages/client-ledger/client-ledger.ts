@@ -41,7 +41,7 @@ export class ClientLedger {
   protected readonly to = signal(financialYear().to);
   protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
 
-  // Prefill for "Record receipt": whatever the customer currently owes.
+  // Prefill for "Record Receipt": whatever the customer currently owes.
   protected readonly dueAmount = computed(() => Math.max(this.ledger()?.client.balance ?? 0, 0) || null);
 
   constructor() {

@@ -129,8 +129,8 @@ export class Payments {
   protected exportCsv(): void {
     downloadCsv(
       `receipts${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Date', 'Customer', 'Mode', 'Narration', 'Amount'],
-      this.receipts().map((r) => [formatDmy(r.receiptDate), r.clientName, MODE_LABEL[r.mode], r.reference, r.amount]),
+      ['Receipt No.', 'Date', 'Customer', 'Mode', 'Narration', 'Amount'],
+      this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), r.clientName, MODE_LABEL[r.mode], r.reference, r.amount]),
     );
   }
 }

@@ -37,6 +37,8 @@
             <td class="nowrap">
               @if (e.type === 'sale') {
                 <a [routerLink]="['/invoices', e.id]">{{ e.invoiceNumber }}</a>
+              } @else {
+                {{ e.receiptNumber }}
               }
             </td>
             <td>{{ account(e) }}</td>

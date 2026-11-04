@@ -124,7 +124,7 @@ class LedgerService
             ->where('status !=', 'draft')
             ->get()->getResultArray();
         $receipts = $this->db->table('receipts')
-            ->select('id, receipt_date, mode, amount, reference')
+            ->select('id, receipt_number, receipt_date, mode, amount, reference')
             ->where('client_id', $client['id'])
             ->get()->getResultArray();
 
@@ -134,6 +134,7 @@ class LedgerService
                 'id'            => (int) $i['id'],
                 'date'          => $i['invoice_date'],
                 'invoiceNumber' => $i['invoice_number'],
+                'receiptNumber' => null,
                 'mode'          => null,
                 'reference'     => null,
                 'debit'         => (float) $i['grand_total'],
@@ -144,6 +145,7 @@ class LedgerService
                 'id'            => (int) $r['id'],
                 'date'          => $r['receipt_date'],
                 'invoiceNumber' => null,
+                'receiptNumber' => $r['receipt_number'],
                 'mode'          => $r['mode'],
                 'reference'     => $r['reference'],
                 'debit'         => 0,

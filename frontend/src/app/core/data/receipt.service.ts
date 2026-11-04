@@ -19,6 +19,10 @@ export class ReceiptService {
     return this.http.get<Receipt[]>('/api/receipts', { params });
   }
 
+  nextNumber(): Observable<{ receiptNumber: string }> {
+    return this.http.get<{ receiptNumber: string }>('/api/receipts/next-number');
+  }
+
   create(input: ReceiptInput): Observable<Receipt> {
     return this.http.post<Receipt>('/api/receipts', input);
   }

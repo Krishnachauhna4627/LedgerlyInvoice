@@ -9,9 +9,10 @@ import { todayIso } from '../../../core/ui/dates';
 import { ToastService } from '../../../core/ui/toast.service';
 import { BalancePipe } from '../../pipes/balance.pipe';
 
-type Field = 'clientId' | 'receiptDate' | 'mode' | 'amount' | 'reference';
+type Field = 'receiptNumber' | 'clientId' | 'receiptDate' | 'mode' | 'amount' | 'reference';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
+  receiptNumber: { required: 'Receipt No. is required.', maxlength: 'Receipt No. is too long.' },
   clientId: { required: 'Choose a customer.' },
   receiptDate: { required: 'Receipt date is required.' },
   mode: { required: 'Choose cash or bank.' },
@@ -39,6 +40,7 @@ export class ReceiptForm implements OnInit {
 
   protected readonly clients = signal<Client[]>([]);
   protected readonly form = inject(NonNullableFormBuilder).group({
+    receiptNumber: ['', [Validators.required, Validators.maxLength(40)]],
     clientId: [null as number | null, Validators.required],
     receiptDate: [todayIso(), Validators.required],
     mode: ['bank' as ReceiptMode, Validators.required],
@@ -67,6 +69,7 @@ export class ReceiptForm implements OnInit {
     const r = this.receipt();
     if (r) {
       this.form.setValue({
+        receiptNumber: r.receiptNumber ?? '',
         clientId: r.clientId,
         receiptDate: r.receiptDate,
         mode: r.mode,
@@ -75,6 +78,12 @@ export class ReceiptForm implements OnInit {
       });
     } else {
       this.form.patchValue({ clientId: this.clientId(), amount: this.amount() });
+      // Suggest the next number; the user can still change it.
+      this.receipts.nextNumber().subscribe({
+        next: ({ receiptNumber }) => {
+          if (!this.form.controls.receiptNumber.value) this.form.controls.receiptNumber.setValue(receiptNumber);
+        },
+      });
     }
   }
 
@@ -90,6 +99,7 @@ export class ReceiptForm implements OnInit {
     if (this.form.invalid || this.submitting()) return;
     const v = this.form.getRawValue();
     const input: ReceiptInput = {
+      receiptNumber: v.receiptNumber.trim(),
       clientId: Number(v.clientId),
       receiptDate: v.receiptDate,
       mode: v.mode,

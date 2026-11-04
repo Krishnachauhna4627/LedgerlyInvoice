@@ -79,7 +79,7 @@ export class Invoices {
   protected readonly menu = signal<MenuRequest | null>(null);
   protected readonly pendingDelete = signal<InvoiceListItem[] | null>(null);
   protected readonly busy = signal(false);
-  // Invoice whose customer the "Record receipt" dialog is for.
+  // Invoice whose customer the "Record Receipt" dialog is for.
   protected readonly receiptFor = signal<InvoiceListItem | null>(null);
 
   private readonly query = computed(() => ({

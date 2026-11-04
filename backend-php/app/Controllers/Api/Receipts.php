@@ -7,6 +7,7 @@ use App\Exceptions\HttpError;
 use App\Libraries\LedgerService;
 use App\Models\ClientModel;
 use App\Models\ReceiptModel;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 /**
  * /api/receipts — port of modules/receipts/receipts.js.
@@ -15,6 +16,7 @@ class Receipts extends BaseController
 {
     private const CLEANERS = [
         'clientId'    => ['number'],
+        'receiptNumber' => ['trim'],
         'receiptDate' => [],
         'mode'        => [],
         'amount'      => ['number'],
@@ -35,11 +37,20 @@ class Receipts extends BaseController
         return $this->json($this->receipts->listFor($this->companyId(), $this->listQuery()));
     }
 
+    public function nextNumber()
+    {
+        return $this->json(['receiptNumber' => $this->receipts->nextReceiptNumber($this->companyId())]);
+    }
+
     public function create()
     {
         $body     = $this->validated('receipt', self::CLEANERS);
         $clientId = $this->ownedClientId((int) $body['clientId']);
-        $id       = $this->receipts->insert([...ReceiptModel::toRow($body, $clientId), 'company_id' => $this->companyId()]);
+        try {
+            $id = $this->receipts->insert([...ReceiptModel::toRow($body, $clientId), 'company_id' => $this->companyId()]);
+        } catch (DatabaseException $e) {
+            throw self::duplicateNumberError($e);
+        }
         $this->ledger->settleInvoices($clientId);
 
         return $this->json(ReceiptModel::toDto($this->receipts->findOwned($this->companyId(), (int) $id)), 201);
@@ -50,7 +61,11 @@ class Receipts extends BaseController
         $existing = $this->receipts->findOwned($this->companyId(), $this->id($id));
         $body     = $this->validated('receipt', self::CLEANERS);
         $clientId = $this->ownedClientId((int) $body['clientId']);
-        $this->receipts->update($existing['id'], ReceiptModel::toRow($body, $clientId));
+        try {
+            $this->receipts->update($existing['id'], ReceiptModel::toRow($body, $clientId));
+        } catch (DatabaseException $e) {
+            throw self::duplicateNumberError($e);
+        }
         $this->ledger->settleInvoices($clientId);
         if ((int) $existing['client_id'] !== $clientId) {
             $this->ledger->settleInvoices((int) $existing['client_id']);
@@ -66,6 +81,17 @@ class Receipts extends BaseController
         $this->ledger->settleInvoices((int) $existing['client_id']);
 
         return $this->noContent();
+    }
+
+    private static function duplicateNumberError(DatabaseException $e): \Throwable
+    {
+        if ($e->getCode() === 1062) {
+            return new HttpError(409, 'This receipt number is already used.', [
+                'receiptNumber' => 'This receipt number is already used.',
+            ]);
+        }
+
+        return $e;
     }
 
     /**
