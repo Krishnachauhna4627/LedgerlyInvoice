@@ -44,6 +44,7 @@ export class AppShell {
   protected readonly adminNav: NavItem[] = [{ label: 'Users', path: '/admin/users', icon: 'shield' }];
 
   protected readonly user = this.auth.user;
+  protected readonly impersonating = this.auth.isImpersonating;
   protected readonly initials = computed(() =>
     (this.user()?.name ?? '')
       .split(/\s+/)
@@ -62,6 +63,12 @@ export class AppShell {
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.menuOpen.set(false));
+  }
+
+  // Back to the super user's own session; a full reload so none of this user's data stays in memory.
+  protected returnToAdmin(): void {
+    this.auth.returnToAdmin();
+    window.location.assign('/admin/users');
   }
 
   protected logout(): void {

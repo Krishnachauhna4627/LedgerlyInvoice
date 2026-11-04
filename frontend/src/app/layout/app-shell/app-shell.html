@@ -63,6 +63,14 @@
 </aside>
 
 <div class="content">
+  @if (impersonating()) {
+    <div class="impersonation" role="status">
+      <span>You're logged in as <strong>{{ user()?.name }}</strong> ({{ user()?.company?.name }}).</span>
+      <button type="button" class="btn btn--primary btn--sm" (click)="returnToAdmin()">
+        <app-icon name="arrow-left" [size]="16" /> Back to admin
+      </button>
+    </div>
+  }
   <router-outlet />
 </div>
 

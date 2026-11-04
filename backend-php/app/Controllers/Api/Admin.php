@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
+use App\Libraries\AuthService;
 use App\Libraries\InvoiceService;
 use App\Libraries\LedgerService;
 use App\Models\ClientModel;
@@ -13,7 +14,8 @@ use App\Models\ItemModel;
 use CodeIgniter\Database\BaseBuilder;
 
 /**
- * /api/admin — super-user views across every company. Read-only; the only place that skips company scoping.
+ * /api/admin — super-user views across every company, the only place that skips company scoping.
+ * Read-only, apart from loginAs (a session as another user).
  * Port of modules/admin/admin.js.
  */
 class Admin extends BaseController
@@ -49,6 +51,23 @@ class Admin extends BaseController
             'items'    => model(ItemModel::class)->listFor($companyId),
             'invoices' => array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($invoices)),
         ]);
+    }
+
+    /**
+     * POST /api/admin/users/:id/login-as — a session as that user, so the super user can see the app
+     * exactly as they do. Same { token, user } shape as /api/auth/login. Every use is logged.
+     */
+    public function loginAs(string $id)
+    {
+        $userId  = $this->id($id);
+        $adminId = service('currentUser')->id;
+        if ($userId === $adminId) {
+            throw new HttpError(400, "You're already logged in as this user.");
+        }
+        $session = (new AuthService())->sessionFor($userId);
+        log_message('notice', 'Admin user {admin} logged in as user {user}.', ['admin' => $adminId, 'user' => $userId]);
+
+        return $this->json($session);
     }
 
     public function invoice(string $id)

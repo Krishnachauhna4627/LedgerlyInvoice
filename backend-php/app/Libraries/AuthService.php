@@ -158,6 +158,21 @@ class AuthService
     }
 
     /**
+     * A session for any user, without their password: for the super user's "Log in as" (Admin::loginAs).
+     *
+     * @return array{token: string, user: array<string, mixed>}
+     */
+    public function sessionFor(int $userId): array
+    {
+        $user = $this->getUserById($userId);
+        if (! $user) {
+            throw new HttpError(404, 'User not found.');
+        }
+
+        return $this->createSession($user);
+    }
+
+    /**
      * Same token as the Node backend: HS256, sub = user id as a string, iat + exp.
      *
      * @param array<string, mixed> $user

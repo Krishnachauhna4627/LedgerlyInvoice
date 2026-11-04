@@ -73,6 +73,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
     $routes->group('admin', ['filter' => ['auth', 'admin']], static function (RouteCollection $routes) {
         $routes->get('users', 'Admin::users');
         $routes->get('users/(:segment)', 'Admin::user/$1');
+        $routes->post('users/(:segment)/login-as', 'Admin::loginAs/$1');
         $routes->get('invoices/(:segment)', 'Admin::invoice/$1');
     });
 });
