@@ -2,7 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
-import { Client, Receipt, ReceiptMode } from '../../core/data/models';
+import { CompanyService } from '../../core/data/company.service';
+import { Client, Company, Receipt, ReceiptMode } from '../../core/data/models';
+import { openPdfInNewTab } from '../../core/pdf/open-pdf';
+import { createReceiptPdf } from '../../core/receipts/receipt-pdf';
 import { ReceiptService } from '../../core/data/receipt.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy } from '../../core/ui/dates';
@@ -47,6 +50,9 @@ export class Payments {
   protected readonly editing = signal<Receipt | null>(null);
   protected readonly deleting = signal<Receipt | null>(null);
   protected readonly deleteBusy = signal(false);
+  // Receipt whose printable PDF is being made.
+  protected readonly printingId = signal<number | null>(null);
+  private readonly company = signal<Company | null>(null);
 
   protected readonly modeLabel = MODE_LABEL;
   protected readonly formatDmy = formatDmy;
@@ -64,6 +70,9 @@ export class Payments {
     inject(ClientService)
       .list()
       .subscribe({ next: (clients) => this.clients.set(clients) });
+    inject(CompanyService)
+      .get()
+      .subscribe({ next: (company) => this.company.set(company) });
     this.load();
   }
 
@@ -106,6 +115,19 @@ export class Payments {
   protected onSaved(): void {
     this.formOpen.set(false);
     this.load();
+  }
+
+  // Opens the receipt as a PDF in a new tab with the print dialog (falls back to a download if the tab is blocked).
+  protected async print(receipt: Receipt): Promise<void> {
+    if (this.printingId() !== null) return;
+    this.printingId.set(receipt.id);
+    try {
+      await openPdfInNewTab(() => createReceiptPdf(receipt, this.company()), `Receipt-${receipt.receiptNumber ?? receipt.id}`);
+    } catch {
+      this.toast.error("Couldn't make the receipt PDF. Please try again.");
+    } finally {
+      this.printingId.set(null);
+    }
   }
 
   protected confirmDelete(): void {

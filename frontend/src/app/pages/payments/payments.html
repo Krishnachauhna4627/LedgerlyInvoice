@@ -98,7 +98,11 @@
                 <td [class.muted]="!r.reference">{{ r.reference || '—' }}</td>
                 <td class="num strong">{{ r.amount | inr }}</td>
                 <td class="row-actions">
-                  <button type="button" class="icon-button" [attr.aria-label]="'Edit receipt from ' + r.clientName" (click)="openForm(r)">
+                  <button type="button" class="icon-button" [attr.aria-label]="'Print receipt ' + (r.receiptNumber || '') + ' from ' + r.clientName" title="Print receipt"
+                [disabled]="printingId() === r.id" (click)="print(r)">
+                <app-icon name="printer" [size]="16" />
+              </button>
+              <button type="button" class="icon-button" [attr.aria-label]="'Edit receipt from ' + r.clientName" (click)="openForm(r)">
                     <app-icon name="pencil" [size]="16" />
                   </button>
                   <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete receipt from ' + r.clientName" (click)="deleting.set(r)">
@@ -120,6 +124,10 @@
               <span class="card__amount">{{ r.amount | inr }}</span>
             </div>
             <div class="card__actions">
+              <button type="button" class="icon-button" [attr.aria-label]="'Print receipt ' + (r.receiptNumber || '') + ' from ' + r.clientName" title="Print receipt"
+                [disabled]="printingId() === r.id" (click)="print(r)">
+                <app-icon name="printer" [size]="16" />
+              </button>
               <button type="button" class="icon-button" [attr.aria-label]="'Edit receipt from ' + r.clientName" (click)="openForm(r)">
                 <app-icon name="pencil" [size]="16" />
               </button>
