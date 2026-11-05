@@ -28,7 +28,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "angular"
               }
             ],
             "styles": [
@@ -60,6 +61,9 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "php": {
+              "deployUrl": "angular/"
             }
           },
           "defaultConfiguration": "production"

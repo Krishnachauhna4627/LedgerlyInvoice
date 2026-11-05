@@ -79,13 +79,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
 });
 
 /*
- * Angular frontend (built into public/ by build-frontend.sh).
+ * Angular frontend (built into public/angular/ by build-frontend.sh).
  * Real files (js/css/images) are served directly by the web server; every other
  * non-API URL returns the SPA's index.html so Angular routing works on refresh.
  * Keep this LAST so it never shadows an API route.
  */
 $spa = static function () {
-    $index = FCPATH . 'index.html';
+    $index = FCPATH . 'angular/index.html';
     if (! is_file($index)) {
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Frontend not built. Run build-frontend.sh');
     }

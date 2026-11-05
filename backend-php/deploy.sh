@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Deploys backend-php + the Angular frontend (built into public/) as ONE app.
+# Deploys backend-php + the Angular frontend (built into public/angular/) as ONE app.
 #
 #   ./deploy.sh               build, package, then upload via rsync (if DEPLOY_HOST is set in deploy.env)
 #                             or create a zip for manual upload (cPanel File Manager / FTP)
 #   ./deploy.sh --zip         always create a zip, even if DEPLOY_HOST is set
-#   ./deploy.sh --skip-build  reuse the frontend build already in public/
+#   ./deploy.sh --skip-build  reuse the frontend build already in public/angular/
 #   ./deploy.sh -y            don't ask for confirmation before uploading
 #
 # Server settings live in deploy.env (copy deploy.env.example). Never uploaded: .env, writable/ contents.
@@ -40,7 +40,7 @@ fi
 
 # 2. Frontend build -> public/
 if [[ "$SKIP_BUILD" == yes ]]; then
-  [[ -f public/index.html ]] || { echo "public/index.html missing; run without --skip-build" >&2; exit 1; }
+  [[ -f public/angular/index.html ]] || { echo "public/angular/index.html missing; run without --skip-build" >&2; exit 1; }
 else
   step "Building frontend"
   ./build-frontend.sh

@@ -42,7 +42,7 @@ export const finalY = (doc: JsPdf): number => (doc as unknown as { lastAutoTable
 export const lineHeight = (sizePt: number) => sizePt * PT_TO_MM * 1.45;
 
 function loadFonts(): Promise<{ regular: string; bold: string }> {
-  fontCache ??= Promise.all([fetchBase64('fonts/DejaVuSans.ttf'), fetchBase64('fonts/DejaVuSans-Bold.ttf')])
+  fontCache ??= Promise.all([fetchBase64('angular/fonts/DejaVuSans.ttf'), fetchBase64('angular/fonts/DejaVuSans-Bold.ttf')])
     .then(([regular, bold]) => ({ regular, bold }))
     .catch((err: unknown) => {
       fontCache = null; // try again next time
