@@ -9,6 +9,9 @@
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger() || pdfBusy()" (click)="openPdf()">
     <app-icon name="file-text" [size]="16" /> {{ pdfBusy() ? 'Making PDF…' : 'Open PDF' }}
   </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger() || pdfBusy()" (click)="sharePdf()">
+    <app-icon name="send" [size]="16" /> Share PDF
+  </button>
   <button type="button" class="btn btn--primary btn--sm" [disabled]="!ledger()" (click)="receiptOpen.set(true)">
     <app-icon name="plus" [size]="16" /> Record Receipt
   </button>

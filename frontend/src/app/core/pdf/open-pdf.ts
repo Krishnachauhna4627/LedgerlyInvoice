@@ -25,3 +25,30 @@ export async function openPdfInNewTab(make: () => Promise<Blob>, fileName: strin
   // Give the new tab time to load it before freeing the memory.
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+// Sends a PDF made in the browser as a file attachment (WhatsApp, Gmail, etc.) using the
+// device's share sheet. Nothing is uploaded to our server. Where file sharing isn't supported
+// (most desktop browsers) the PDF is downloaded instead so it can be attached by hand.
+// Returns 'shared', 'downloaded' or 'cancelled'. Throws if the PDF can't be made.
+export async function sharePdf(make: () => Promise<Blob>, fileName: string, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  const name = `${fileName.replace(/[^\w-]+/g, '-')}.pdf`;
+  const file = new File([await make()], name, { type: 'application/pdf' });
+
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title });
+      return 'shared';
+    } catch (err) {
+      if ((err as DOMException)?.name === 'AbortError') return 'cancelled';
+      // Otherwise (e.g. the click "expired" while the PDF was being made) fall back to a download.
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return 'downloaded';
+}

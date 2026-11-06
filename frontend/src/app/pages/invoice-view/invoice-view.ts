@@ -4,7 +4,7 @@ import { toApiError } from '../../core/api/api-error';
 import { Invoice } from '../../core/data/models';
 import { createInvoicePdf } from '../../core/invoices/invoice-pdf';
 import { InvoiceService } from '../../core/invoices/invoice.service';
-import { openPdfInNewTab } from '../../core/pdf/open-pdf';
+import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { InvoiceDocument } from '../../shared/components/invoice-document/invoice-document';
@@ -65,6 +65,22 @@ export class InvoiceView {
       await openPdfInNewTab(() => createInvoicePdf(inv), `Invoice-${inv.invoiceNumber}`);
     } catch (err) {
       console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  // Sends the invoice as a PDF file via the phone's share sheet (WhatsApp, email…), or downloads it on desktop.
+  protected async sharePdf(): Promise<void> {
+    const inv = this.invoice();
+    if (!inv || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      const result = await sharePdf(() => createInvoicePdf(inv), `Invoice-${inv.invoiceNumber}`, `Invoice ${inv.invoiceNumber}`);
+      if (result === 'downloaded') this.toast.success('PDF downloaded. Attach it to your email or chat to send it.');
+    } catch (err) {
+      console.error('Share PDF failed', err);
       this.toast.error('Could not make the PDF. Please try again.');
     } finally {
       this.pdfBusy.set(false);

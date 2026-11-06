@@ -5,7 +5,7 @@ import { ClientService } from '../../core/data/client.service';
 import { CompanyService } from '../../core/data/company.service';
 import { Company, Ledger } from '../../core/data/models';
 import { createLedgerPdf } from '../../core/ledger/ledger-pdf';
-import { openPdfInNewTab } from '../../core/pdf/open-pdf';
+import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy } from '../../core/ui/dates';
@@ -90,6 +90,22 @@ export class ClientLedger {
       await openPdfInNewTab(() => createLedgerPdf(ledger, this.company()), `Ledger-${ledger.client.name}`);
     } catch (err) {
       console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  // Sends the ledger as a PDF file via the phone's share sheet (WhatsApp, email…), or downloads it on desktop.
+  protected async sharePdf(): Promise<void> {
+    const ledger = this.ledger();
+    if (!ledger || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      const result = await sharePdf(() => createLedgerPdf(ledger, this.company()), `Ledger-${ledger.client.name}`, `Ledger – ${ledger.client.name}`);
+      if (result === 'downloaded') this.toast.success('PDF downloaded. Attach it to your email or chat to send it.');
+    } catch (err) {
+      console.error('Share PDF failed', err);
       this.toast.error('Could not make the PDF. Please try again.');
     } finally {
       this.pdfBusy.set(false);
