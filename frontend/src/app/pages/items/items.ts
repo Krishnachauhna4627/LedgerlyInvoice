@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toApiError } from '../../core/api/api-error';
 import { ItemService } from '../../core/data/item.service';
@@ -13,7 +14,7 @@ import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 @Component({
   selector: 'app-items-page',
-  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe, ShowMore],
+  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe, ShowMore, DecimalPipe],
   templateUrl: './items.html',
   styleUrl: './items.scss',
 })

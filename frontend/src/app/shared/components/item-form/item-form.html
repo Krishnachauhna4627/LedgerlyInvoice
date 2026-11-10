@@ -53,6 +53,17 @@
         <span id="item-gst-error" class="field__error">{{ message }}</span>
       }
     </div>
+
+    <div class="field">
+      <label class="field__label" for="item-stock">Opening stock</label>
+      <input id="item-stock" class="input" type="number" formControlName="openingStock" min="0" step="any" inputmode="decimal"
+        placeholder="0" [class.is-invalid]="errorFor('openingStock')" [attr.aria-invalid]="!!errorFor('openingStock')" aria-describedby="item-stock-error" />
+      @if (errorFor('openingStock'); as message) {
+        <span id="item-stock-error" class="field__error">{{ message }}</span>
+      } @else {
+        <span id="item-stock-error" class="hint">Quantity in hand{{ form.controls.unit.value ? ', in ' + form.controls.unit.value : '' }}. Leave empty for services.</span>
+      }
+    </div>
   </div>
 
   <div class="actions">

@@ -16,6 +16,7 @@ class Items extends BaseController
         'unit'      => ['empty_to_null'],
         'unitPrice' => ['number'],
         'gstRate'   => ['number'],
+        'openingStock' => ['number', 'default:0'],
     ];
 
     private ItemModel $items;

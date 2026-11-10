@@ -106,6 +106,8 @@ export interface Item {
   unit: string | null;
   unitPrice: number;
   gstRate: number;
+  // Quantity in hand when starting out, in the item's unit.
+  openingStock: number;
 }
 
 export type ItemInput = Omit<Item, 'id'>;

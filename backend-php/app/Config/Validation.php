@@ -308,6 +308,15 @@ class Validation extends BaseConfig
             'unit'      => self::UNIT,
             'unitPrice' => self::money('Rate'),
             'gstRate'   => self::GST_RATE,
+            // Quantity in hand when starting out, in the item's unit (empty = 0).
+            'openingStock' => [
+                'rules'  => ['js_number', 'greater_than_equal_to[0]', 'less_than_equal_to[1000000000]'],
+                'errors' => [
+                    'js_number'             => 'Opening stock must be a number.',
+                    'greater_than_equal_to' => "Opening stock can't be negative.",
+                    'less_than_equal_to'    => 'Opening stock is too large.',
+                ],
+            ],
         ];
 
         // Due date not before the invoice date: checked in the Invoices controller.

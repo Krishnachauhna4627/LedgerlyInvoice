@@ -7,13 +7,14 @@ import { UNITS } from '../../../core/data/units';
 import { GST_RATES } from '../../../core/gst/gst-states';
 import { ToastService } from '../../../core/ui/toast.service';
 
-type Field = 'name' | 'hsnSac' | 'unitPrice' | 'gstRate';
+type Field = 'name' | 'hsnSac' | 'unitPrice' | 'gstRate' | 'openingStock';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
   name: { required: 'Product/service name is required.', maxlength: 'Product/service name is too long.' },
   hsnSac: { maxlength: 'HSN/SAC is too long.' },
   unitPrice: { required: 'Rate is required.', min: "Rate can't be negative." },
   gstRate: { required: 'GST % is required.', min: "GST % can't be negative.", max: 'GST % must be 100 or less.' },
+  openingStock: { min: "Opening stock can't be negative.", max: 'Opening stock is too large.' },
 };
 
 // Add / edit a saved product or service. Emits the saved item; the parent closes its modal.
@@ -39,6 +40,8 @@ export class ItemForm implements OnInit {
     unit: [''],
     unitPrice: [0 as number | null, [Validators.required, Validators.min(0)]],
     gstRate: [18 as number | null, [Validators.required, Validators.min(0), Validators.max(100)]],
+    // Empty means 0.
+    openingStock: [null as number | null, [Validators.min(0), Validators.max(1_000_000_000)]],
   });
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
@@ -53,6 +56,7 @@ export class ItemForm implements OnInit {
         unit: i.unit ?? '',
         unitPrice: i.unitPrice,
         gstRate: i.gstRate,
+        openingStock: i.openingStock || null,
       });
       // Keep an older rate (e.g. 12 or 28) selectable so editing doesn't silently change it.
       if (!GST_RATES.includes(i.gstRate)) this.rates = [...GST_RATES, i.gstRate].sort((a, b) => a - b);
@@ -76,6 +80,7 @@ export class ItemForm implements OnInit {
       unit: v.unit || null,
       unitPrice: Number(v.unitPrice),
       gstRate: Number(v.gstRate),
+      openingStock: Number(v.openingStock ?? 0),
     };
     const existing = this.item();
     this.submitting.set(true);

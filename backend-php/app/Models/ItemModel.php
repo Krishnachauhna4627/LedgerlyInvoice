@@ -12,7 +12,7 @@ class ItemModel extends Model
 {
     protected $table         = 'items';
     protected $returnType    = 'array';
-    protected $allowedFields = ['company_id', 'name', 'hsn_sac', 'unit', 'unit_price', 'gst_rate'];
+    protected $allowedFields = ['company_id', 'name', 'hsn_sac', 'unit', 'unit_price', 'gst_rate', 'opening_stock'];
 
     /**
      * Only ever returns an item that belongs to the given company.
@@ -51,6 +51,7 @@ class ItemModel extends Model
             'unit'      => $row['unit'],
             'unitPrice' => (float) $row['unit_price'],
             'gstRate'   => (float) $row['gst_rate'],
+            'openingStock' => (float) $row['opening_stock'],
         ];
     }
 
@@ -69,6 +70,7 @@ class ItemModel extends Model
             'unit'       => $body['unit'],
             'unit_price' => $body['unitPrice'],
             'gst_rate'   => $body['gstRate'],
+            'opening_stock' => $body['openingStock'],
         ];
     }
 }
