@@ -42,6 +42,46 @@
   }
 }
 
+.bank-list {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.bank-account {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  &:first-of-type {
+    border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  }
+}
+
+.bank-account__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bank-account__title {
+  font-weight: 600;
+}
+
+.bank-account__actions,
+.bank-list__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.bank-account__actions {
+  margin-left: auto;
+}
+
 .signature {
   display: grid;
   gap: var(--space-4);

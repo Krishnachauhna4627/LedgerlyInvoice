@@ -8,15 +8,30 @@ export interface Company {
   gstin: string | null;
   phone: string | null;
   email: string | null;
+  // Primary bank account (the first of bankAccounts), printed on invoices.
   bankName: string | null;
   accountNo: string | null;
   ifsc: string | null;
   terms: string | null;
   // Data URL of the uploaded signature image; saved separately from the other details.
   signature: string | null;
+  // Every bank account of the business, primary first.
+  bankAccounts: BankAccount[];
 }
 
-export type CompanyInput = Omit<Company, 'id' | 'signature'>;
+export interface BankAccount {
+  id: number;
+  bankName: string | null;
+  accountNo: string | null;
+  ifsc: string | null;
+}
+
+export type BankAccountInput = Omit<BankAccount, 'id'>;
+
+// The primary bank details are taken from the first entry of bankAccounts.
+export type CompanyInput = Omit<Company, 'id' | 'signature' | 'bankName' | 'accountNo' | 'ifsc' | 'bankAccounts'> & {
+  bankAccounts: BankAccountInput[];
+};
 
 export interface Client {
   id: number;
@@ -142,7 +157,7 @@ export interface Invoice extends InvoiceListItem {
   reverseCharge: boolean;
   placeOfSupplyCode: string;
   isInterState: boolean;
-  seller: Omit<Company, 'id'>;
+  seller: Omit<Company, 'id' | 'bankAccounts'>;
   client: { name: string; address: string | null; stateCode: string; gstin: string | null };
   totals: {
     subTotal: number;

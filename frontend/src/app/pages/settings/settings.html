@@ -92,30 +92,68 @@
 
       <section>
         <h2 class="section-title">Bank Details</h2>
-        <div class="form-grid" style="--cols: 3">
-          <div class="field">
-            <label class="field__label" for="seller-bank">Bank name</label>
-            <input id="seller-bank" class="input" formControlName="bankName" autocomplete="off"
-              [class.is-invalid]="errorFor('bankName')" [attr.aria-invalid]="!!errorFor('bankName')" aria-describedby="seller-bank-error" />
-            @if (errorFor('bankName'); as message) {
-              <span id="seller-bank-error" class="field__error">{{ message }}</span>
-            }
-          </div>
-          <div class="field">
-            <label class="field__label" for="seller-account">Account number</label>
-            <input id="seller-account" class="input" formControlName="accountNo" autocomplete="off" inputmode="numeric"
-              [class.is-invalid]="errorFor('accountNo')" [attr.aria-invalid]="!!errorFor('accountNo')" aria-describedby="seller-account-error" />
-            @if (errorFor('accountNo'); as message) {
-              <span id="seller-account-error" class="field__error">{{ message }}</span>
-            }
-          </div>
-          <div class="field">
-            <label class="field__label" for="seller-ifsc">IFSC code</label>
-            <input id="seller-ifsc" class="input upper" formControlName="ifsc" maxlength="11" autocomplete="off" spellcheck="false"
-              [class.is-invalid]="errorFor('ifsc')" [attr.aria-invalid]="!!errorFor('ifsc')" aria-describedby="seller-ifsc-error" />
-            @if (errorFor('ifsc'); as message) {
-              <span id="seller-ifsc-error" class="field__error">{{ message }}</span>
-            }
+        <div class="bank-list" formArrayName="bankAccounts">
+          @for (account of bankAccounts.controls; track account; let i = $index) {
+            <div class="bank-account" role="group" [attr.aria-labelledby]="'bank-title-' + i" [formGroupName]="i">
+              <div class="bank-account__head">
+                <span class="bank-account__title" [id]="'bank-title-' + i">Account {{ i + 1 }}</span>
+                @if (i === 0) {
+                  <span class="badge badge--unpaid"><app-icon name="check" [size]="14" /> Primary · printed on invoices</span>
+                }
+                <span class="bank-account__actions">
+                  @if (i > 0) {
+                    <button type="button" class="btn btn--outline btn--sm" (click)="makePrimary(i)">Make primary</button>
+                  }
+                  <button type="button" class="btn btn--outline btn--sm btn--danger-text" (click)="removeBankAccount(i)"
+                    [attr.aria-label]="'Remove account ' + (i + 1)">
+                    <app-icon name="trash" [size]="16" /> Remove
+                  </button>
+                </span>
+              </div>
+              <div class="form-grid" style="--cols: 3">
+                <div class="field">
+                  <label class="field__label" [for]="'bank-name-' + i">Bank name</label>
+                  <input [id]="'bank-name-' + i" class="input" formControlName="bankName" autocomplete="off"
+                    [class.is-invalid]="bankErrorFor(i, 'bankName')" [attr.aria-invalid]="!!bankErrorFor(i, 'bankName')"
+                    [attr.aria-describedby]="'bank-name-error-' + i" />
+                  @if (bankErrorFor(i, 'bankName'); as message) {
+                    <span [id]="'bank-name-error-' + i" class="field__error">{{ message }}</span>
+                  }
+                </div>
+                <div class="field">
+                  <label class="field__label" [for]="'bank-account-' + i">Account number</label>
+                  <input [id]="'bank-account-' + i" class="input" formControlName="accountNo" autocomplete="off" inputmode="numeric"
+                    [class.is-invalid]="bankErrorFor(i, 'accountNo')" [attr.aria-invalid]="!!bankErrorFor(i, 'accountNo')"
+                    [attr.aria-describedby]="'bank-account-error-' + i" />
+                  @if (bankErrorFor(i, 'accountNo'); as message) {
+                    <span [id]="'bank-account-error-' + i" class="field__error">{{ message }}</span>
+                  }
+                </div>
+                <div class="field">
+                  <label class="field__label" [for]="'bank-ifsc-' + i">IFSC code</label>
+                  <input [id]="'bank-ifsc-' + i" class="input upper" formControlName="ifsc" maxlength="11" autocomplete="off" spellcheck="false"
+                    [class.is-invalid]="bankErrorFor(i, 'ifsc')" [attr.aria-invalid]="!!bankErrorFor(i, 'ifsc')"
+                    [attr.aria-describedby]="'bank-ifsc-error-' + i" />
+                  @if (bankErrorFor(i, 'ifsc'); as message) {
+                    <span [id]="'bank-ifsc-error-' + i" class="field__error">{{ message }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <p class="hint">No bank accounts added.</p>
+          }
+          <div class="bank-list__footer">
+            <button type="button" class="btn btn--outline btn--sm" [disabled]="bankAccounts.length >= maxBankAccounts" (click)="addBankAccount()">
+              <app-icon name="plus" [size]="16" /> Add bank account
+            </button>
+            <span class="hint">
+              @if (bankAccounts.length >= maxBankAccounts) {
+                You can add up to {{ maxBankAccounts }} accounts.
+              } @else {
+                The primary account is printed on invoices.
+              }
+            </span>
           </div>
         </div>
       </section>

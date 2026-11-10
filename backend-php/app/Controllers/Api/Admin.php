@@ -46,7 +46,7 @@ class Admin extends BaseController
 
         return $this->json([
             'user'     => self::toUserDto($row),
-            'company'  => CompanyModel::toDto(model(CompanyModel::class)->getRow($companyId)),
+            'company'  => model(CompanyModel::class)->getDto($companyId),
             'clients'  => model(ClientModel::class)->listFor($companyId),
             'items'    => model(ItemModel::class)->listFor($companyId),
             'invoices' => array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($invoices)),

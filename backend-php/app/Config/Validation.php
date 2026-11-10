@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Models\BankAccountModel;
 use App\Validation\LedgerlyRules;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Validation\StrictRules\CreditCardRules;
@@ -225,10 +226,15 @@ class Validation extends BaseConfig
             'gstin'     => self::GSTIN,
             'phone'     => self::OPTIONAL_PHONE,
             'email'     => self::OPTIONAL_EMAIL,
-            'bankName'  => self::optionalText('Bank name', 100),
-            'accountNo' => self::optionalText('Account number', 34),
-            'ifsc'      => self::optionalText('IFSC code', 11),
             'terms'     => self::optionalText('Terms', 4000),
+            // The first account is the primary one, printed on invoices.
+            'bankAccounts' => [
+                'rules'  => ['list_size[0,' . BankAccountModel::MAX_ACCOUNTS . ']'],
+                'errors' => ['list_size' => 'Add up to ' . BankAccountModel::MAX_ACCOUNTS . ' bank accounts.'],
+            ],
+            'bankAccounts.*.bankName'  => self::optionalText('Bank name', 100),
+            'bankAccounts.*.accountNo' => self::optionalText('Account number', 34),
+            'bankAccounts.*.ifsc'      => self::optionalText('IFSC code', 11),
         ];
 
         $this->signature = [

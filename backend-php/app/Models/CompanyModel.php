@@ -26,6 +26,18 @@ class CompanyModel extends Model
     }
 
     /**
+     * The company as the API returns it, with its bank accounts (primary first).
+     *
+     * @return array<string, mixed>
+     */
+    public function getDto(int $companyId): array
+    {
+        return self::toDto($this->getRow($companyId)) + [
+            'bankAccounts' => model(BankAccountModel::class)->listForCompany($companyId),
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $row
      *
      * @return array<string, mixed>
