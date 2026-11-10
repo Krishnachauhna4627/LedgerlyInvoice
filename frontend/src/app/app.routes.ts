@@ -48,10 +48,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/invoice-view/invoice-view').then((m) => m.InvoiceView),
       },
       {
-        path: 'payments',
+        path: 'receipts',
         title: page('Receipts'),
         loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
       },
+      // Old address of the Receipts page, kept so bookmarks still work.
+      { path: 'payments', redirectTo: 'receipts' },
       {
         path: 'clients',
         title: page('Customers'),

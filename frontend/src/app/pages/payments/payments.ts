@@ -6,6 +6,7 @@ import { CompanyService } from '../../core/data/company.service';
 import { Client, Company, Receipt, ReceiptMode } from '../../core/data/models';
 import { openPdfInNewTab } from '../../core/pdf/open-pdf';
 import { createReceiptPdf } from '../../core/receipts/receipt-pdf';
+import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { ReceiptService } from '../../core/data/receipt.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy } from '../../core/ui/dates';
@@ -21,7 +22,7 @@ import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 
-// /payments — every receipt from customers, with filters and cash / bank totals.
+// /receipts — every receipt from customers, with filters and cash / bank totals.
 @Component({
   selector: 'app-payments-page',
   imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, RouterLink, ShowMore],
@@ -55,6 +56,12 @@ export class Payments {
   private readonly company = signal<Company | null>(null);
 
   protected readonly modeLabel = MODE_LABEL;
+
+  // "Cash", "Bank" or "Bank · SBI 1234567890".
+  protected modeText(r: Receipt): string {
+    const account = r.mode === 'bank' ? bankAccountLabel(r.bankAccount) : null;
+    return account ? `${MODE_LABEL[r.mode]} · ${account}` : MODE_LABEL[r.mode];
+  }
   protected readonly formatDmy = formatDmy;
   protected readonly totals = computed(() => {
     const sum = (list: Receipt[]) => round2(list.reduce((total, r) => total + r.amount, 0));
@@ -152,7 +159,7 @@ export class Payments {
     downloadCsv(
       `receipts${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
       ['Receipt No.', 'Date', 'Customer', 'Mode', 'Narration', 'Amount'],
-      this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), r.clientName, MODE_LABEL[r.mode], r.reference, r.amount]),
+      this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), r.clientName, this.modeText(r), r.reference, r.amount]),
     );
   }
 }

@@ -4,6 +4,7 @@ import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { CompanyService } from '../../core/data/company.service';
 import { Company, Ledger } from '../../core/data/models';
+import { ledgerAccount } from '../../core/ledger/ledger-labels';
 import { createLedgerPdf } from '../../core/ledger/ledger-pdf';
 import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
@@ -115,8 +116,6 @@ export class ClientLedger {
   protected exportCsv(): void {
     const l = this.ledger();
     if (!l) return;
-    const company = this.company();
-    const bank = [company?.bankName, company?.accountNo].filter(Boolean).join(' ') || 'Bank';
     const drCr = (n: number) => (n > 0 ? 'Dr' : n < 0 ? 'Cr' : '');
     downloadCsv(
       `ledger-${l.client.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
@@ -127,7 +126,7 @@ export class ClientLedger {
           formatDmy(e.date),
           e.type === 'sale' ? 'Sale' : 'Rcpt',
           e.invoiceNumber,
-          e.type === 'sale' ? 'Sales' : e.mode === 'cash' ? 'Cash' : bank,
+          ledgerAccount(e, this.company()),
           e.debit || '',
           e.credit || '',
           Math.abs(e.balance),

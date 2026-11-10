@@ -94,7 +94,7 @@
                 <td class="strong">{{ r.receiptNumber || '—' }}</td>
                 <td>{{ formatDmy(r.receiptDate) }}</td>
                 <td class="strong"><a [routerLink]="['/clients', r.clientId]" title="Open ledger">{{ r.clientName }}</a></td>
-                <td>{{ modeLabel[r.mode] }}</td>
+                <td>{{ modeText(r) }}</td>
                 <td [class.muted]="!r.reference">{{ r.reference || '—' }}</td>
                 <td class="num strong">{{ r.amount | inr }}</td>
                 <td class="row-actions">
@@ -120,7 +120,7 @@
           <li class="card">
             <div class="card__main">
               <a class="card__title" [routerLink]="['/clients', r.clientId]">{{ r.clientName }}</a>
-              <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }} · {{ modeLabel[r.mode] }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
+              <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }} · {{ modeText(r) }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
               <span class="card__amount">{{ r.amount | inr }}</span>
             </div>
             <div class="card__actions">

@@ -13,7 +13,7 @@ class ReceiptModel extends Model
 {
     protected $table         = 'receipts';
     protected $returnType    = 'array';
-    protected $allowedFields = ['company_id', 'client_id', 'receipt_number', 'receipt_date', 'mode', 'amount', 'reference'];
+    protected $allowedFields = ['company_id', 'client_id', 'receipt_number', 'receipt_date', 'mode', 'bank_account_id', 'amount', 'reference'];
 
     public const MODES = ['cash', 'bank'];
 
@@ -23,8 +23,9 @@ class ReceiptModel extends Model
     public function withClient(int $companyId): BaseBuilder
     {
         return $this->db->table('receipts')
-            ->select('receipts.*, clients.name AS client_name')
+            ->select('receipts.*, clients.name AS client_name, bank.bank_name, bank.account_no')
             ->join('clients', 'clients.id = receipts.client_id')
+            ->join('company_bank_accounts bank', 'bank.id = receipts.bank_account_id', 'left')
             ->where('receipts.company_id', $companyId);
     }
 
@@ -93,9 +94,23 @@ class ReceiptModel extends Model
             'receiptNumber' => $row['receipt_number'],
             'receiptDate'   => $row['receipt_date'],
             'mode'          => $row['mode'],
+            'bankAccountId' => $row['bank_account_id'] === null ? null : (int) $row['bank_account_id'],
+            'bankAccount'   => self::bankAccountDto($row),
             'amount'        => (float) $row['amount'],
             'reference'     => $row['reference'],
         ];
+    }
+
+    /**
+     * The bank account a receipt went into, from the joined bank_name / account_no columns.
+     *
+     * @param array<string, mixed> $row
+     *
+     * @return array{bankName: ?string, accountNo: ?string}|null
+     */
+    public static function bankAccountDto(array $row): ?array
+    {
+        return $row['bank_account_id'] === null ? null : ['bankName' => $row['bank_name'], 'accountNo' => $row['account_no']];
     }
 
     /**
@@ -112,6 +127,7 @@ class ReceiptModel extends Model
             'receipt_number' => $body['receiptNumber'],
             'receipt_date'   => $body['receiptDate'],
             'mode'           => $body['mode'],
+            'bank_account_id' => $body['bankAccountId'],
             'amount'         => $body['amount'],
             'reference'      => $body['reference'],
         ];

@@ -14,7 +14,7 @@ import { SIGNATURE_TYPES, signatureDataUrl } from './signature-image';
 
 type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email' | 'terms';
 type BankField = 'bankName' | 'accountNo' | 'ifsc';
-type BankAccountGroup = FormGroup<Record<BankField, FormControl<string>>>;
+type BankAccountGroup = FormGroup<Record<BankField, FormControl<string>> & { id: FormControl<number | null> }>;
 
 // Same limit as the backend.
 const MAX_BANK_ACCOUNTS = 10;
@@ -214,7 +214,7 @@ export class Settings {
       email: blank(v.email)?.toLowerCase() ?? null,
       terms: blank(v.terms),
       bankAccounts: v.bankAccounts
-        .map((a) => ({ bankName: blank(a.bankName), accountNo: blank(a.accountNo), ifsc: blank(a.ifsc)?.toUpperCase() ?? null }))
+        .map((a) => ({ id: a.id, bankName: blank(a.bankName), accountNo: blank(a.accountNo), ifsc: blank(a.ifsc)?.toUpperCase() ?? null }))
         .filter((a) => a.bankName || a.accountNo || a.ifsc),
     };
     this.saving.set(true);
@@ -264,6 +264,7 @@ export class Settings {
 
   private bankAccountGroup(account: BankAccount | null = null): BankAccountGroup {
     return this.fb.group({
+      id: this.fb.control<number | null>(account?.id ?? null),
       bankName: [account?.bankName ?? '', Validators.maxLength(100)],
       accountNo: [account?.accountNo ?? '', Validators.maxLength(34)],
       ifsc: [account?.ifsc ?? '', ifscValidator],

@@ -3,6 +3,7 @@ import { amountInWords } from '../gst/amount-in-words';
 import { CONTENT_WIDTH, FONT, MARGIN, PAGE, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
 import { formatDmy } from '../ui/dates';
 import { oneLineAddress } from '../ledger/ledger-labels';
+import { receiptAccountLabel } from './receipt-labels';
 
 // One payment receipt as an A4 PDF, laid out on the top half of the page (so two fit a sheet
 // if cut): business header, "RECEIPT" bar, receipt no. / date, who paid how much and how,
@@ -35,7 +36,8 @@ export async function createReceiptPdf(receipt: Receipt, company: Company | null
   }
   y += 3;
 
-  const mode = receipt.mode === 'cash' ? 'Cash' : ['Bank', company?.bankName && `(${[company.bankName, company.accountNo].filter(Boolean).join(' ')})`].filter(Boolean).join(' ');
+  const account = receiptAccountLabel(receipt, company);
+  const mode = receipt.mode === 'cash' || account === 'Bank' ? account : `Bank (${account})`;
   const label = { fontStyle: 'bold' as const, cellWidth: 45 };
   autoTable(doc, {
     startY: y,

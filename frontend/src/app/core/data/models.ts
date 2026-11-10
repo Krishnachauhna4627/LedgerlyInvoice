@@ -26,7 +26,11 @@ export interface BankAccount {
   ifsc: string | null;
 }
 
-export type BankAccountInput = Omit<BankAccount, 'id'>;
+// id of an existing account (so receipts stay linked to it), null for a new one.
+export type BankAccountInput = Omit<BankAccount, 'id'> & { id: number | null };
+
+// The bank account shown on a receipt / ledger entry.
+export type BankAccountRef = Pick<BankAccount, 'bankName' | 'accountNo'>;
 
 // The primary bank details are taken from the first entry of bankAccounts.
 export type CompanyInput = Omit<Company, 'id' | 'signature' | 'bankName' | 'accountNo' | 'ifsc' | 'bankAccounts'> & {
@@ -59,12 +63,15 @@ export interface Receipt {
   receiptNumber: string;
   receiptDate: string;
   mode: ReceiptMode;
+  // The business bank account the money went into (bank receipts only; null if not chosen or since removed).
+  bankAccountId: number | null;
+  bankAccount: BankAccountRef | null;
   amount: number;
   // Short narration: cheque no., UPI ref, "part payment"…
   reference: string | null;
 }
 
-export type ReceiptInput = Omit<Receipt, 'id' | 'clientName'>;
+export type ReceiptInput = Omit<Receipt, 'id' | 'clientName' | 'bankAccount'>;
 
 export interface LedgerEntry {
   type: 'sale' | 'receipt';
@@ -74,6 +81,7 @@ export interface LedgerEntry {
   invoiceNumber: string | null;
   receiptNumber: string | null;
   mode: ReceiptMode | null;
+  bankAccount: BankAccountRef | null;
   reference: string | null;
   debit: number;
   credit: number;

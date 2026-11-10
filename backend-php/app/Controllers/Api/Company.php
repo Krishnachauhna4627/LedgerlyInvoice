@@ -23,6 +23,7 @@ class Company extends BaseController
         'terms'     => self::OPTIONAL_TEXT,
         'bankAccounts'   => ['default:[]'],
         'bankAccounts.*' => [
+            'id'        => ['nullable_number'],
             'bankName'  => self::OPTIONAL_TEXT,
             'accountNo' => self::OPTIONAL_TEXT,
             'ifsc'      => ['trim', 'upper', 'empty_to_null'],
@@ -48,13 +49,14 @@ class Company extends BaseController
         // Entries left completely empty are dropped; the first remaining one is the primary account.
         $accounts = array_values(array_filter(
             array_map(static fn (array $a): array => [
+                'id'         => $a['id'] === null ? null : (int) $a['id'],
                 'bank_name'  => $a['bankName'],
                 'account_no' => $a['accountNo'],
                 'ifsc'       => $a['ifsc'],
             ], $b['bankAccounts']),
             static fn (array $a): bool => $a['bank_name'] !== null || $a['account_no'] !== null || $a['ifsc'] !== null,
         ));
-        $primary = $accounts[0] ?? ['bank_name' => null, 'account_no' => null, 'ifsc' => null];
+        $primary = ['bank_name' => $accounts[0]['bank_name'] ?? null, 'account_no' => $accounts[0]['account_no'] ?? null, 'ifsc' => $accounts[0]['ifsc'] ?? null];
 
         $db = db_connect();
         $db->transException(true)->transStart();
@@ -67,7 +69,7 @@ class Company extends BaseController
             'email'      => $b['email'],
             'terms'      => $b['terms'],
         ] + $primary);
-        model(BankAccountModel::class)->replaceForCompany($this->companyId(), $accounts);
+        model(BankAccountModel::class)->syncForCompany($this->companyId(), $accounts);
         $db->transComplete();
 
         return $this->json($this->current());

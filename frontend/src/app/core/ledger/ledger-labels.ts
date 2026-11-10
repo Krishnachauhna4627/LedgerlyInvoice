@@ -1,4 +1,5 @@
 import { Company, Ledger, LedgerEntry } from '../data/models';
+import { receiptAccountLabel } from '../receipts/receipt-labels';
 import { formatDmy } from '../ui/dates';
 
 // Labels shared by the on-screen customer ledger and its PDF.
@@ -10,11 +11,9 @@ export function ledgerPeriod({ from, to }: Pick<Ledger, 'from' | 'to'>): string 
   return to ? `Up to ${formatDmy(to)}` : 'All entries';
 }
 
-// "Account" column: Sales for invoices, Cash, or the business's bank account for bank receipts.
+// "Account" column: Sales for invoices, Cash, or the bank account for bank receipts.
 export function ledgerAccount(entry: LedgerEntry, company: Company | null): string {
-  if (entry.type === 'sale') return 'Sales';
-  if (entry.mode === 'cash') return 'Cash';
-  return [company?.bankName, company?.accountNo].filter(Boolean).join(' ') || 'Bank';
+  return entry.type === 'sale' ? 'Sales' : receiptAccountLabel(entry, company);
 }
 
 // Business address on one line.

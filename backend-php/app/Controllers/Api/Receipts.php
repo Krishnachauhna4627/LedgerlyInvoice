@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
 use App\Libraries\LedgerService;
+use App\Models\BankAccountModel;
 use App\Models\ClientModel;
 use App\Models\ReceiptModel;
 use CodeIgniter\Database\Exceptions\DatabaseException;
@@ -19,6 +20,7 @@ class Receipts extends BaseController
         'receiptNumber' => ['trim'],
         'receiptDate' => [],
         'mode'        => [],
+        'bankAccountId' => ['nullable_number'],
         'amount'      => ['number'],
         'reference'   => ['trim', 'empty_to_null'],
     ];
@@ -44,7 +46,7 @@ class Receipts extends BaseController
 
     public function create()
     {
-        $body     = $this->validated('receipt', self::CLEANERS);
+        $body     = $this->withBankAccount($this->validated('receipt', self::CLEANERS));
         $clientId = $this->ownedClientId((int) $body['clientId']);
         try {
             $id = $this->receipts->insert([...ReceiptModel::toRow($body, $clientId), 'company_id' => $this->companyId()]);
@@ -59,7 +61,7 @@ class Receipts extends BaseController
     public function update(string $id)
     {
         $existing = $this->receipts->findOwned($this->companyId(), $this->id($id));
-        $body     = $this->validated('receipt', self::CLEANERS);
+        $body     = $this->withBankAccount($this->validated('receipt', self::CLEANERS));
         $clientId = $this->ownedClientId((int) $body['clientId']);
         try {
             $this->receipts->update($existing['id'], ReceiptModel::toRow($body, $clientId));
@@ -92,6 +94,26 @@ class Receipts extends BaseController
         }
 
         return $e;
+    }
+
+    /**
+     * Cash receipts have no bank account; a bank receipt's account must be one of this company's.
+     *
+     * @param array<string, mixed> $body
+     *
+     * @return array<string, mixed>
+     */
+    private function withBankAccount(array $body): array
+    {
+        if ($body['mode'] !== 'bank' || $body['bankAccountId'] === null) {
+            return ['bankAccountId' => null] + $body;
+        }
+        $id = (int) $body['bankAccountId'];
+        if (! model(BankAccountModel::class)->isOwned($this->companyId(), $id)) {
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['bankAccountId' => 'Choose one of your bank accounts.']);
+        }
+
+        return ['bankAccountId' => $id] + $body;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use App\Models\ReceiptModel;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\RawSql;
 
@@ -124,7 +125,8 @@ class LedgerService
             ->where('status !=', 'draft')
             ->get()->getResultArray();
         $receipts = $this->db->table('receipts')
-            ->select('id, receipt_number, receipt_date, mode, amount, reference')
+            ->select('receipts.id, receipt_number, receipt_date, mode, bank_account_id, amount, reference, bank.bank_name, bank.account_no')
+            ->join('company_bank_accounts bank', 'bank.id = receipts.bank_account_id', 'left')
             ->where('client_id', $client['id'])
             ->get()->getResultArray();
 
@@ -136,6 +138,7 @@ class LedgerService
                 'invoiceNumber' => $i['invoice_number'],
                 'receiptNumber' => null,
                 'mode'          => null,
+                'bankAccount'   => null,
                 'reference'     => null,
                 'debit'         => (float) $i['grand_total'],
                 'credit'        => 0,
@@ -147,6 +150,7 @@ class LedgerService
                 'invoiceNumber' => null,
                 'receiptNumber' => $r['receipt_number'],
                 'mode'          => $r['mode'],
+                'bankAccount'   => ReceiptModel::bankAccountDto($r),
                 'reference'     => $r['reference'],
                 'debit'         => 0,
                 'credit'        => (float) $r['amount'],

@@ -232,6 +232,11 @@ class Validation extends BaseConfig
                 'rules'  => ['list_size[0,' . BankAccountModel::MAX_ACCOUNTS . ']'],
                 'errors' => ['list_size' => 'Add up to ' . BankAccountModel::MAX_ACCOUNTS . ' bank accounts.'],
             ],
+            // Id of an existing account (kept so receipts stay linked); empty for a new one.
+            'bankAccounts.*.id' => [
+                'rules'  => ['permit_empty', 'js_number', 'js_integer', 'greater_than[0]'],
+                'errors' => ['js_number' => 'Invalid bank account.', 'js_integer' => 'Invalid bank account.', 'greater_than' => 'Invalid bank account.'],
+            ],
             'bankAccounts.*.bankName'  => self::optionalText('Bank name', 100),
             'bankAccounts.*.accountNo' => self::optionalText('Account number', 34),
             'bankAccounts.*.ifsc'      => self::optionalText('IFSC code', 11),
@@ -279,6 +284,11 @@ class Validation extends BaseConfig
             'mode' => [
                 'rules'  => ['in_list[cash,bank]'],
                 'errors' => ['in_list' => 'Choose cash or bank.'],
+            ],
+            // Which of the business's bank accounts a bank receipt went into (checked in the controller).
+            'bankAccountId' => [
+                'rules'  => ['permit_empty', 'js_number', 'js_integer', 'greater_than[0]'],
+                'errors' => ['js_number' => 'Choose one of your bank accounts.', 'js_integer' => 'Choose one of your bank accounts.', 'greater_than' => 'Choose one of your bank accounts.'],
             ],
             'amount' => [
                 'rules'  => ['js_number', 'greater_than[0]', 'less_than_equal_to[9999999999]'],
