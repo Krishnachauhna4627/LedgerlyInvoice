@@ -147,6 +147,31 @@ export interface Item {
 
 export type ItemInput = Omit<Item, 'id'>;
 
+// Stock ledger of one product: purchases add stock, sales on issued invoices take it away.
+export interface StockLedgerEntry {
+  type: 'purchase' | 'sale';
+  // Purchase payment id for a purchase, invoice id for a sale.
+  id: number;
+  date: string;
+  // Payment No. or invoice number.
+  number: string;
+  // Vendor or customer.
+  party: string;
+  unit: string | null;
+  rate: number;
+  quantityIn: number;
+  quantityOut: number;
+  // Stock after this entry.
+  balance: number;
+}
+
+export interface StockLedger {
+  item: Item;
+  openingStock: number;
+  entries: StockLedgerEntry[];
+  totals: { purchased: number; sold: number; closingStock: number };
+}
+
 export type InvoiceStatus = 'draft' | 'unpaid' | 'paid';
 // What the UI shows: "overdue" = unpaid and past its due date (computed by the server).
 export type DisplayStatus = InvoiceStatus | 'overdue';

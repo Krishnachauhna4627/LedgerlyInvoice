@@ -83,6 +83,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/items/items').then((m) => m.Items),
       },
       {
+        path: 'items/:id',
+        title: page('Stock ledger'),
+        loadComponent: () => import('./pages/item-ledger/item-ledger').then((m) => m.ItemLedger),
+      },
+      {
         path: 'reports',
         title: page('Reports'),
         loadComponent: () => import('./pages/reports/reports').then((m) => m.Reports),

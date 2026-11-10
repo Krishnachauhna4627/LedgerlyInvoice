@@ -1,0 +1,119 @@
+<app-page-header [title]="ledger()?.item?.name ?? 'Stock ledger'" subtitle="Stock ledger: opening stock, purchases and sales.">
+  <a class="btn btn--outline btn--sm" routerLink="/items"><app-icon name="arrow-left" [size]="16" /> Products/Services</a>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="exportCsv()">
+    <app-icon name="download" [size]="16" /> Export (CSV)
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel empty-state"><p>Loading stock ledger…</p></div>
+  } @else if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load the stock ledger</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else if (ledger(); as l) {
+    <ul class="summary-tiles">
+      <li class="summary-tile summary-tile--main" [class.is-negative]="l.totals.closingStock < 0">
+        <span class="summary-tile__label">In stock</span>
+        <span class="summary-tile__value">{{ l.totals.closingStock | number: '1.0-3' }} {{ unit() }}</span>
+      </li>
+      <li class="summary-tile">
+        <span class="summary-tile__label">Opening stock</span>
+        <span class="summary-tile__value">{{ l.openingStock | number: '1.0-3' }} {{ unit() }}</span>
+      </li>
+      <li class="summary-tile">
+        <span class="summary-tile__label">Purchased</span>
+        <span class="summary-tile__value">+{{ l.totals.purchased | number: '1.0-3' }} {{ unit() }}</span>
+      </li>
+      <li class="summary-tile">
+        <span class="summary-tile__label">Sold</span>
+        <span class="summary-tile__value">−{{ l.totals.sold | number: '1.0-3' }} {{ unit() }}</span>
+      </li>
+    </ul>
+
+    @if (l.totals.closingStock < 0) {
+      <p class="warning" role="note">
+        <app-icon name="alert-circle" [size]="18" />
+        More has been sold than you have recorded. Check the opening stock or add the missing purchases.
+      </p>
+    }
+
+    <div class="panel">
+      <div class="table-scroll desktop">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Type</th>
+              <th scope="col">Vch/Bill No</th>
+              <th scope="col">Vendor/Customer</th>
+              <th scope="col" class="num">Rate</th>
+              <th scope="col" class="num">In</th>
+              <th scope="col" class="num">Out</th>
+              <th scope="col" class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="opening">
+              <td>—</td>
+              <td colspan="4">Opening stock</td>
+              <td class="num">{{ l.openingStock ? (l.openingStock | number: '1.0-3') : '' }}</td>
+              <td class="num"></td>
+              <td class="num strong">{{ l.openingStock | number: '1.0-3' }}</td>
+            </tr>
+            @for (e of l.entries; track $index) {
+              <tr>
+                <td>{{ formatDmy(e.date) }}</td>
+                <td><span class="tag" [class.tag--in]="e.type === 'purchase'">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }}</span></td>
+                <td><a [routerLink]="link(e)">{{ e.number }}</a></td>
+                <td>{{ e.party }}</td>
+                <td class="num">{{ e.rate | inr: false }}</td>
+                <td class="num in">{{ e.quantityIn ? (e.quantityIn | number: '1.0-3') : '' }}</td>
+                <td class="num out">{{ e.quantityOut ? (e.quantityOut | number: '1.0-3') : '' }}</td>
+                <td class="num strong">{{ e.balance | number: '1.0-3' }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row" colspan="5">Total / in stock</th>
+              <td class="num in">{{ l.totals.purchased | number: '1.0-3' }}</td>
+              <td class="num out">{{ l.totals.sold | number: '1.0-3' }}</td>
+              <td class="num strong">{{ l.totals.closingStock | number: '1.0-3' }} {{ unit() }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <ul class="cards">
+        <li class="card">
+          <span class="card__title">Opening stock</span>
+          <span class="card__qty">{{ l.openingStock | number: '1.0-3' }}</span>
+        </li>
+        @for (e of l.entries; track $index) {
+          <li class="card">
+            <div class="card__main">
+              <a class="card__title" [routerLink]="link(e)">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }} {{ e.number }}</a>
+              <span class="card__meta">{{ formatDmy(e.date) }} · {{ e.party }} · {{ e.rate | inr }}</span>
+            </div>
+            <div class="card__side">
+              <span class="card__qty" [class.in]="e.type === 'purchase'" [class.out]="e.type === 'sale'">
+                {{ e.type === 'purchase' ? '+' : '−' }}{{ (e.quantityIn || e.quantityOut) | number: '1.0-3' }}
+              </span>
+              <span class="card__meta">Bal. {{ e.balance | number: '1.0-3' }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (l.entries.length === 0) {
+        <div class="empty-state">
+          <p>No purchases or sales of this product yet. Purchases come from <a routerLink="/payments">Payments</a>, sales from issued invoices.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

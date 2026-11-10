@@ -38,6 +38,68 @@ class ItemModel extends Model
     }
 
     /**
+     * @param array<string, mixed> $item an items row
+     *
+     * @return array<string, mixed>
+     */
+    public function stockLedger(array $item): array
+    {
+        $companyId = (int) $item['company_id'];
+        $purchases = $this->db->table('purchase_payment_items l')
+            ->select('p.id, p.payment_number AS number, p.purchase_date AS date, p.vendor_name AS party, l.id AS line_id, l.quantity, l.unit, l.unit_price')
+            ->join('purchase_payments p', 'p.id = l.purchase_payment_id')
+            ->where('l.item_id', $item['id'])
+            ->where('p.company_id', $companyId)
+            ->get()->getResultArray();
+        $sales = $this->db->table('invoice_items l')
+            ->select('i.id, i.invoice_number AS number, i.invoice_date AS date, i.client_name AS party, l.id AS line_id, l.quantity, l.unit, l.unit_price')
+            ->join('invoices i', 'i.id = l.invoice_id')
+            ->where('l.item_id', $item['id'])
+            ->where('i.company_id', $companyId)
+            ->where('i.status !=', 'draft')
+            ->get()->getResultArray();
+
+        $entry = static fn (string $type): \Closure => static fn (array $r): array => [
+            'type'      => $type,
+            'id'        => (int) $r['id'],
+            'lineId'    => (int) $r['line_id'],
+            'date'      => $r['date'],
+            'number'    => $r['number'],
+            'party'     => $r['party'],
+            'unit'      => $r['unit'],
+            'rate'      => (float) $r['unit_price'],
+            'quantityIn'  => $type === 'purchase' ? (float) $r['quantity'] : 0.0,
+            'quantityOut' => $type === 'sale' ? (float) $r['quantity'] : 0.0,
+        ];
+        $entries = [...array_map($entry('purchase'), $purchases), ...array_map($entry('sale'), $sales)];
+        // By date; on the same day purchases come before sales, then in the order they were entered.
+        usort($entries, static fn (array $a, array $b): int => strcmp($a['date'], $b['date'])
+            ?: (($a['type'] === 'purchase' ? 0 : 1) - ($b['type'] === 'purchase' ? 0 : 1))
+            ?: $a['lineId'] - $b['lineId']);
+
+        $round   = static fn (float $n): float => round($n, 3);
+        $opening = (float) $item['opening_stock'];
+        $balance = $opening;
+        foreach ($entries as &$e) {
+            $balance      = $round($balance + $e['quantityIn'] - $e['quantityOut']);
+            $e['balance'] = $balance;
+            unset($e['lineId']);
+        }
+        unset($e);
+
+        return [
+            'item'         => self::toDto($item),
+            'openingStock' => $opening,
+            'entries'      => $entries,
+            'totals'       => [
+                'purchased'    => $round(array_sum(array_column($entries, 'quantityIn'))),
+                'sold'         => $round(array_sum(array_column($entries, 'quantityOut'))),
+                'closingStock' => $balance,
+            ],
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $row
      *
      * @return array<string, mixed>

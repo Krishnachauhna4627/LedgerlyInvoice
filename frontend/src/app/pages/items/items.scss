@@ -67,6 +67,18 @@
   font-weight: 600;
 }
 
+// Product names open the stock ledger.
+.data-table a,
+a.card__title {
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+}
+
 .card__meta {
   overflow-wrap: anywhere;
   font-size: var(--text-sm);

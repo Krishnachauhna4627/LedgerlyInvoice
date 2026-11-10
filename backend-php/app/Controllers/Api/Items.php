@@ -31,6 +31,17 @@ class Items extends BaseController
         return $this->json($this->items->listFor($this->companyId()));
     }
 
+    /**
+     * Stock ledger: opening stock, then purchases (in) and sales on issued invoices (out), by date,
+     * with a running balance. Drafts are left out, like the customer ledger.
+     */
+    public function ledger(string $id)
+    {
+        $item = $this->items->findOwned($this->companyId(), $this->id($id));
+
+        return $this->json($this->items->stockLedger($item));
+    }
+
     public function create()
     {
         $id = $this->items->insert([...ItemModel::toRow($this->validated('item', self::CLEANERS)), 'company_id' => $this->companyId()]);

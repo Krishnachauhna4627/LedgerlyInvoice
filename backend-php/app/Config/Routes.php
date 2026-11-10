@@ -40,6 +40,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
 
     $routes->group('items', ['filter' => 'auth'], static function (RouteCollection $routes) {
         $routes->get('/', 'Items::index');
+        $routes->get('(:segment)/ledger', 'Items::ledger/$1');
         $routes->post('/', 'Items::create');
         $routes->put('(:segment)', 'Items::update/$1');
         $routes->delete('(:segment)', 'Items::delete/$1');

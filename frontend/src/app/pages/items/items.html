@@ -52,7 +52,7 @@
             <tbody>
               @for (item of page.rows(); track item.id) {
                 <tr>
-                  <td class="strong">{{ item.name }}</td>
+                  <td class="strong"><a [routerLink]="['/items', item.id]" title="Open stock ledger">{{ item.name }}</a></td>
                   <td [class.muted]="!item.hsnSac">{{ item.hsnSac || '—' }}</td>
                   <td [class.muted]="!item.unit">{{ item.unit || '—' }}</td>
                   <td class="num">{{ item.unitPrice | inr: false }}</td>
@@ -76,7 +76,7 @@
           @for (item of page.rows(); track item.id) {
             <li class="card">
               <div class="card__main">
-                <span class="card__title">{{ item.name }}</span>
+                <a class="card__title" [routerLink]="['/items', item.id]">{{ item.name }}</a>
                 <span class="card__meta">HSN/SAC: {{ item.hsnSac || '—' }} · {{ item.unitPrice | inr }}{{ item.unit ? ' / ' + item.unit : '' }} · GST {{ item.gstRate }}%{{ item.openingStock ? ' · Opening stock ' + (item.openingStock | number: '1.0-3') + (item.unit ? ' ' + item.unit : '') : '' }}</span>
               </div>
               <div class="card__actions">

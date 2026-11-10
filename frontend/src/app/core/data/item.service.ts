@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Item, ItemInput } from './models';
+import { Item, ItemInput, StockLedger } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ItemService {
@@ -9,6 +9,11 @@ export class ItemService {
 
   list(): Observable<Item[]> {
     return this.http.get<Item[]>('/api/items');
+  }
+
+  // Opening stock, purchases and sales of one product, with the stock in hand.
+  ledger(id: number): Observable<StockLedger> {
+    return this.http.get<StockLedger>(`/api/items/${id}/ledger`);
   }
 
   create(input: ItemInput): Observable<Item> {

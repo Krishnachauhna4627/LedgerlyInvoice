@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ItemService } from '../../core/data/item.service';
 import { Item } from '../../core/data/models';
@@ -14,7 +15,7 @@ import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 @Component({
   selector: 'app-items-page',
-  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe, ShowMore, DecimalPipe],
+  imports: [PageHeader, Icon, Modal, ItemForm, InrPipe, ShowMore, DecimalPipe, RouterLink],
   templateUrl: './items.html',
   styleUrl: './items.scss',
 })
