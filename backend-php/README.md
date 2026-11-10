@@ -45,12 +45,12 @@ Point the frontend at it: in `frontend/proxy.conf.json` set `"target": "http://l
    DB_USER=cpaneluser_ledgerly
    DB_PASSWORD=...
    JWT_SECRET=...        # php -r "echo bin2hex(random_bytes(48)), PHP_EOL;"
-   SMTP_HOST=mail.yourdomain.com
+   SMTP_HOST=mail.gognabooks.in
    SMTP_PORT=465
    SMTP_SECURE=true
-   SMTP_USER=no-reply@yourdomain.com
+   SMTP_USER=info@gognabooks.in
    SMTP_PASS=...
-   MAIL_FROM=Gogna <no-reply@yourdomain.com>
+   MAIL_FROM="Gogna Books <info@gognabooks.in>"
    ```
    Keep the same `JWT_SECRET` as the Node backend if both run against one database.
 7. **Permissions**: `writable/` (and its sub-folders) must be writable by PHP (usually 755 is enough on cPanel).

@@ -36,6 +36,6 @@ export const config = {
     secure: process.env.SMTP_SECURE === 'true',
     user: process.env.SMTP_USER || null,
     pass: process.env.SMTP_PASS || null,
-    from: process.env.MAIL_FROM || 'Gogna <no-reply@localhost>',
+    from: process.env.MAIL_FROM || 'Gogna Books <info@gognabooks.in>',
   },
 };

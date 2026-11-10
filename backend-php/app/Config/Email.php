@@ -138,7 +138,7 @@ class Email extends BaseConfig
         $this->wordWrap   = false;
 
         // "Name <address>" or a bare address.
-        $from = (string) env('MAIL_FROM', 'Gogna <no-reply@localhost>');
+        $from = (string) env('MAIL_FROM', 'Gogna Books <info@gognabooks.in>');
         if (preg_match('/^\s*(.*?)\s*<([^>]+)>\s*$/', $from, $match)) {
             $this->fromName  = $match[1];
             $this->fromEmail = $match[2];
