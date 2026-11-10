@@ -209,6 +209,11 @@ class Validation extends BaseConfig
      */
     public array $invoiceStatus = [];
 
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    public array $purchasePayment = [];
+
     // Max length of the stored data URL (~180 KB image); the frontend resizes signatures well below this.
     public const MAX_SIGNATURE_LENGTH = 250000;
 
@@ -365,6 +370,23 @@ class Validation extends BaseConfig
             'lines.*.unitPrice' => self::money('Rate'),
             'lines.*.gstRate'   => self::GST_RATE,
         ];
+
+        // Money paid to a vendor for a purchase; lines use the same rules as invoice lines.
+        $this->purchasePayment = [
+            'paymentNumber' => self::requiredText('Payment No.', 40),
+            'vendorName'    => self::requiredText('Vendor', 150),
+            'purchaseDate'  => [
+                'rules'  => ['string', 'iso_date'],
+                'errors' => ['string' => 'Purchase date is required.', 'iso_date' => 'Purchase date must be a valid date.'],
+            ],
+            'mode'          => $this->receipt['mode'],
+            'bankAccountId' => $this->receipt['bankAccountId'],
+            'note'          => self::optionalText('Note', 500),
+            'lines'         => [
+                'rules'  => ['list_size[1,200]'],
+                'errors' => ['list_size' => 'Add at least one item.'],
+            ],
+        ] + array_filter($this->invoice, static fn (string $key): bool => str_starts_with($key, 'lines.*.'), ARRAY_FILTER_USE_KEY);
 
         $this->invoiceStatus = [
             'status' => [

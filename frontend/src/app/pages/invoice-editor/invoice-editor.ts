@@ -28,8 +28,8 @@ import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
-import { LineItems } from './components/line-items/line-items';
-import { PickerOption, SearchPicker } from './components/search-picker/search-picker';
+import { LineItems } from '../../shared/components/line-items/line-items';
+import { PickerOption, SearchPicker } from '../../shared/components/search-picker/search-picker';
 import { TotalsSummary } from './components/totals-summary/totals-summary';
 
 type Mode = 'new' | 'edit' | 'duplicate';

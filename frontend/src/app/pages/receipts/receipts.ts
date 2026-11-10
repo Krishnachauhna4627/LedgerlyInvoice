@@ -24,12 +24,12 @@ export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Ba
 
 // /receipts — every receipt from customers, with filters and cash / bank totals.
 @Component({
-  selector: 'app-payments-page',
+  selector: 'app-receipts-page',
   imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, RouterLink, ShowMore],
-  templateUrl: './payments.html',
-  styleUrl: './payments.scss',
+  templateUrl: './receipts.html',
+  styleUrl: './receipts.scss',
 })
-export class Payments {
+export class Receipts {
   private readonly receiptService = inject(ReceiptService);
   private readonly toast = inject(ToastService);
 

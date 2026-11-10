@@ -1,0 +1,96 @@
+@use 'breakpoints' as bp;
+
+// Clip the table header to the panel's rounded corners.
+.panel {
+  overflow: hidden;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.data-table a {
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.row-actions {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+// Table from md up; cards below.
+.desktop {
+  display: none;
+
+  @include bp.up(md) {
+    display: block;
+  }
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.card__main {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card__title {
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.card__meta {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.card__amount {
+  font-weight: 600;
+}
+
+.card__actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.confirm-text {
+  color: var(--color-text-muted);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}

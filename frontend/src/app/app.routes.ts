@@ -50,10 +50,23 @@ export const routes: Routes = [
       {
         path: 'receipts',
         title: page('Receipts'),
-        loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
+        loadComponent: () => import('./pages/receipts/receipts').then((m) => m.Receipts),
       },
-      // Old address of the Receipts page, kept so bookmarks still work.
-      { path: 'payments', redirectTo: 'receipts' },
+      {
+        path: 'payments',
+        title: page('Payments'),
+        loadComponent: () => import('./pages/purchase-payments/purchase-payments').then((m) => m.PurchasePayments),
+      },
+      {
+        path: 'payments/new',
+        title: page('New payment'),
+        loadComponent: () => import('./pages/purchase-payment-editor/purchase-payment-editor').then((m) => m.PurchasePaymentEditor),
+      },
+      {
+        path: 'payments/:id/edit',
+        title: page('Edit payment'),
+        loadComponent: () => import('./pages/purchase-payment-editor/purchase-payment-editor').then((m) => m.PurchasePaymentEditor),
+      },
       {
         path: 'clients',
         title: page('Customers'),

@@ -35,6 +35,7 @@ export class AppShell {
     { label: 'Dashboard', path: '/dashboard', icon: 'layout' },
     { label: 'Invoices', path: '/invoices', icon: 'file-text' },
     { label: 'Receipts', path: '/receipts', icon: 'rupee' },
+    { label: 'Payments', path: '/payments', icon: 'receipt' },
     { label: 'Customer Detail/Ledgers', path: '/clients', icon: 'users' },
     { label: 'Products/Services', path: '/items', icon: 'box' },
     { label: 'Sales report', path: '/reports', icon: 'bar-chart' },

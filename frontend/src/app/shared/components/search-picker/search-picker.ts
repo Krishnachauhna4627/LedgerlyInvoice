@@ -1,5 +1,5 @@
 import { Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
-import { Icon } from '../../../../shared/components/icon/icon';
+import { Icon } from '../icon/icon';
 
 export interface PickerOption {
   id: number;

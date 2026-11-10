@@ -1,11 +1,11 @@
 import { Component, computed, input, output } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
-import { Item } from '../../../../core/data/models';
-import { UNITS } from '../../../../core/data/units';
-import { LineAmounts } from '../../../../core/gst/gst';
-import { GST_RATES } from '../../../../core/gst/gst-states';
-import { Icon } from '../../../../shared/components/icon/icon';
-import { InrPipe } from '../../../../shared/pipes/inr.pipe';
+import { Item } from '../../../core/data/models';
+import { UNITS } from '../../../core/data/units';
+import { LineAmounts } from '../../../core/gst/gst';
+import { GST_RATES } from '../../../core/gst/gst-states';
+import { Icon } from '../icon/icon';
+import { InrPipe } from '../../pipes/inr.pipe';
 import { PickerOption, SearchPicker } from '../search-picker/search-picker';
 
 // "Particulars": one row per invoice line (a stacked card on small screens). The parent owns the FormArray.

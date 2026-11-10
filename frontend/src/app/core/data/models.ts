@@ -73,6 +73,41 @@ export interface Receipt {
 
 export type ReceiptInput = Omit<Receipt, 'id' | 'clientName' | 'bankAccount'>;
 
+// Money paid to a vendor for a purchase (the "Payments" page).
+export interface PurchaseLine {
+  itemId: number | null;
+  description: string;
+  narration: string | null;
+  hsnSac: string | null;
+  quantity: number;
+  unit: string | null;
+  unitPrice: number;
+  gstRate: number;
+  // Calculated by the server.
+  taxableAmount: number;
+  totalTax: number;
+  lineTotal: number;
+}
+
+export interface PurchasePayment {
+  id: number;
+  // Payment No., unique per company.
+  paymentNumber: string;
+  vendorName: string;
+  purchaseDate: string;
+  mode: ReceiptMode;
+  // The business bank account it was paid from (bank payments only).
+  bankAccountId: number | null;
+  bankAccount: BankAccountRef | null;
+  note: string | null;
+  lines: PurchaseLine[];
+  totals: { subTotal: number; totalTax: number; grandTotal: number };
+}
+
+export type PurchasePaymentInput = Omit<PurchasePayment, 'id' | 'bankAccount' | 'lines' | 'totals'> & {
+  lines: Omit<PurchaseLine, 'taxableAmount' | 'totalTax' | 'lineTotal'>[];
+};
+
 export interface LedgerEntry {
   type: 'sale' | 'receipt';
   // Invoice id for a sale, receipt id for a receipt.

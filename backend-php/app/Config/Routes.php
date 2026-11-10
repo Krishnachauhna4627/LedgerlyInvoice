@@ -64,6 +64,16 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
         $routes->delete('(:segment)', 'Receipts::delete/$1');
     });
 
+    $routes->group('purchase-payments', ['filter' => 'auth'], static function (RouteCollection $routes) {
+        $routes->get('/', 'PurchasePayments::index');
+        $routes->get('next-number', 'PurchasePayments::nextNumber');
+        $routes->get('vendors', 'PurchasePayments::vendors');
+        $routes->get('(:segment)', 'PurchasePayments::show/$1');
+        $routes->post('/', 'PurchasePayments::create');
+        $routes->put('(:segment)', 'PurchasePayments::update/$1');
+        $routes->delete('(:segment)', 'PurchasePayments::delete/$1');
+    });
+
     $routes->group('reports', ['filter' => 'auth'], static function (RouteCollection $routes) {
         $routes->get('dashboard', 'Reports::dashboard');
         $routes->get('sales', 'Reports::sales');
