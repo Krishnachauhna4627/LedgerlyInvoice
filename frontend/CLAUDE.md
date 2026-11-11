@@ -51,6 +51,7 @@ src/app/core/theme/
 - Shadows that need a color derive it with `color-mix()` from a theme variable, so they follow the theme too.
 - Users can pick their own theme; `ThemeService` sets `data-theme` on `<html>` and saves the choice (localStorage now, user profile later). Default is `clean-indigo`.
 - Dark mode, if added, is just another theme using the same variables.
+- Section accents: `AppShell` sets `data-section` on `<html>` per route. `themes/_section-payments.scss` turns the primary-colour tokens teal (`#0F766E`) on every `/payments` route. Status colours are not changed.
 
 ### Clean Indigo palette
 

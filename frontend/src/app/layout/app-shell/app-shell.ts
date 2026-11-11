@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DOCUMENT, DestroyRef, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -28,6 +28,7 @@ interface NavItem {
 export class AppShell {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
   private readonly invoices = inject(InvoiceService);
   protected readonly invoiceCount = this.invoices.count;
 
@@ -64,6 +65,27 @@ export class AppShell {
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.menuOpen.set(false));
+
+    // Section accent: the whole screen turns teal while on Payments (see themes/_section-payments.scss).
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
+      .subscribe(() => this.applySection());
+    this.applySection();
+    inject(DestroyRef).onDestroy(() => this.setSection(null));
+  }
+
+  private applySection(): void {
+    const path = this.router.url.split(/[?#]/)[0];
+    this.setSection(path === '/payments' || path.startsWith('/payments/') ? 'payments' : null);
+  }
+
+  // Set on <html> so modals, toasts and the mobile browser bar follow the section colour too.
+  private setSection(section: string | null): void {
+    const root = this.document.documentElement;
+    if (section) root.dataset['section'] = section;
+    else delete root.dataset['section'];
+    const primary = getComputedStyle(root).getPropertyValue('--color-primary').trim();
+    if (primary) this.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', primary);
   }
 
   // Back to the super user's own session; a full reload so none of this user's data stays in memory.

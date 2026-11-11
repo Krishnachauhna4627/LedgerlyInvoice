@@ -1,0 +1,12 @@
+// Payments section accent — while the user is on /payments the whole screen switches from the
+// theme's primary colour to teal. AppShell sets data-section="payments" on <html> for those routes.
+// Only primary-family tokens change; status colours (success/warning/danger) stay as the theme has them.
+:root[data-section='payments'] {
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+  --color-primary-light: #14b8a6;
+  --color-primary-soft: #f0fdfa;
+  --color-on-primary: #ffffff;
+
+  --color-bg-tint: #f2fbfa;
+}
