@@ -51,7 +51,7 @@ src/app/core/theme/
 - Shadows that need a color derive it with `color-mix()` from a theme variable, so they follow the theme too.
 - Users can pick their own theme; `ThemeService` sets `data-theme` on `<html>` and saves the choice (localStorage now, user profile later). Default is `clean-indigo`.
 - Dark mode, if added, is just another theme using the same variables.
-- Section accents: `AppShell` sets `data-section` on `<html>` per route. `themes/_section-payments.scss` turns the primary-colour tokens teal (`#0F766E`) on every `/payments` route. Status colours are not changed.
+- Section accents: `AppShell` sets `data-section` on `<html>` per route. `themes/_section-payments.scss` turns the primary-colour tokens teal (`#0F766E`) on every `/purchases` and `/payments` route (the vendor side). Status colours are not changed.
 
 ### Clean Indigo palette
 
@@ -107,6 +107,10 @@ src/app/
     invoices/               # /invoices — list, filters, bulk actions, CSV
     invoice-editor/         # /invoices/new, /invoices/:id/edit (?from=:id duplicates)
     invoice-view/           # /invoices/:id — printable tax invoice
+    receipts/               # /receipts — money received from customers
+    purchases/              # /purchases — bills from vendors with items (like invoices)
+    purchase-editor/        # /purchases/new, /purchases/:id/edit
+    payments/               # /payments — money paid to vendors, payment details only (like receipts)
     clients/  items/  settings/  reports/
     <next-page>/            # each new page gets its own folder
   app.routes.ts             # all top-level routes

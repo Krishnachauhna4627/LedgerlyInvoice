@@ -1,4 +1,4 @@
-// Payments section accent — while the user is on /payments the whole screen switches from the
+// Vendor-side accent — while the user is on /purchases or /payments the whole screen switches from the
 // theme's primary colour to teal. AppShell sets data-section="payments" on <html> for those routes.
 // Only primary-family tokens change; status colours (success/warning/danger) stay as the theme has them.
 :root[data-section='payments'] {

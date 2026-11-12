@@ -50,9 +50,9 @@ export class ItemLedger {
     });
   }
 
-  // Purchases open the payment, sales the invoice.
+  // Purchases open the purchase bill, sales the invoice.
   protected link(e: StockLedgerEntry): (string | number)[] {
-    return e.type === 'purchase' ? ['/payments', e.id, 'edit'] : ['/invoices', e.id];
+    return e.type === 'purchase' ? ['/purchases', e.id, 'edit'] : ['/invoices', e.id];
   }
 
   protected exportCsv(): void {

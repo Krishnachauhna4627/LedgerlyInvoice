@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DashboardSummary, SalesExportRow, SalesReport } from './models';
+import { DashboardSummary, PurchaseReport, SalesExportRow, SalesReport } from './models';
 
 export interface DateRange {
   from?: string;
@@ -25,6 +25,10 @@ export class ReportService {
 
   sales(range: DateRange): Observable<SalesReport> {
     return this.http.get<SalesReport>('/api/reports/sales', { params: rangeParams(range) });
+  }
+
+  purchases(range: DateRange): Observable<PurchaseReport> {
+    return this.http.get<PurchaseReport>('/api/reports/purchases', { params: rangeParams(range) });
   }
 
   salesExport(range: DateRange): Observable<SalesExportRow[]> {

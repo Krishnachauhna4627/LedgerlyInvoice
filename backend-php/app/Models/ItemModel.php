@@ -45,9 +45,9 @@ class ItemModel extends Model
     public function stockLedger(array $item): array
     {
         $companyId = (int) $item['company_id'];
-        $purchases = $this->db->table('purchase_payment_items l')
-            ->select('p.id, p.payment_number AS number, p.purchase_date AS date, p.vendor_name AS party, p.created_at, l.id AS line_id, l.quantity, l.unit, l.unit_price')
-            ->join('purchase_payments p', 'p.id = l.purchase_payment_id')
+        $purchases = $this->db->table('purchase_items l')
+            ->select('p.id, p.purchase_number AS number, p.purchase_date AS date, p.vendor_name AS party, p.created_at, l.id AS line_id, l.quantity, l.unit, l.unit_price')
+            ->join('purchases p', 'p.id = l.purchase_id')
             ->where('l.item_id', $item['id'])
             ->where('p.company_id', $companyId)
             ->get()->getResultArray();

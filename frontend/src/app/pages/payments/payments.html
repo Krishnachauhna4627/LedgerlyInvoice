@@ -1,0 +1,148 @@
+<app-page-header title="Payments" subtitle="Money paid to vendors. The items you bought go on Purchases.">
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="payments().length === 0" (click)="exportCsv()">
+    <app-icon name="download" [size]="16" /> Export (CSV)
+  </button>
+  <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
+    <app-icon name="plus" [size]="16" /> Record Payment
+  </button>
+</app-page-header>
+
+<div class="page-body">
+  <div class="panel panel__body filter-bar">
+    <div class="field">
+      <label class="field__label" for="vp-from">From</label>
+      <input id="vp-from" class="input" type="date" [value]="from()" (change)="setFilter('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="vp-range-error" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="vp-to">To</label>
+      <input id="vp-to" class="input" type="date" [value]="to()" (change)="setFilter('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="vp-range-error" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="vp-mode">Mode</label>
+      <select id="vp-mode" class="input" (change)="setFilter('mode', $any($event.target).value)">
+        <option value="">Cash and bank</option>
+        <option value="cash">Cash</option>
+        <option value="bank">Bank</option>
+      </select>
+    </div>
+    @if (rangeInvalid()) {
+      <span id="vp-range-error" class="field__error span-all">"From" must be on or before "To".</span>
+    }
+  </div>
+
+  <ul class="summary-tiles">
+    <li class="summary-tile summary-tile--main">
+      <span class="summary-tile__label">Total paid</span>
+      <span class="summary-tile__value">{{ totals().all | inr }}</span>
+    </li>
+    <li class="summary-tile">
+      <span class="summary-tile__label">Cash</span>
+      <span class="summary-tile__value">{{ totals().cash | inr }}</span>
+    </li>
+    <li class="summary-tile">
+      <span class="summary-tile__label">Bank</span>
+      <span class="summary-tile__value">{{ totals().bank | inr }}</span>
+    </li>
+    <li class="summary-tile">
+      <span class="summary-tile__label">Payments</span>
+      <span class="summary-tile__value">{{ payments().length }}</span>
+    </li>
+  </ul>
+
+  <div class="panel">
+    @if (loading()) {
+      <div class="empty-state"><p>Loading payments…</p></div>
+    } @else if (loadError()) {
+      <div class="empty-state">
+        <p class="empty-state__title">Couldn't load payments</p>
+        <p>{{ loadError() }}</p>
+        <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+      </div>
+    } @else if (payments().length === 0) {
+      <div class="empty-state">
+        <p class="empty-state__title">No payments in this period</p>
+        <p>Record money you paid a vendor. Bills and items go on <a routerLink="/purchases">Purchases</a>.</p>
+      </div>
+    } @else {
+      <div class="table-scroll desktop">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Payment No.</th>
+              <th scope="col">Date</th>
+              <th scope="col">Vendor</th>
+              <th scope="col">Mode</th>
+              <th scope="col">Narration</th>
+              <th scope="col" class="num">Amount</th>
+              <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of page.rows(); track p.id) {
+              <tr>
+                <td class="strong">{{ p.paymentNumber }}</td>
+                <td>{{ formatDmy(p.paymentDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
+                <td class="strong">{{ p.vendorName }}</td>
+                <td>{{ modeText(p) }}</td>
+                <td [class.muted]="!p.reference">{{ p.reference || '—' }}</td>
+                <td class="num strong">{{ p.amount | inr }}</td>
+                <td class="row-actions">
+                  <button type="button" class="icon-button" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="openForm(p)">
+                    <app-icon name="pencil" [size]="16" />
+                  </button>
+                  <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="deleting.set(p)">
+                    <app-icon name="trash" [size]="16" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="cards">
+        @for (p of page.rows(); track p.id) {
+          <li class="card">
+            <div class="card__main">
+              <span class="card__title">{{ p.vendorName }}</span>
+              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.paymentDate) }}{{ p.createdAt | time: ', ' }} · {{ modeText(p) }}{{ p.reference ? ' · ' + p.reference : '' }}</span>
+              <span class="card__amount">{{ p.amount | inr }}</span>
+            </div>
+            <div class="card__actions">
+              <button type="button" class="icon-button" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="openForm(p)">
+                <app-icon name="pencil" [size]="16" />
+              </button>
+              <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="deleting.set(p)">
+                <app-icon name="trash" [size]="16" />
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+      <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
+    }
+  </div>
+</div>
+
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit Payment' : 'Record Payment'" (closed)="formOpen.set(false)">
+  @if (formOpen()) {
+    <app-payment-form [payment]="editing()" (saved)="onSaved()" (cancelled)="formOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!deleting()" title="Delete payment?" size="sm" (closed)="deleting.set(null)">
+  @if (deleting(); as p) {
+    <p class="confirm-text">
+      Payment <strong>{{ p.paymentNumber }}</strong> of <strong>{{ p.amount | inr }}</strong> to <strong>{{ p.vendorName }}</strong>
+      on {{ formatDmy(p.paymentDate) }} will be removed.
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
+        {{ deleteBusy() ? 'Deleting…' : 'Delete payment' }}
+      </button>
+    </div>
+  }
+</app-modal>

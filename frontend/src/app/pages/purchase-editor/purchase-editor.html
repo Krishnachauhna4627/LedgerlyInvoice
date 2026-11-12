@@ -1,0 +1,104 @@
+<app-page-header [title]="title" subtitle="A bill from a vendor and the items you bought. Record what you paid on Payments.">
+  <a class="btn btn--outline btn--sm" routerLink="/purchases">Cancel</a>
+</app-page-header>
+
+<div class="page-body">
+  @if (loading()) {
+    <div class="panel panel__body muted" role="status">Loading…</div>
+  } @else if (loadError()) {
+    <div class="panel panel__body">
+      <div class="form-alert" role="alert">{{ loadError() }}</div>
+      <a class="btn btn--outline btn--sm back" routerLink="/purchases">Back to purchases</a>
+    </div>
+  } @else {
+    <form class="panel editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="panel__body sections">
+        @if (error()) {
+          <div class="form-alert" role="alert">{{ error() }}</div>
+        }
+
+        <section aria-labelledby="pp-details-title">
+          <h2 id="pp-details-title" class="section-title">Purchase details</h2>
+          <div class="details-grid">
+            <div class="field">
+              <label class="field__label" for="pp-number">Purchase No. *</label>
+              <input id="pp-number" class="input" formControlName="purchaseNumber" maxlength="40" autocomplete="off"
+                [class.is-invalid]="errorFor('purchaseNumber')" [attr.aria-invalid]="!!errorFor('purchaseNumber')" aria-describedby="pp-number-error" />
+              @if (errorFor('purchaseNumber'); as message) {
+                <span id="pp-number-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="pp-vendor">Vendor *</label>
+              <input id="pp-vendor" class="input" formControlName="vendorName" maxlength="150" autocomplete="off" list="pp-vendors"
+                placeholder="Who you bought from" [class.is-invalid]="errorFor('vendorName')" [attr.aria-invalid]="!!errorFor('vendorName')" aria-describedby="pp-vendor-error" />
+              <datalist id="pp-vendors">
+                @for (v of vendors(); track v) {
+                  <option [value]="v"></option>
+                }
+              </datalist>
+              @if (errorFor('vendorName'); as message) {
+                <span id="pp-vendor-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="pp-date">Date of purchase *</label>
+              <input id="pp-date" class="input" type="date" formControlName="purchaseDate"
+                [class.is-invalid]="errorFor('purchaseDate')" [attr.aria-invalid]="!!errorFor('purchaseDate')" aria-describedby="pp-date-error" />
+              @if (errorFor('purchaseDate'); as message) {
+                <span id="pp-date-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+
+            <div class="field span-all">
+              <label class="field__label" for="pp-note">Note</label>
+              <textarea id="pp-note" class="input" formControlName="note" rows="2" maxlength="500"
+                placeholder="Optional — vendor's bill no., remarks…"
+                [class.is-invalid]="errorFor('note')" [attr.aria-invalid]="!!errorFor('note')" aria-describedby="pp-note-error"></textarea>
+              @if (errorFor('note'); as message) {
+                <span id="pp-note-error" class="field__error">{{ message }}</span>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="pp-lines-title">
+          <h2 id="pp-lines-title" class="section-title">Items purchased</h2>
+          <app-line-items
+            [lines]="lines"
+            [items]="items()"
+            [amounts]="calculation().lines"
+            [errorFor]="errorFor"
+            (picked)="applyItem($event.index, $event.itemId)"
+            (newItem)="newItemLine.set($event)"
+            (removed)="removeLine($event)"
+            (added)="addLine()"
+          />
+          <dl class="totals">
+            <div><dt>Taxable amount</dt><dd>{{ calculation().subTotal | inr }}</dd></div>
+            <div><dt>GST</dt><dd>{{ calculation().totalTax | inr }}</dd></div>
+            <div class="totals__grand"><dt>Bill total</dt><dd>{{ calculation().grandTotal | inr }}</dd></div>
+          </dl>
+        </section>
+      </div>
+
+      <div class="footer">
+        <p class="footer__total">
+          <span>Total</span>
+          <strong>{{ calculation().grandTotal | inr }}</strong>
+        </p>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          <app-icon name="save" [size]="18" /> {{ saving() ? 'Saving…' : 'Save purchase' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+<app-modal [open]="newItemLine() !== null" title="Add product/service" (closed)="newItemLine.set(null)">
+  @if (newItemLine() !== null) {
+    <app-item-form (saved)="onItemCreated($event)" (cancelled)="newItemLine.set(null)" />
+  }
+</app-modal>

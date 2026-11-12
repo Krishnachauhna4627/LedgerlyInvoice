@@ -1,10 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
-import { PurchasePayment, ReceiptMode } from '../../core/data/models';
-import { PurchasePaymentService } from '../../core/data/purchase-payment.service';
+import { Purchase } from '../../core/data/models';
+import { PurchaseService } from '../../core/data/purchase.service';
 import { round2 } from '../../core/gst/gst';
-import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
@@ -16,42 +15,34 @@ import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 import { TimePipe } from '../../shared/pipes/time.pipe';
 
-const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
-
-// /payments — money paid to vendors for purchases, with filters and cash / bank totals.
+// /purchases — purchase bills from vendors with the items bought, like invoices for sales.
 @Component({
-  selector: 'app-purchase-payments-page',
+  selector: 'app-purchases-page',
   imports: [PageHeader, Icon, Modal, InrPipe, TimePipe, RouterLink, ShowMore],
-  templateUrl: './purchase-payments.html',
-  styleUrl: './purchase-payments.scss',
+  templateUrl: './purchases.html',
+  styleUrl: './purchases.scss',
 })
-export class PurchasePayments {
-  private readonly service = inject(PurchasePaymentService);
+export class Purchases {
+  private readonly service = inject(PurchaseService);
   private readonly toast = inject(ToastService);
 
-  protected readonly payments = signal<PurchasePayment[]>([]);
-  protected readonly page = paged(this.payments);
+  protected readonly purchases = signal<Purchase[]>([]);
+  protected readonly page = paged(this.purchases);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
 
   // Filters; the period starts as the current financial year.
   protected readonly from = signal(financialYear().from);
   protected readonly to = signal(financialYear().to);
-  protected readonly mode = signal<ReceiptMode | ''>('');
   protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
 
-  protected readonly deleting = signal<PurchasePayment | null>(null);
+  protected readonly deleting = signal<Purchase | null>(null);
   protected readonly deleteBusy = signal(false);
 
   protected readonly formatDmy = formatDmy;
   protected readonly totals = computed(() => {
-    const sum = (list: PurchasePayment[]) => round2(list.reduce((total, p) => total + p.totals.grandTotal, 0));
-    const list = this.payments();
-    return {
-      all: sum(list),
-      cash: sum(list.filter((p) => p.mode === 'cash')),
-      bank: sum(list.filter((p) => p.mode === 'bank')),
-    };
+    const sum = (key: 'subTotal' | 'totalTax' | 'grandTotal') => round2(this.purchases().reduce((total, p) => total + p.totals[key], 0));
+    return { taxable: sum('subTotal'), gst: sum('totalTax'), all: sum('grandTotal') };
   });
 
   constructor() {
@@ -62,9 +53,9 @@ export class PurchasePayments {
     if (this.rangeInvalid()) return;
     this.loading.set(true);
     this.loadError.set(null);
-    this.service.list({ from: this.from() || undefined, to: this.to() || undefined, mode: this.mode() || undefined }).subscribe({
-      next: (payments) => {
-        this.payments.set(payments);
+    this.service.list({ from: this.from() || undefined, to: this.to() || undefined }).subscribe({
+      next: (purchases) => {
+        this.purchases.set(purchases);
         this.loading.set(false);
       },
       error: (err: unknown) => {
@@ -74,34 +65,27 @@ export class PurchasePayments {
     });
   }
 
-  protected setFilter(name: 'from' | 'to' | 'mode', value: string): void {
-    if (name === 'mode') this.mode.set(value as ReceiptMode | '');
-    else this[name].set(value);
+  protected setFilter(name: 'from' | 'to', value: string): void {
+    this[name].set(value);
     this.page.reset();
     this.load();
   }
 
-  // "Cash", "Bank" or "Bank · SBI 1234567890".
-  protected modeText(p: PurchasePayment): string {
-    const account = p.mode === 'bank' ? bankAccountLabel(p.bankAccount) : null;
-    return account ? `${MODE_LABEL[p.mode]} · ${account}` : MODE_LABEL[p.mode];
-  }
-
   // "Cement", or "Cement + 2 more".
-  protected itemsText(p: PurchasePayment): string {
+  protected itemsText(p: Purchase): string {
     const [first, ...rest] = p.lines;
     if (!first) return '—';
     return rest.length ? `${first.description} + ${rest.length} more` : first.description;
   }
 
   protected confirmDelete(): void {
-    const payment = this.deleting();
-    if (!payment || this.deleteBusy()) return;
+    const purchase = this.deleting();
+    if (!purchase || this.deleteBusy()) return;
     this.deleteBusy.set(true);
-    this.service.delete(payment.id).subscribe({
+    this.service.delete(purchase.id).subscribe({
       next: () => {
-        this.payments.update((list) => list.filter((p) => p.id !== payment.id));
-        this.toast.success('Payment deleted');
+        this.purchases.update((list) => list.filter((p) => p.id !== purchase.id));
+        this.toast.success('Purchase deleted');
         this.deleting.set(null);
         this.deleteBusy.set(false);
       },
@@ -115,11 +99,11 @@ export class PurchasePayments {
   // One row per item, so the CSV shows everything bought.
   protected exportCsv(): void {
     downloadCsv(
-      `payments${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Payment No.', 'Date', 'Time', 'Vendor', 'Item', 'Qty', 'Unit', 'Rate', 'GST %', 'Taxable', 'GST', 'Line total', 'Payment total', 'Mode', 'Note'],
-      this.payments().flatMap((p) =>
+      `purchases${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
+      ['Purchase No.', 'Date', 'Time', 'Vendor', 'Item', 'Qty', 'Unit', 'Rate', 'GST %', 'Taxable', 'GST', 'Line total', 'Bill total', 'Note'],
+      this.purchases().flatMap((p) =>
         p.lines.map((l, i) => [
-          p.paymentNumber,
+          p.purchaseNumber,
           formatDmy(p.purchaseDate),
           formatTime(p.createdAt),
           p.vendorName,
@@ -132,7 +116,6 @@ export class PurchasePayments {
           l.totalTax,
           l.lineTotal,
           i === 0 ? p.totals.grandTotal : '',
-          this.modeText(p),
           i === 0 ? p.note : '',
         ]),
       ),

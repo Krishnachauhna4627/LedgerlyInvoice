@@ -1,9 +1,9 @@
-<app-page-header title="Payments" subtitle="Money paid to vendors for purchases, with the items bought.">
-  <button type="button" class="btn btn--outline btn--sm" [disabled]="payments().length === 0" (click)="exportCsv()">
+<app-page-header title="Purchases" subtitle="Bills from vendors with the items you bought. Payments are recorded separately.">
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="purchases().length === 0" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export (CSV)
   </button>
-  <a class="btn btn--primary btn--sm" routerLink="/payments/new">
-    <app-icon name="plus" [size]="16" /> Record Payment
+  <a class="btn btn--primary btn--sm" routerLink="/purchases/new">
+    <app-icon name="plus" [size]="16" /> Record Purchase
   </a>
 </app-page-header>
 
@@ -19,14 +19,6 @@
       <input id="pp-to" class="input" type="date" [value]="to()" (change)="setFilter('to', $any($event.target).value)"
         [attr.aria-invalid]="rangeInvalid()" aria-describedby="pp-range-error" />
     </div>
-    <div class="field">
-      <label class="field__label" for="pp-mode">Mode</label>
-      <select id="pp-mode" class="input" (change)="setFilter('mode', $any($event.target).value)">
-        <option value="">Cash and bank</option>
-        <option value="cash">Cash</option>
-        <option value="bank">Bank</option>
-      </select>
-    </div>
     @if (rangeInvalid()) {
       <span id="pp-range-error" class="field__error span-all">"From" must be on or before "To".</span>
     }
@@ -34,68 +26,70 @@
 
   <ul class="summary-tiles">
     <li class="summary-tile summary-tile--main">
-      <span class="summary-tile__label">Total paid</span>
+      <span class="summary-tile__label">Total purchases</span>
       <span class="summary-tile__value">{{ totals().all | inr }}</span>
     </li>
     <li class="summary-tile">
-      <span class="summary-tile__label">Cash</span>
-      <span class="summary-tile__value">{{ totals().cash | inr }}</span>
+      <span class="summary-tile__label">Taxable</span>
+      <span class="summary-tile__value">{{ totals().taxable | inr }}</span>
     </li>
     <li class="summary-tile">
-      <span class="summary-tile__label">Bank</span>
-      <span class="summary-tile__value">{{ totals().bank | inr }}</span>
+      <span class="summary-tile__label">GST</span>
+      <span class="summary-tile__value">{{ totals().gst | inr }}</span>
     </li>
     <li class="summary-tile">
-      <span class="summary-tile__label">Payments</span>
-      <span class="summary-tile__value">{{ payments().length }}</span>
+      <span class="summary-tile__label">Bills</span>
+      <span class="summary-tile__value">{{ purchases().length }}</span>
     </li>
   </ul>
 
   <div class="panel">
     @if (loading()) {
-      <div class="empty-state"><p>Loading payments…</p></div>
+      <div class="empty-state"><p>Loading purchases…</p></div>
     } @else if (loadError()) {
       <div class="empty-state">
-        <p class="empty-state__title">Couldn't load payments</p>
+        <p class="empty-state__title">Couldn't load purchases</p>
         <p>{{ loadError() }}</p>
         <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
       </div>
-    } @else if (payments().length === 0) {
+    } @else if (purchases().length === 0) {
       <div class="empty-state">
-        <p class="empty-state__title">No payments in this period</p>
-        <p>Record what you paid a vendor and the items you bought.</p>
-        <a class="btn btn--primary btn--sm" routerLink="/payments/new"><app-icon name="plus" [size]="16" /> Record Payment</a>
+        <p class="empty-state__title">No purchases in this period</p>
+        <p>Record a bill from a vendor and the items you bought.</p>
+        <a class="btn btn--primary btn--sm" routerLink="/purchases/new"><app-icon name="plus" [size]="16" /> Record Purchase</a>
       </div>
     } @else {
       <div class="table-scroll desktop">
         <table class="data-table">
           <thead>
             <tr>
-              <th scope="col">Payment No.</th>
+              <th scope="col">Purchase No.</th>
               <th scope="col">Date</th>
               <th scope="col">Vendor</th>
               <th scope="col">Items</th>
-              <th scope="col">Mode</th>
               <th scope="col">Note</th>
-              <th scope="col" class="num">Amount</th>
+              <th scope="col" class="num">Taxable</th>
+              <th scope="col" class="num">GST</th>
+              <th scope="col" class="num">Total</th>
               <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
             @for (p of page.rows(); track p.id) {
               <tr>
-                <td class="strong">{{ p.paymentNumber }}</td>
+                <td class="strong"><a [routerLink]="['/purchases', p.id, 'edit']">{{ p.purchaseNumber }}</a></td>
                 <td>{{ formatDmy(p.purchaseDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
                 <td class="strong">{{ p.vendorName }}</td>
                 <td>{{ itemsText(p) }}</td>
-                <td>{{ modeText(p) }}</td>
                 <td [class.muted]="!p.note">{{ p.note || '—' }}</td>
+                <td class="num">{{ p.totals.subTotal | inr }}</td>
+                <td class="num">{{ p.totals.totalTax | inr }}</td>
                 <td class="num strong">{{ p.totals.grandTotal | inr }}</td>
                 <td class="row-actions">
-                  <a class="icon-button" [routerLink]="['/payments', p.id, 'edit']" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName">
+                  <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
                     <app-icon name="pencil" [size]="16" />
                   </a>
-                  <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="deleting.set(p)">
+                  <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="deleting.set(p)">
                     <app-icon name="trash" [size]="16" />
                   </button>
                 </td>
@@ -109,16 +103,16 @@
         @for (p of page.rows(); track p.id) {
           <li class="card card--tappable">
             <div class="card__main">
-              <a class="card__title card-link" [routerLink]="['/payments', p.id, 'edit']">{{ p.vendorName }}</a>
-              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }} · {{ modeText(p) }}</span>
+              <a class="card__title card-link" [routerLink]="['/purchases', p.id, 'edit']">{{ p.vendorName }}</a>
+              <span class="card__meta">No. {{ p.purchaseNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }}</span>
               <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
               <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>
             </div>
             <div class="card__actions">
-              <a class="icon-button" [routerLink]="['/payments', p.id, 'edit']" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName">
+              <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
                 <app-icon name="pencil" [size]="16" />
               </a>
-              <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="deleting.set(p)">
+              <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="deleting.set(p)">
                 <app-icon name="trash" [size]="16" />
               </button>
             </div>
@@ -130,16 +124,16 @@
   </div>
 </div>
 
-<app-modal [open]="!!deleting()" title="Delete payment?" size="sm" (closed)="deleting.set(null)">
+<app-modal [open]="!!deleting()" title="Delete purchase?" size="sm" (closed)="deleting.set(null)">
   @if (deleting(); as p) {
     <p class="confirm-text">
-      Payment <strong>{{ p.paymentNumber }}</strong> of <strong>{{ p.totals.grandTotal | inr }}</strong> to <strong>{{ p.vendorName }}</strong>
-      on {{ formatDmy(p.purchaseDate) }} and its items will be removed.
+      Purchase <strong>{{ p.purchaseNumber }}</strong> of <strong>{{ p.totals.grandTotal | inr }}</strong> from <strong>{{ p.vendorName }}</strong>
+      on {{ formatDmy(p.purchaseDate) }} and its items will be removed. Payments to this vendor are not changed.
     </p>
     <div class="confirm-actions">
       <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
       <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
-        {{ deleteBusy() ? 'Deleting…' : 'Delete payment' }}
+        {{ deleteBusy() ? 'Deleting…' : 'Delete purchase' }}
       </button>
     </div>
   }

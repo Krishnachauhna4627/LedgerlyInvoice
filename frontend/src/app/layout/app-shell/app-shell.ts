@@ -36,10 +36,11 @@ export class AppShell {
     { label: 'Dashboard', path: '/dashboard', icon: 'layout' },
     { label: 'Invoices', path: '/invoices', icon: 'file-text' },
     { label: 'Receipts', path: '/receipts', icon: 'rupee' },
-    { label: 'Payments', path: '/payments', icon: 'receipt' },
+    { label: 'Purchases', path: '/purchases', icon: 'receipt' },
+    { label: 'Payments', path: '/payments', icon: 'send' },
     { label: 'Customer Detail/Ledgers', path: '/clients', icon: 'users' },
     { label: 'Products/Services', path: '/items', icon: 'box' },
-    { label: 'Sales report', path: '/reports', icon: 'bar-chart' },
+    { label: 'Reports', path: '/reports', icon: 'bar-chart' },
     { label: 'Business Details', path: '/settings', icon: 'settings' },
   ];
   // Only shown to the super user.
@@ -66,7 +67,7 @@ export class AppShell {
       .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.menuOpen.set(false));
 
-    // Section accent: the whole screen turns teal while on Payments (see themes/_section-payments.scss).
+    // Section accent: the whole screen turns teal on the vendor side — Purchases and Payments (see themes/_section-payments.scss).
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.applySection());
@@ -76,7 +77,8 @@ export class AppShell {
 
   private applySection(): void {
     const path = this.router.url.split(/[?#]/)[0];
-    this.setSection(path === '/payments' || path.startsWith('/payments/') ? 'payments' : null);
+    const vendorSide = ['/purchases', '/payments'].some((root) => path === root || path.startsWith(root + '/'));
+    this.setSection(vendorSide ? 'payments' : null);
   }
 
   // Set on <html> so modals, toasts and the mobile browser bar follow the section colour too.

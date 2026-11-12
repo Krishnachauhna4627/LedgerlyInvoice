@@ -1,0 +1,97 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="payment-number">Payment No. *</label>
+      <input id="payment-number" class="input" formControlName="paymentNumber" maxlength="40" autocomplete="off"
+        [class.is-invalid]="errorFor('paymentNumber')" [attr.aria-invalid]="!!errorFor('paymentNumber')" aria-describedby="payment-number-error" />
+      @if (errorFor('paymentNumber'); as message) {
+        <span id="payment-number-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="payment-date">Date *</label>
+      <input id="payment-date" class="input" type="date" formControlName="paymentDate"
+        [class.is-invalid]="errorFor('paymentDate')" [attr.aria-invalid]="!!errorFor('paymentDate')" aria-describedby="payment-date-error" />
+      @if (errorFor('paymentDate'); as message) {
+        <span id="payment-date-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field__label" for="payment-vendor">Vendor *</label>
+    <input id="payment-vendor" class="input" formControlName="vendorName" maxlength="150" autocomplete="off" list="payment-vendors"
+      placeholder="Who you paid" [class.is-invalid]="errorFor('vendorName')" [attr.aria-invalid]="!!errorFor('vendorName')" aria-describedby="payment-vendor-error" />
+    <datalist id="payment-vendors">
+      @for (v of vendors(); track v) {
+        <option [value]="v"></option>
+      }
+    </datalist>
+    @if (errorFor('vendorName'); as message) {
+      <span id="payment-vendor-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label class="field__label" for="payment-mode">Mode of payment *</label>
+      <select id="payment-mode" class="input" formControlName="mode"
+        [class.is-invalid]="errorFor('mode')" [attr.aria-invalid]="!!errorFor('mode')" aria-describedby="payment-mode-error">
+        <option value="bank">Bank</option>
+        <option value="cash">Cash</option>
+      </select>
+      @if (errorFor('mode'); as message) {
+        <span id="payment-mode-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="payment-amount">Amount (₹) *</label>
+      <input id="payment-amount" class="input" type="number" formControlName="amount" min="0.01" step="0.01" inputmode="decimal"
+        [class.is-invalid]="errorFor('amount')" [attr.aria-invalid]="!!errorFor('amount')" aria-describedby="payment-amount-error" />
+      @if (errorFor('amount'); as message) {
+        <span id="payment-amount-error" class="field__error">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  @if (isBank()) {
+    <div class="field">
+      <label class="field__label" for="payment-bank">Paid from bank account</label>
+      <select id="payment-bank" class="input" formControlName="bankAccountId"
+        [class.is-invalid]="errorFor('bankAccountId')" [attr.aria-invalid]="!!errorFor('bankAccountId')" aria-describedby="payment-bank-error">
+        <option [ngValue]="null">Not specified</option>
+        @for (a of bankAccounts(); track a.id; let first = $first) {
+          <option [ngValue]="a.id">{{ bankAccountLabel(a) }}{{ first ? ' (primary)' : '' }}</option>
+        }
+      </select>
+      @if (errorFor('bankAccountId'); as message) {
+        <span id="payment-bank-error" class="field__error">{{ message }}</span>
+      } @else if (!bankAccounts().length) {
+        <span id="payment-bank-error" class="hint">Add your bank accounts in <a routerLink="/settings" (click)="cancelled.emit()">Business Details</a>.</span>
+      }
+    </div>
+  }
+
+  <div class="field">
+    <label class="field__label" for="payment-reference">Short narration</label>
+    <input id="payment-reference" class="input" formControlName="reference" maxlength="100" autocomplete="off"
+      placeholder="Optional — bill no., cheque no., UPI ref…"
+      [class.is-invalid]="errorFor('reference')" [attr.aria-invalid]="!!errorFor('reference')" aria-describedby="payment-reference-error" />
+    @if (errorFor('reference'); as message) {
+      <span id="payment-reference-error" class="field__error">{{ message }}</span>
+    }
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : payment() ? 'Save changes' : 'Save payment' }}
+    </button>
+  </div>
+</form>

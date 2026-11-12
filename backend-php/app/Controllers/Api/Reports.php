@@ -12,6 +12,7 @@ use CodeIgniter\Database\BaseBuilder;
 
 /**
  * /api/reports — port of modules/reports/reports.js. Drafts are not sales, so every report leaves them out.
+ * The purchases report is PHP-only (the Node backend has no purchases).
  */
 class Reports extends BaseController
 {
@@ -66,6 +67,37 @@ class Reports extends BaseController
                 . ' SUM(invoice_items.igst) AS igst, SUM(invoice_items.total_tax) AS tax', false)
             ->groupBy(['invoice_items.hsn_sac', 'invoice_items.gst_rate'])
             ->orderBy('invoice_items.hsn_sac')
+            ->get()->getResultArray();
+
+        return $this->json([
+            'totals'  => self::toNumbers($totals),
+            'byMonth' => array_map(self::toNumbers(...), $byMonth),
+            'byHsn'   => array_map(self::toNumbers(...), $byHsn),
+        ]);
+    }
+
+    /**
+     * Purchase bills for a date range: totals, month-by-month and HSN/SAC summary (GST is one amount on purchases).
+     */
+    public function purchases()
+    {
+        $range     = $this->range();
+        $companyId = $this->companyId();
+        $sums      = 'COUNT(*) AS count, SUM(sub_total) AS subTotal, SUM(total_tax) AS tax, SUM(grand_total) AS total';
+
+        $totals  = $this->purchasesIn($companyId, $range)->select($sums, false)->get()->getRowArray();
+        $byMonth = $this->purchasesIn($companyId, $range)
+            ->select($sums, false)
+            ->select("DATE_FORMAT(purchase_date, '%Y-%m') AS month", false)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()->getResultArray();
+        $byHsn = $this->purchasesIn($companyId, $range)
+            ->join('purchase_items', 'purchase_items.purchase_id = purchases.id')
+            ->select('purchase_items.hsn_sac AS hsnSac, purchase_items.gst_rate AS gstRate')
+            ->select('SUM(purchase_items.taxable_amount) AS taxable, SUM(purchase_items.total_tax) AS tax', false)
+            ->groupBy(['purchase_items.hsn_sac', 'purchase_items.gst_rate'])
+            ->orderBy('purchase_items.hsn_sac')
             ->get()->getResultArray();
 
         return $this->json([
@@ -142,6 +174,22 @@ class Reports extends BaseController
         }
         if (isset($range['to'])) {
             $q->where('invoice_date <=', $range['to']);
+        }
+
+        return $q;
+    }
+
+    /**
+     * @param array{from?: string, to?: string} $range
+     */
+    private function purchasesIn(int $companyId, array $range): BaseBuilder
+    {
+        $q = db_connect()->table('purchases')->where('purchases.company_id', $companyId);
+        if (isset($range['from'])) {
+            $q->where('purchase_date >=', $range['from']);
+        }
+        if (isset($range['to'])) {
+            $q->where('purchase_date <=', $range['to']);
         }
 
         return $q;

@@ -1,9 +1,12 @@
-<app-page-header title="Sales report">
+<app-page-header title="Reports" subtitle="Sales and purchases for a period, with GST-ready exports.">
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('summary')">
-    <app-icon name="download" [size]="16" /> {{ exporting() === 'summary' ? 'Exporting…' : 'Invoice summary' }}
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'summary' ? 'Exporting…' : 'Sales: invoice summary' }}
   </button>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="export('items')">
-    <app-icon name="download" [size]="16" /> {{ exporting() === 'items' ? 'Exporting…' : 'Product/service details' }}
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'items' ? 'Exporting…' : 'Sales: product/service details' }}
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="exportPurchases()">
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'purchases' ? 'Exporting…' : 'Purchases: item details' }}
   </button>
 </app-page-header>
 
@@ -41,18 +44,19 @@
       <p>{{ error() }}</p>
     </div>
   } @else if (report(); as r) {
-    @if (r.totals.count === 0) {
+    @if (r.sales.totals.count === 0 && r.purchases.totals.count === 0) {
       <div class="panel empty-state">
         <span class="empty-icon"><app-icon name="bar-chart" [size]="26" /></span>
-        <p class="empty-state__title">No invoices in this period</p>
-        <p>Pick a different period, or create an invoice to see your sales here.</p>
+        <p class="empty-state__title">No sales or purchases in this period</p>
+        <p>Pick a different period, or create an invoice or record a purchase to see it here.</p>
       </div>
     } @else {
-      <ul class="tiles">
-        @for (tile of tiles(); track tile.label) {
-          <li class="tile" [class.tile--total]="tile.label === 'Grand total'">
+      <ul class="tiles tiles--overview">
+        @for (tile of overview(); track tile.label) {
+          <li class="tile" [class.tile--total]="tile.main">
             <span class="tile__label">{{ tile.label }}</span>
-            <span class="tile__value">{{ tile.money ? ($any(tile.value) | inr) : tile.value }}</span>
+            <span class="tile__value" [class.negative]="tile.value < 0">{{ tile.value | inr }}</span>
+            <span class="tile__note">{{ tile.note }}</span>
           </li>
         }
       </ul>
@@ -65,19 +69,21 @@
               <tr>
                 <th scope="col">Month</th>
                 <th scope="col" class="num">Invoices</th>
-                <th scope="col" class="num">Taxable value</th>
-                <th scope="col" class="num">Total tax</th>
-                <th scope="col" class="num">Grand total</th>
+                <th scope="col" class="num">Sales</th>
+                <th scope="col" class="num">Bills</th>
+                <th scope="col" class="num">Purchases</th>
+                <th scope="col" class="num">Sales − purchases</th>
               </tr>
             </thead>
             <tbody>
-              @for (m of r.byMonth; track m.month) {
+              @for (m of byMonth(); track m.month) {
                 <tr>
                   <td class="strong">{{ monthLabel(m.month) }}</td>
-                  <td class="num">{{ m.count }}</td>
-                  <td class="num">{{ m.subTotal | inr }}</td>
-                  <td class="num">{{ m.tax | inr }}</td>
-                  <td class="num strong">{{ m.total | inr }}</td>
+                  <td class="num">{{ m.invoices }}</td>
+                  <td class="num">{{ m.sales | inr }}</td>
+                  <td class="num">{{ m.bills }}</td>
+                  <td class="num">{{ m.purchases | inr }}</td>
+                  <td class="num strong" [class.negative]="m.difference < 0">{{ m.difference | inr }}</td>
                 </tr>
               }
             </tbody>
@@ -85,37 +91,97 @@
         </div>
       </section>
 
-      <section class="panel">
-        <h2 class="panel-title">HSN/SAC summary</h2>
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th scope="col">HSN/SAC</th>
-                <th scope="col" class="num">GST %</th>
-                <th scope="col" class="num">Taxable value</th>
-                <th scope="col" class="num">CGST</th>
-                <th scope="col" class="num">SGST</th>
-                <th scope="col" class="num">IGST</th>
-                <th scope="col" class="num">Total tax</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (h of r.byHsn; track $index) {
+      <h2 class="section-heading">Sales</h2>
+      @if (r.sales.totals.count === 0) {
+        <div class="panel empty-state"><p>No invoices in this period.</p></div>
+      } @else {
+        <ul class="tiles tiles--sales">
+          @for (tile of salesTiles(); track tile.label) {
+            <li class="tile" [class.tile--total]="tile.label === 'Grand total'">
+              <span class="tile__label">{{ tile.label }}</span>
+              <span class="tile__value">{{ tile.value | inr }}</span>
+            </li>
+          }
+        </ul>
+
+        <section class="panel">
+          <h3 class="panel-title">Sales — HSN/SAC summary</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
                 <tr>
-                  <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
-                  <td class="num">{{ h.gstRate }}%</td>
-                  <td class="num">{{ h.taxable | inr }}</td>
-                  <td class="num">{{ h.cgst | inr }}</td>
-                  <td class="num">{{ h.sgst | inr }}</td>
-                  <td class="num">{{ h.igst | inr }}</td>
-                  <td class="num strong">{{ h.tax | inr }}</td>
+                  <th scope="col">HSN/SAC</th>
+                  <th scope="col" class="num">GST %</th>
+                  <th scope="col" class="num">Taxable value</th>
+                  <th scope="col" class="num">CGST</th>
+                  <th scope="col" class="num">SGST</th>
+                  <th scope="col" class="num">IGST</th>
+                  <th scope="col" class="num">Total tax</th>
                 </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody>
+                @for (h of r.sales.byHsn; track $index) {
+                  <tr>
+                    <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
+                    <td class="num">{{ h.gstRate }}%</td>
+                    <td class="num">{{ h.taxable | inr }}</td>
+                    <td class="num">{{ h.cgst | inr }}</td>
+                    <td class="num">{{ h.sgst | inr }}</td>
+                    <td class="num">{{ h.igst | inr }}</td>
+                    <td class="num strong">{{ h.tax | inr }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <h2 class="section-heading">Purchases</h2>
+      @if (r.purchases.totals.count === 0) {
+        <div class="panel empty-state"><p>No purchases in this period.</p></div>
+      } @else {
+        <ul class="tiles tiles--purchases">
+          <li class="tile">
+            <span class="tile__label">Taxable value</span>
+            <span class="tile__value">{{ r.purchases.totals.subTotal | inr }}</span>
+          </li>
+          <li class="tile">
+            <span class="tile__label">GST</span>
+            <span class="tile__value">{{ r.purchases.totals.tax | inr }}</span>
+          </li>
+          <li class="tile tile--total">
+            <span class="tile__label">Grand total</span>
+            <span class="tile__value">{{ r.purchases.totals.total | inr }}</span>
+          </li>
+        </ul>
+
+        <section class="panel">
+          <h3 class="panel-title">Purchases — HSN/SAC summary</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">HSN/SAC</th>
+                  <th scope="col" class="num">GST %</th>
+                  <th scope="col" class="num">Taxable value</th>
+                  <th scope="col" class="num">GST</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (h of r.purchases.byHsn; track $index) {
+                  <tr>
+                    <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
+                    <td class="num">{{ h.gstRate }}%</td>
+                    <td class="num">{{ h.taxable | inr }}</td>
+                    <td class="num strong">{{ h.tax | inr }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
     }
   }
 </div>

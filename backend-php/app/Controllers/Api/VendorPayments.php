@@ -5,40 +5,31 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
 use App\Models\BankAccountModel;
-use App\Models\PurchasePaymentModel;
+use App\Models\PurchaseModel;
 use App\Models\ReceiptModel;
+use App\Models\VendorPaymentModel;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 
 /**
- * /api/purchase-payments — money paid to vendors for purchases (the "Payments" page).
+ * /api/payments — money paid to vendors (the "Payments" page): payment details only.
  */
-class PurchasePayments extends BaseController
+class VendorPayments extends BaseController
 {
     private const CLEANERS = [
         'paymentNumber' => ['trim'],
         'vendorName'    => ['trim'],
-        'purchaseDate'  => [],
+        'paymentDate'   => [],
         'mode'          => [],
         'bankAccountId' => ['nullable_number'],
-        'note'          => ['trim', 'empty_to_null'],
-        'lines'         => [],
-        'lines.*'       => [
-            'itemId'      => ['nullable_number'],
-            'description' => ['trim'],
-            'narration'   => ['trim', 'empty_to_null'],
-            'hsnSac'      => ['trim', 'empty_to_null'],
-            'quantity'    => ['number'],
-            'unit'        => ['empty_to_null'],
-            'unitPrice'   => ['number'],
-            'gstRate'     => ['number'],
-        ],
+        'amount'        => ['number'],
+        'reference'     => ['trim', 'empty_to_null'],
     ];
 
-    private PurchasePaymentModel $payments;
+    private VendorPaymentModel $payments;
 
     public function __construct()
     {
-        $this->payments = model(PurchasePaymentModel::class);
+        $this->payments = model(VendorPaymentModel::class);
     }
 
     public function index()
@@ -53,17 +44,17 @@ class PurchasePayments extends BaseController
 
     public function vendors()
     {
-        return $this->json($this->payments->vendorNames($this->companyId()));
-    }
-
-    public function show(string $id)
-    {
-        return $this->json($this->payments->findOwnedDto($this->companyId(), $this->id($id)));
+        return $this->json(model(PurchaseModel::class)->vendorNames($this->companyId()));
     }
 
     public function create()
     {
-        $id = $this->save(null, $this->validatedBody());
+        $row = VendorPaymentModel::toRow($this->validatedBody());
+        try {
+            $id = (int) $this->payments->insert(['company_id' => $this->companyId()] + $row);
+        } catch (DatabaseException $e) {
+            throw self::duplicateNumberError($e);
+        }
 
         return $this->json($this->payments->findOwnedDto($this->companyId(), $id), 201);
     }
@@ -71,7 +62,12 @@ class PurchasePayments extends BaseController
     public function update(string $id)
     {
         $existing = $this->payments->findOwnedDto($this->companyId(), $this->id($id));
-        $this->save($existing['id'], $this->validatedBody());
+        $row      = VendorPaymentModel::toRow($this->validatedBody());
+        try {
+            $this->payments->update($existing['id'], $row);
+        } catch (DatabaseException $e) {
+            throw self::duplicateNumberError($e);
+        }
 
         return $this->json($this->payments->findOwnedDto($this->companyId(), $existing['id']));
     }
@@ -84,25 +80,13 @@ class PurchasePayments extends BaseController
         return $this->noContent();
     }
 
-    /**
-     * @param array<string, mixed> $body
-     */
-    private function save(?int $id, array $body): int
+    private static function duplicateNumberError(DatabaseException $e): \Throwable
     {
-        $db = db_connect();
-        try {
-            $db->transException(true)->transStart();
-            $id = $this->payments->savePayment($this->companyId(), $id, $body);
-            $db->transComplete();
-        } catch (DatabaseException $e) {
-            if ($e->getCode() === 1062) {
-                throw new HttpError(409, 'This payment number is already used.', ['paymentNumber' => 'This payment number is already used.']);
-            }
-
-            throw $e;
+        if ($e->getCode() === 1062) {
+            return new HttpError(409, 'This payment number is already used.', ['paymentNumber' => 'This payment number is already used.']);
         }
 
-        return $id;
+        return $e;
     }
 
     /**
@@ -112,7 +96,7 @@ class PurchasePayments extends BaseController
      */
     private function validatedBody(): array
     {
-        $body = $this->validated('purchasePayment', self::CLEANERS);
+        $body = $this->validated('vendorPayment', self::CLEANERS);
         if ($body['mode'] !== 'bank' || $body['bankAccountId'] === null) {
             return ['bankAccountId' => null] + $body;
         }

@@ -4,12 +4,10 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, of } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
-import { CompanyService } from '../../core/data/company.service';
 import { ItemService } from '../../core/data/item.service';
-import { BankAccount, Item, PurchaseLine, PurchasePaymentInput, ReceiptMode } from '../../core/data/models';
-import { PurchasePaymentService } from '../../core/data/purchase-payment.service';
+import { Item, PurchaseInput, PurchaseLine } from '../../core/data/models';
+import { PurchaseService } from '../../core/data/purchase.service';
 import { calculateLine, round2 } from '../../core/gst/gst';
-import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { todayIso } from '../../core/ui/dates';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -30,7 +28,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 const FIELD_REQUIRED: Record<string, string> = {
-  paymentNumber: 'Payment No. is required.',
+  purchaseNumber: 'Purchase No. is required.',
   vendorName: 'Vendor is required.',
   purchaseDate: 'Purchase date is required.',
   description: 'Choose an item for this line.',
@@ -39,23 +37,23 @@ const FIELD_REQUIRED: Record<string, string> = {
   gstRate: 'GST % is required.',
 };
 
-// Record / edit money paid to a vendor for a purchase (/payments/new, /payments/:id/edit).
+// Record / edit a purchase bill from a vendor with the items bought (/purchases/new, /purchases/:id/edit).
+// What was paid for it is recorded separately on /payments.
 @Component({
-  selector: 'app-purchase-payment-editor-page',
+  selector: 'app-purchase-editor-page',
   imports: [ReactiveFormsModule, RouterLink, Icon, InrPipe, PageHeader, Modal, ItemForm, LineItems],
-  templateUrl: './purchase-payment-editor.html',
-  styleUrl: './purchase-payment-editor.scss',
+  templateUrl: './purchase-editor.html',
+  styleUrl: './purchase-editor.scss',
 })
-export class PurchasePaymentEditor {
+export class PurchaseEditor {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly service = inject(PurchasePaymentService);
+  private readonly service = inject(PurchaseService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
-  private readonly paymentId = Number(inject(ActivatedRoute).snapshot.paramMap.get('id')) || null;
+  private readonly purchaseId = Number(inject(ActivatedRoute).snapshot.paramMap.get('id')) || null;
 
-  protected readonly title = this.paymentId ? 'Edit Payment' : 'Record Payment';
+  protected readonly title = this.purchaseId ? 'Edit Purchase' : 'Record Purchase';
   protected readonly items = signal<Item[]>([]);
-  protected readonly bankAccounts = signal<BankAccount[]>([]);
   protected readonly vendors = signal<string[]>([]);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
@@ -66,11 +64,9 @@ export class PurchasePaymentEditor {
   protected readonly newItemLine = signal<number | null>(null);
 
   protected readonly form = this.fb.group({
-    paymentNumber: ['', [Validators.required, Validators.maxLength(40)]],
+    purchaseNumber: ['', [Validators.required, Validators.maxLength(40)]],
     vendorName: ['', [Validators.required, Validators.maxLength(150)]],
     purchaseDate: [todayIso(), Validators.required],
-    mode: ['bank' as ReceiptMode, Validators.required],
-    bankAccountId: [null as number | null],
     note: ['', Validators.maxLength(500)],
     lines: this.fb.array([this.lineGroup()]),
   });
@@ -78,7 +74,6 @@ export class PurchasePaymentEditor {
   private readonly value = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())), {
     initialValue: this.form.getRawValue(),
   });
-  protected readonly isBank = computed(() => this.value().mode === 'bank');
   // Live preview; the server recalculates on save. Purchases show GST as one amount.
   protected readonly calculation = computed(() => {
     const lines = this.value().lines.map((l) => calculateLine(l, false));
@@ -86,34 +81,28 @@ export class PurchasePaymentEditor {
     const totalTax = round2(lines.reduce((t, l) => t + l.totalTax, 0));
     return { lines, subTotal, totalTax, grandTotal: round2(subTotal + totalTax) };
   });
-  protected readonly bankLabel = (a: BankAccount) => bankAccountLabel(a) ?? a.ifsc ?? `Account ${a.id}`;
 
   constructor() {
     forkJoin({
-      company: inject(CompanyService).get(),
       items: inject(ItemService).list(),
       vendors: this.service.vendors(),
-      payment: this.paymentId ? this.service.get(this.paymentId) : of(null),
-      next: this.paymentId ? of(null) : this.service.nextNumber().pipe(map((r) => r.paymentNumber)),
+      purchase: this.purchaseId ? this.service.get(this.purchaseId) : of(null),
+      next: this.purchaseId ? of(null) : this.service.nextNumber().pipe(map((r) => r.purchaseNumber)),
     }).subscribe({
-      next: ({ company, items, vendors, payment, next }) => {
+      next: ({ items, vendors, purchase, next }) => {
         this.items.set(items);
-        this.bankAccounts.set(company.bankAccounts);
         this.vendors.set(vendors);
-        if (payment) {
+        if (purchase) {
           this.form.patchValue({
-            paymentNumber: payment.paymentNumber,
-            vendorName: payment.vendorName,
-            purchaseDate: payment.purchaseDate,
-            mode: payment.mode,
-            bankAccountId: payment.bankAccountId,
-            note: payment.note ?? '',
+            purchaseNumber: purchase.purchaseNumber,
+            vendorName: purchase.vendorName,
+            purchaseDate: purchase.purchaseDate,
+            note: purchase.note ?? '',
           });
           this.lines.clear();
-          for (const line of payment.lines) this.lines.push(this.lineGroup(line));
+          for (const line of purchase.lines) this.lines.push(this.lineGroup(line));
         } else {
-          // New bank payments come from the primary account unless another is picked.
-          this.form.patchValue({ paymentNumber: next ?? '', bankAccountId: company.bankAccounts[0]?.id ?? null });
+          this.form.patchValue({ purchaseNumber: next ?? '' });
         }
         this.loading.set(false);
       },
@@ -193,12 +182,10 @@ export class PurchasePaymentEditor {
     if (this.saving()) return;
 
     const v = this.form.getRawValue();
-    const input: PurchasePaymentInput = {
-      paymentNumber: v.paymentNumber.trim(),
+    const input: PurchaseInput = {
+      purchaseNumber: v.purchaseNumber.trim(),
       vendorName: v.vendorName.trim(),
       purchaseDate: v.purchaseDate,
-      mode: v.mode,
-      bankAccountId: v.mode === 'bank' && v.bankAccountId !== null ? Number(v.bankAccountId) : null,
       note: v.note.trim() || null,
       lines: v.lines.map((l) => ({
         itemId: l.itemId,
@@ -213,11 +200,11 @@ export class PurchasePaymentEditor {
     };
 
     this.saving.set(true);
-    const request$ = this.paymentId ? this.service.update(this.paymentId, input) : this.service.create(input);
+    const request$ = this.purchaseId ? this.service.update(this.purchaseId, input) : this.service.create(input);
     request$.subscribe({
       next: (saved) => {
-        this.toast.success(`Payment ${saved.paymentNumber} saved`);
-        this.router.navigateByUrl('/payments');
+        this.toast.success(`Purchase ${saved.purchaseNumber} saved`);
+        this.router.navigateByUrl('/purchases');
       },
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);

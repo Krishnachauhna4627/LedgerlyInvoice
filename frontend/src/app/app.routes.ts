@@ -53,19 +53,24 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/receipts/receipts').then((m) => m.Receipts),
       },
       {
+        path: 'purchases',
+        title: page('Purchases'),
+        loadComponent: () => import('./pages/purchases/purchases').then((m) => m.Purchases),
+      },
+      {
+        path: 'purchases/new',
+        title: page('New purchase'),
+        loadComponent: () => import('./pages/purchase-editor/purchase-editor').then((m) => m.PurchaseEditor),
+      },
+      {
+        path: 'purchases/:id/edit',
+        title: page('Edit purchase'),
+        loadComponent: () => import('./pages/purchase-editor/purchase-editor').then((m) => m.PurchaseEditor),
+      },
+      {
         path: 'payments',
         title: page('Payments'),
-        loadComponent: () => import('./pages/purchase-payments/purchase-payments').then((m) => m.PurchasePayments),
-      },
-      {
-        path: 'payments/new',
-        title: page('New payment'),
-        loadComponent: () => import('./pages/purchase-payment-editor/purchase-payment-editor').then((m) => m.PurchasePaymentEditor),
-      },
-      {
-        path: 'payments/:id/edit',
-        title: page('Edit payment'),
-        loadComponent: () => import('./pages/purchase-payment-editor/purchase-payment-editor').then((m) => m.PurchasePaymentEditor),
+        loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
       },
       {
         path: 'clients',

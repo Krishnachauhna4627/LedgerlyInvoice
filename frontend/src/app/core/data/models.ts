@@ -75,7 +75,7 @@ export interface Receipt {
 
 export type ReceiptInput = Omit<Receipt, 'id' | 'clientName' | 'bankAccount'>;
 
-// Money paid to a vendor for a purchase (the "Payments" page).
+// A purchase bill from a vendor, with the items bought (the "Purchases" page).
 export interface PurchaseLine {
   itemId: number | null;
   description: string;
@@ -91,26 +91,43 @@ export interface PurchaseLine {
   lineTotal: number;
 }
 
-export interface PurchasePayment {
+export interface Purchase {
+  id: number;
+  // Purchase No., unique per company.
+  purchaseNumber: string;
+  vendorName: string;
+  purchaseDate: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
+  // Optional — vendor's bill no., etc.
+  note: string | null;
+  lines: PurchaseLine[];
+  totals: { subTotal: number; totalTax: number; grandTotal: number };
+}
+
+export type PurchaseInput = Omit<Purchase, 'id' | 'createdAt' | 'lines' | 'totals'> & {
+  lines: Omit<PurchaseLine, 'taxableAmount' | 'totalTax' | 'lineTotal'>[];
+};
+
+// Money paid to a vendor (the "Payments" page): payment details only, like a receipt.
+export interface VendorPayment {
   id: number;
   // Payment No., unique per company.
   paymentNumber: string;
   vendorName: string;
-  purchaseDate: string;
+  paymentDate: string;
   // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
   createdAt?: string | null;
   mode: ReceiptMode;
   // The business bank account it was paid from (bank payments only).
   bankAccountId: number | null;
   bankAccount: BankAccountRef | null;
-  note: string | null;
-  lines: PurchaseLine[];
-  totals: { subTotal: number; totalTax: number; grandTotal: number };
+  amount: number;
+  // Short narration: cheque no., UPI ref, bill no.…
+  reference: string | null;
 }
 
-export type PurchasePaymentInput = Omit<PurchasePayment, 'id' | 'bankAccount' | 'lines' | 'totals'> & {
-  lines: Omit<PurchaseLine, 'taxableAmount' | 'totalTax' | 'lineTotal'>[];
-};
+export type VendorPaymentInput = Omit<VendorPayment, 'id' | 'createdAt' | 'bankAccount'>;
 
 export interface LedgerEntry {
   type: 'sale' | 'receipt';
@@ -305,6 +322,20 @@ export interface SalesReport {
   totals: SalesTotals;
   byMonth: (SalesTotals & { month: string })[];
   byHsn: { hsnSac: string | null; gstRate: number; taxable: number; cgst: number; sgst: number; igst: number; tax: number }[];
+}
+
+// Purchase bills for a date range; GST on purchases is one amount (no CGST/SGST/IGST split).
+export interface PurchaseTotals {
+  count: number;
+  subTotal: number;
+  tax: number;
+  total: number;
+}
+
+export interface PurchaseReport {
+  totals: PurchaseTotals;
+  byMonth: (PurchaseTotals & { month: string })[];
+  byHsn: { hsnSac: string | null; gstRate: number; taxable: number; tax: number }[];
 }
 
 export interface SalesExportRow {
