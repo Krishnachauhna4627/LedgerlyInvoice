@@ -80,6 +80,11 @@ select.input {
   min-height: 36px;
   padding: 0 var(--space-3);
   font-size: var(--text-sm);
+
+  // Full 44px touch target on phones/tablets.
+  @include bp.touch {
+    min-height: 44px;
+  }
 }
 
 .btn--outline {
@@ -114,7 +119,7 @@ select.input {
   cursor: pointer;
 
   // Full 44px touch target on phones/tablets.
-  @media (pointer: coarse) {
+  @include bp.touch {
     width: 44px;
     height: 44px;
   }
@@ -131,7 +136,10 @@ select.input {
 }
 
 // Tables: wrap in .table-scroll so they scroll sideways on small screens instead of the page.
+// position: relative keeps absolutely positioned children (e.g. .sr-only column labels) inside the
+// scroll box; without it they escape and widen the whole page.
 .table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 
@@ -258,6 +266,10 @@ select.input {
   .input {
     min-height: 40px;
     padding-left: var(--space-10);
+
+    @include bp.touch {
+      min-height: 44px;
+    }
   }
 }
 

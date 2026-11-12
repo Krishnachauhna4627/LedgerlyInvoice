@@ -44,7 +44,8 @@ export class StatTiles {
         query: { status: 'overdue' },
       },
       { label: 'Customers', value: String(s.clientCount), icon: 'users', link: '/clients' },
-      { label: 'Products/Services', value: String(s.itemCount), icon: 'box', link: '/items' },
+      // \u200B: lets the label wrap after the slash on narrow phone tiles.
+      { label: 'Products/\u200BServices', value: String(s.itemCount), icon: 'box', link: '/items' },
     ];
   });
 }

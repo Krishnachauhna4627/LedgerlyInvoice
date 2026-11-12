@@ -3,7 +3,7 @@ import { appConfig } from './app/app.config';
 import { App } from './app/app';
 
 // How long the splash screen in index.html stays, counted from page load. Keep in step with --duration-splash.
-const SPLASH_MS = 2000;
+const SPLASH_MS = 600;
 
 bootstrapApplication(App, appConfig)
   .catch((err) => console.error(err))

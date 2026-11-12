@@ -98,7 +98,7 @@ export class Settings {
   protected load(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.companyService.get().subscribe({
+    this.companyService.get(true).subscribe({
       next: (company) => {
         this.fill(company);
         this.loading.set(false);

@@ -44,6 +44,8 @@
 
 .sections {
   display: grid;
+  // minmax(0, 1fr): sections fit the panel instead of growing to their widest content.
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
 }
 

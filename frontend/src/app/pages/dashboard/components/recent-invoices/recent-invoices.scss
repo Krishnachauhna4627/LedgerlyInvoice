@@ -24,6 +24,10 @@
   gap: var(--space-1);
   min-height: 36px;
   color: var(--color-primary);
+
+  @include bp.touch {
+    min-height: 44px;
+  }
   font-size: var(--text-sm);
   font-weight: 600;
   text-decoration: none;

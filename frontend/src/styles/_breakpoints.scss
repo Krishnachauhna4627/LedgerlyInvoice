@@ -21,3 +21,10 @@ $breakpoints: (
     @content;
   }
 }
+
+// Touch screens and phone-sized screens: use for 44×44px touch targets.
+@mixin touch {
+  @media (pointer: coarse), (max-width: map.get($breakpoints, md) - 0.02px) {
+    @content;
+  }
+}
