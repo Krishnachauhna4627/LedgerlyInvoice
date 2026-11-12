@@ -88,9 +88,9 @@
 
         <ul class="cards">
           @for (client of page.rows(); track client.id) {
-            <li class="card">
+            <li class="card card--tappable">
               <div class="card__main">
-                <a class="card__title name-link" [routerLink]="['/clients', client.id]">{{ client.name }}</a>
+                <a class="card__title name-link card-link" [routerLink]="['/clients', client.id]">{{ client.name }}</a>
                 <span class="card__meta">
                   Balance: <span [class.amount--due]="client.balance > 0" [class.amount--advance]="client.balance < 0">{{ client.balance | balance }}</span>
                 </span>

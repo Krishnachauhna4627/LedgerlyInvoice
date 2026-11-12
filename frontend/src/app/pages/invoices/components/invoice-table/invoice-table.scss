@@ -87,18 +87,15 @@ input[type='checkbox'] {
   gap: var(--space-1);
 }
 
+// Wrap instead of cutting off with "…" on very narrow phones (320px).
 .card__client {
-  overflow: hidden;
+  overflow-wrap: anywhere;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .card__main .number,
 .card__meta {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .card__main .number {

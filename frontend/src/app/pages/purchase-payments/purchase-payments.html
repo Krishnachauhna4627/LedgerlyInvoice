@@ -107,9 +107,9 @@
 
       <ul class="cards">
         @for (p of page.rows(); track p.id) {
-          <li class="card">
+          <li class="card card--tappable">
             <div class="card__main">
-              <a class="card__title" [routerLink]="['/payments', p.id, 'edit']">{{ p.vendorName }}</a>
+              <a class="card__title card-link" [routerLink]="['/payments', p.id, 'edit']">{{ p.vendorName }}</a>
               <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }} · {{ modeText(p) }}</span>
               <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
               <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>

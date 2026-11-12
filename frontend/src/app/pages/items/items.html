@@ -74,9 +74,9 @@
 
         <ul class="cards">
           @for (item of page.rows(); track item.id) {
-            <li class="card">
+            <li class="card card--tappable">
               <div class="card__main">
-                <a class="card__title" [routerLink]="['/items', item.id]">{{ item.name }}</a>
+                <a class="card__title card-link" [routerLink]="['/items', item.id]">{{ item.name }}</a>
                 <span class="card__meta">HSN/SAC: {{ item.hsnSac || '—' }} · {{ item.unitPrice | inr }}{{ item.unit ? ' / ' + item.unit : '' }} · GST {{ item.gstRate }}%{{ item.openingStock ? ' · Opening stock ' + (item.openingStock | number: '1.0-3') + (item.unit ? ' ' + item.unit : '') : '' }}</span>
               </div>
               <div class="card__actions">

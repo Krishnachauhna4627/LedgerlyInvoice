@@ -27,6 +27,9 @@ export class ItemLedger {
   protected readonly loadError = signal<string | null>(null);
   protected readonly formatDmy = formatDmy;
   protected readonly unit = computed(() => this.ledger()?.item.unit ?? '');
+  // The server returns entries oldest first (that's how the running balance is worked out);
+  // they are shown latest first. Each entry keeps its own balance.
+  protected readonly newestFirst = computed(() => [...(this.ledger()?.entries ?? [])].reverse());
 
   constructor() {
     this.load();
@@ -59,8 +62,7 @@ export class ItemLedger {
       `stock-ledger-${l.item.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
       ['Date', 'Time', 'Type', 'Vch/Bill No', 'Vendor/Customer', 'Rate', 'In', 'Out', 'Balance'],
       [
-        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
-        ...l.entries.map((e) => [
+        ...this.newestFirst().map((e) => [
           formatDmy(e.date),
           formatTime(e.createdAt),
           e.type === 'purchase' ? 'Purchase' : 'Sale',
@@ -71,6 +73,7 @@ export class ItemLedger {
           e.quantityOut || '',
           e.balance,
         ]),
+        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
         ['', '', 'Total', '', '', '', l.totals.purchased, l.totals.sold, ''],
         ['', '', 'In stock', '', '', '', '', '', l.totals.closingStock],
       ],

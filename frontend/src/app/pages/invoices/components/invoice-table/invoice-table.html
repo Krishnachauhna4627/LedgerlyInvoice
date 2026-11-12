@@ -62,7 +62,7 @@
 
 <ul class="cards">
   @for (inv of invoices(); track inv.id) {
-    <li class="card" [class.is-selected]="selected().has(inv.id)">
+    <li class="card card--tappable" [class.is-selected]="selected().has(inv.id)">
       <input
         type="checkbox"
         class="card__check"
@@ -71,7 +71,7 @@
         (change)="toggle.emit(inv.id)"
       />
       <div class="card__main">
-        <a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a>
+        <a class="number card-link" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a>
         <span class="card__client">{{ inv.clientName }}</span>
         <span class="card__meta">{{ inv.invoiceDate | date: 'd MMM y' }}{{ inv.createdAt | time: ', ' }}</span>
         <span class="card__meta">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</span>

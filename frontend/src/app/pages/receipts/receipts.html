@@ -117,9 +117,9 @@
 
       <ul class="cards">
         @for (r of page.rows(); track r.id) {
-          <li class="card">
+          <li class="card card--tappable">
             <div class="card__main">
-              <a class="card__title" [routerLink]="['/clients', r.clientId]">{{ r.clientName }}</a>
+              <a class="card__title card-link" [routerLink]="['/clients', r.clientId]">{{ r.clientName }}</a>
               <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }}{{ r.createdAt | time: ', ' }} · {{ modeText(r) }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
               <span class="card__amount">{{ r.amount | inr }}</span>
             </div>

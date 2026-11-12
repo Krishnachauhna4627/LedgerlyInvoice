@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map, of, retry, throwError, timer } from 'rxjs';
 import { AuthResponse, LoginRequest, PasswordChange, ProfileUpdate, SignupRequest, User } from './auth.models';
 
 const TOKEN_KEY = 'ledgerly.token';
@@ -37,18 +37,28 @@ export class AuthService {
       .pipe(map(({ message }) => message));
   }
 
-  // Fetches the logged-in user once per visit; resolves to null (and logs out) if the token is no longer valid.
+  // Fetches the logged-in user once per visit. Resolves to null (and logs out) only when the server
+  // says the token is no longer valid (401). Server or network errors are retried a few times
+  // (1s, 2s, 4s — enough to ride out a server/database restart) and then re-thrown with the token
+  // kept, so a brief outage never logs the user out.
   loadCurrentUser(): Observable<User | null> {
     const cached = this.user();
     if (cached) {
       return of(cached);
     }
     return this.http.get<{ user: User }>('/api/auth/me').pipe(
+      retry({
+        count: 3,
+        delay: (err, attempt) => (isUnauthorized(err) ? throwError(() => err) : timer(1000 * 2 ** (attempt - 1))),
+      }),
       map(({ user }) => {
         this.user.set(user);
         return user;
       }),
-      catchError(() => {
+      catchError((err: unknown) => {
+        if (!isUnauthorized(err)) {
+          return throwError(() => err);
+        }
         this.logout();
         return of(null);
       }),
@@ -108,6 +118,10 @@ export class AuthService {
     writeToken(token);
     return user;
   }
+}
+
+function isUnauthorized(err: unknown): boolean {
+  return err instanceof HttpErrorResponse && err.status === 401;
 }
 
 function readToken(key = TOKEN_KEY): string | null {

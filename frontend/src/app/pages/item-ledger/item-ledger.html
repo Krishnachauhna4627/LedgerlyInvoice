@@ -57,14 +57,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="opening">
-              <td>—</td>
-              <td colspan="4">Opening stock</td>
-              <td class="num">{{ l.openingStock ? (l.openingStock | number: '1.0-3') : '' }}</td>
-              <td class="num"></td>
-              <td class="num strong">{{ l.openingStock | number: '1.0-3' }}</td>
-            </tr>
-            @for (e of l.entries; track $index) {
+            <!-- Latest first; the opening stock (the oldest) is the last row. -->
+            @for (e of newestFirst(); track $index) {
               <tr>
                 <td>
                   {{ formatDmy(e.date) }}
@@ -79,6 +73,13 @@
                 <td class="num strong">{{ e.balance | number: '1.0-3' }}</td>
               </tr>
             }
+            <tr class="opening">
+              <td>—</td>
+              <td colspan="4">Opening stock</td>
+              <td class="num">{{ l.openingStock ? (l.openingStock | number: '1.0-3') : '' }}</td>
+              <td class="num"></td>
+              <td class="num strong">{{ l.openingStock | number: '1.0-3' }}</td>
+            </tr>
           </tbody>
           <tfoot>
             <tr>
@@ -92,14 +93,10 @@
       </div>
 
       <ul class="cards">
-        <li class="card">
-          <span class="card__title">Opening stock</span>
-          <span class="card__qty">{{ l.openingStock | number: '1.0-3' }}</span>
-        </li>
-        @for (e of l.entries; track $index) {
-          <li class="card">
+        @for (e of newestFirst(); track $index) {
+          <li class="card card--tappable">
             <div class="card__main">
-              <a class="card__title" [routerLink]="link(e)">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }} {{ e.number }}</a>
+              <a class="card__title card-link" [routerLink]="link(e)">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }} {{ e.number }}</a>
               <span class="card__meta">{{ formatDmy(e.date) }}{{ e.createdAt | time: ', ' }} · {{ e.party }} · {{ e.rate | inr }}</span>
             </div>
             <div class="card__side">
@@ -110,6 +107,10 @@
             </div>
           </li>
         }
+        <li class="card">
+          <span class="card__title">Opening stock</span>
+          <span class="card__qty">{{ l.openingStock | number: '1.0-3' }}</span>
+        </li>
       </ul>
 
       @if (l.entries.length === 0) {
