@@ -1,7 +1,7 @@
 import { Company, Receipt } from '../data/models';
 import { amountInWords } from '../gst/amount-in-words';
 import { CONTENT_WIDTH, FONT, MARGIN, PAGE, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
-import { formatDmy } from '../ui/dates';
+import { formatDmy, formatTime } from '../ui/dates';
 import { oneLineAddress } from '../ledger/ledger-labels';
 import { receiptAccountLabel } from './receipt-labels';
 
@@ -50,7 +50,7 @@ export async function createReceiptPdf(receipt: Receipt, company: Company | null
         { content: 'Receipt No.', styles: label },
         { content: receipt.receiptNumber ?? '', styles: { fontStyle: 'bold' } },
         { content: 'Date', styles: { fontStyle: 'bold', cellWidth: 20 } },
-        { content: formatDmy(receipt.receiptDate), styles: { cellWidth: 30 } },
+        { content: [formatDmy(receipt.receiptDate), formatTime(receipt.createdAt)].filter(Boolean).join('\n'), styles: { cellWidth: 30 } },
       ],
       [{ content: 'Received with thanks from', styles: label }, { content: receipt.clientName, colSpan: 3, styles: { fontStyle: 'bold' } }],
       [{ content: 'The sum of', styles: label }, { content: amountInWords(receipt.amount), colSpan: 3 }],

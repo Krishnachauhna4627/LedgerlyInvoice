@@ -1,6 +1,6 @@
 import { Company, Ledger } from '../data/models';
 import { BOTTOM, CONTENT_WIDTH, FONT, MARGIN, PAGE, TOP_CONTINUED, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
-import { formatDmy } from '../ui/dates';
+import { formatDmy, formatTime } from '../ui/dates';
 import { ledgerAccount, ledgerPeriod, oneLineAddress } from './ledger-labels';
 
 // Builds one customer's "Account Ledger" as a real A4 PDF (tables drawn with jspdf-autotable),
@@ -65,7 +65,8 @@ export async function createLedgerPdf(ledger: Ledger, company: Company | null): 
     head: [['Date', 'Type', 'Vch/Bill No', 'Account', 'Debit (Rs.)', 'Credit (Rs.)', 'Balance (Rs.)', 'Short Narration']],
     body: ledger.entries.length
       ? ledger.entries.map((e) => [
-          formatDmy(e.date),
+          // Time on a second line under the date.
+          [formatDmy(e.date), formatTime(e.createdAt)].filter(Boolean).join('\n'),
           e.type === 'sale' ? 'Sale' : 'Rcpt',
           (e.type === 'sale' ? e.invoiceNumber : e.receiptNumber) ?? '',
           ledgerAccount(e, company),

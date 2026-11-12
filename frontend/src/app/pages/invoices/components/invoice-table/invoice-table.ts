@@ -5,6 +5,7 @@ import { InvoiceListItem } from '../../../../core/data/models';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
+import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 export interface MenuRequest {
   invoice: InvoiceListItem;
@@ -14,7 +15,7 @@ export interface MenuRequest {
 // Wide table on md+; stacked cards on phones.
 @Component({
   selector: 'app-invoice-table',
-  imports: [RouterLink, DatePipe, Icon, StatusBadge, InrPipe],
+  imports: [RouterLink, DatePipe, Icon, StatusBadge, InrPipe, TimePipe],
   templateUrl: './invoice-table.html',
   styleUrl: './invoice-table.scss',
 })

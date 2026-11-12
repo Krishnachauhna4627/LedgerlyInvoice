@@ -19,6 +19,16 @@ export function financialYear(iso = todayIso()): { from: string; to: string } {
 // 'YYYY-MM-DD' → 'DD-MM-YYYY', as printed on ledgers.
 export const formatDmy = (iso: string | null): string => (iso ? iso.split('-').reverse().join('-') : '—');
 
+// ISO timestamp (e.g. an entry's createdAt) → local time like '9:49 AM'; '' when there is none.
+export const formatTime = (iso: string | null | undefined): string =>
+  iso ? new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+
+// A date with the time it was saved: '21-10-2026, 9:49 AM' (just the date when there is no time).
+export const formatDmyTime = (date: string | null, createdAt: string | null | undefined): string => {
+  const time = formatTime(createdAt);
+  return time ? `${formatDmy(date)}, ${time}` : formatDmy(date);
+};
+
 export type Period = 'this_month' | 'last_3_months' | 'last_6_months' | 'this_year' | 'all';
 
 export const PERIODS: { value: Period; label: string }[] = [

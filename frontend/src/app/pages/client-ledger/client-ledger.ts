@@ -9,7 +9,7 @@ import { createLedgerPdf } from '../../core/ledger/ledger-pdf';
 import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
 import { downloadCsv } from '../../core/ui/csv';
-import { financialYear, formatDmy } from '../../core/ui/dates';
+import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
@@ -119,11 +119,12 @@ export class ClientLedger {
     const drCr = (n: number) => (n > 0 ? 'Dr' : n < 0 ? 'Cr' : '');
     downloadCsv(
       `ledger-${l.client.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
-      ['Date', 'Type', 'Vch/Bill No', 'Account', 'Debit', 'Credit', 'Balance', 'Dr/Cr', 'Short Narration'],
+      ['Date', 'Time', 'Type', 'Vch/Bill No', 'Account', 'Debit', 'Credit', 'Balance', 'Dr/Cr', 'Short Narration'],
       [
-        ['', 'Opening', '', '', '', '', Math.abs(l.openingBalance), drCr(l.openingBalance), ''],
+        ['', '', 'Opening', '', '', '', '', Math.abs(l.openingBalance), drCr(l.openingBalance), ''],
         ...l.entries.map((e) => [
           formatDmy(e.date),
+          formatTime(e.createdAt),
           e.type === 'sale' ? 'Sale' : 'Rcpt',
           e.invoiceNumber,
           ledgerAccount(e, this.company()),
@@ -133,8 +134,8 @@ export class ClientLedger {
           drCr(e.balance),
           e.reference,
         ]),
-        ['', 'Total', '', '', l.totals.sales, l.totals.receipts, '', '', ''],
-        ['', 'Closing', '', '', '', '', Math.abs(l.totals.closingBalance), drCr(l.totals.closingBalance), ''],
+        ['', '', 'Total', '', '', l.totals.sales, l.totals.receipts, '', '', ''],
+        ['', '', 'Closing', '', '', '', '', Math.abs(l.totals.closingBalance), drCr(l.totals.closingBalance), ''],
       ],
     );
   }

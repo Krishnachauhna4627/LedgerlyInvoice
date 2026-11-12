@@ -67,7 +67,7 @@
       <dt>Invoice no.</dt>
       <dd>{{ inv.invoiceNumber }}</dd>
       <dt>Invoice date</dt>
-      <dd>{{ formatDate(inv.invoiceDate) }}</dd>
+      <dd>{{ formatDate(inv.invoiceDate) }}{{ inv.createdAt | time: ', ' }}</dd>
       <dt>Due date</dt>
       <dd>{{ formatDate(inv.dueDate) }}</dd>
       <dt>Place of supply</dt>

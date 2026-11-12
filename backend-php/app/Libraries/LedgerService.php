@@ -120,12 +120,12 @@ class LedgerService
     public function getLedger(array $client, ?string $from, ?string $to): array
     {
         $invoices = $this->db->table('invoices')
-            ->select('id, invoice_number, invoice_date, grand_total')
+            ->select('id, invoice_number, invoice_date, grand_total, created_at')
             ->where('client_id', $client['id'])
             ->where('status !=', 'draft')
             ->get()->getResultArray();
         $receipts = $this->db->table('receipts')
-            ->select('receipts.id, receipt_number, receipt_date, mode, bank_account_id, amount, reference, bank.bank_name, bank.account_no')
+            ->select('receipts.id, receipt_number, receipt_date, receipts.created_at, mode, bank_account_id, amount, reference, bank.bank_name, bank.account_no')
             ->join('company_bank_accounts bank', 'bank.id = receipts.bank_account_id', 'left')
             ->where('client_id', $client['id'])
             ->get()->getResultArray();
@@ -135,6 +135,7 @@ class LedgerService
                 'type'          => 'sale',
                 'id'            => (int) $i['id'],
                 'date'          => $i['invoice_date'],
+                'createdAt'     => iso_timestamp($i['created_at']),
                 'invoiceNumber' => $i['invoice_number'],
                 'receiptNumber' => null,
                 'mode'          => null,
@@ -147,6 +148,7 @@ class LedgerService
                 'type'          => 'receipt',
                 'id'            => (int) $r['id'],
                 'date'          => $r['receipt_date'],
+                'createdAt'     => iso_timestamp($r['created_at']),
                 'invoiceNumber' => null,
                 'receiptNumber' => $r['receipt_number'],
                 'mode'          => $r['mode'],

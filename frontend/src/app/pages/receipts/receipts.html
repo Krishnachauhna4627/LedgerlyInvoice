@@ -92,7 +92,7 @@
             @for (r of page.rows(); track r.id) {
               <tr>
                 <td class="strong">{{ r.receiptNumber || '—' }}</td>
-                <td>{{ formatDmy(r.receiptDate) }}</td>
+                <td>{{ formatDmy(r.receiptDate) }}<span class="time">{{ r.createdAt | time }}</span></td>
                 <td class="strong"><a [routerLink]="['/clients', r.clientId]" title="Open ledger">{{ r.clientName }}</a></td>
                 <td>{{ modeText(r) }}</td>
                 <td [class.muted]="!r.reference">{{ r.reference || '—' }}</td>
@@ -120,7 +120,7 @@
           <li class="card">
             <div class="card__main">
               <a class="card__title" [routerLink]="['/clients', r.clientId]">{{ r.clientName }}</a>
-              <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }} · {{ modeText(r) }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
+              <span class="card__meta">{{ r.receiptNumber ? 'Rcpt ' + r.receiptNumber + ' · ' : '' }}{{ formatDmy(r.receiptDate) }}{{ r.createdAt | time: ', ' }} · {{ modeText(r) }}{{ r.reference ? ' · ' + r.reference : '' }}</span>
               <span class="card__amount">{{ r.amount | inr }}</span>
             </div>
             <div class="card__actions">

@@ -46,7 +46,7 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th scope="col">Date</th>
+              <th scope="col">Date &amp; time</th>
               <th scope="col">Type</th>
               <th scope="col">Vch/Bill No</th>
               <th scope="col">Vendor/Customer</th>
@@ -66,7 +66,10 @@
             </tr>
             @for (e of l.entries; track $index) {
               <tr>
-                <td>{{ formatDmy(e.date) }}</td>
+                <td>
+                  {{ formatDmy(e.date) }}
+                  <span class="time">{{ e.createdAt | time }}</span>
+                </td>
                 <td><span class="tag" [class.tag--in]="e.type === 'purchase'">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }}</span></td>
                 <td><a [routerLink]="link(e)">{{ e.number }}</a></td>
                 <td>{{ e.party }}</td>
@@ -97,7 +100,7 @@
           <li class="card">
             <div class="card__main">
               <a class="card__title" [routerLink]="link(e)">{{ e.type === 'purchase' ? 'Purchase' : 'Sale' }} {{ e.number }}</a>
-              <span class="card__meta">{{ formatDmy(e.date) }} · {{ e.party }} · {{ e.rate | inr }}</span>
+              <span class="card__meta">{{ formatDmy(e.date) }}{{ e.createdAt | time: ', ' }} · {{ e.party }} · {{ e.rate | inr }}</span>
             </div>
             <div class="card__side">
               <span class="card__qty" [class.in]="e.type === 'purchase'" [class.out]="e.type === 'sale'">

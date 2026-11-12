@@ -41,7 +41,7 @@
           </td>
           <td><app-status-badge [status]="inv.displayStatus" /></td>
           <td class="muted">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</td>
-          <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}</td>
+          <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}<span class="time">{{ inv.createdAt | time }}</span></td>
           <td class="actions">
             <button
               type="button"
@@ -73,7 +73,8 @@
       <div class="card__main">
         <a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a>
         <span class="card__client">{{ inv.clientName }}</span>
-        <span class="card__meta">{{ inv.invoiceDate | date: 'd MMM y' }} · {{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</span>
+        <span class="card__meta">{{ inv.invoiceDate | date: 'd MMM y' }}{{ inv.createdAt | time: ', ' }}</span>
+        <span class="card__meta">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</span>
       </div>
       <div class="card__side">
         <span class="card__amount">{{ inv.amountDue | inr }}</span>

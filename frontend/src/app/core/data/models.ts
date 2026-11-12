@@ -62,6 +62,8 @@ export interface Receipt {
   // Receipt No., unique per company, like the invoice number.
   receiptNumber: string;
   receiptDate: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
   mode: ReceiptMode;
   // The business bank account the money went into (bank receipts only; null if not chosen or since removed).
   bankAccountId: number | null;
@@ -95,6 +97,8 @@ export interface PurchasePayment {
   paymentNumber: string;
   vendorName: string;
   purchaseDate: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
   mode: ReceiptMode;
   // The business bank account it was paid from (bank payments only).
   bankAccountId: number | null;
@@ -113,6 +117,8 @@ export interface LedgerEntry {
   // Invoice id for a sale, receipt id for a receipt.
   id: number;
   date: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
   invoiceNumber: string | null;
   receiptNumber: string | null;
   mode: ReceiptMode | null;
@@ -153,6 +159,8 @@ export interface StockLedgerEntry {
   // Purchase payment id for a purchase, invoice id for a sale.
   id: number;
   date: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
   // Payment No. or invoice number.
   number: string;
   // Vendor or customer.
@@ -189,6 +197,8 @@ export interface InvoiceListItem {
   id: number;
   invoiceNumber: string;
   invoiceDate: string;
+  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  createdAt?: string | null;
   dueDate: string | null;
   status: InvoiceStatus;
   displayStatus: DisplayStatus;

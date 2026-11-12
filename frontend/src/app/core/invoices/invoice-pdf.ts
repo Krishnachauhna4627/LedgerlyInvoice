@@ -20,6 +20,7 @@ import {
   newPdf,
   themeColors,
 } from '../pdf/pdf-kit';
+import { formatTime } from '../ui/dates';
 import { formatInvoiceDate, hsnSummary, inclusiveRate } from './invoice-summary';
 
 // Builds the invoice as a real A4 PDF (selectable text, tables drawn with jspdf-autotable), so it
@@ -151,7 +152,7 @@ class InvoicePdfWriter {
 
     const meta: [string, string][] = [
       ['Invoice no.', inv.invoiceNumber],
-      ['Invoice date', formatInvoiceDate(inv.invoiceDate)],
+      ['Invoice date', formatInvoiceDate(inv.invoiceDate) + (inv.createdAt ? `, ${formatTime(inv.createdAt)}` : '')],
       ['Due date', formatInvoiceDate(inv.dueDate)],
       ['Place of supply', stateLabel(inv.placeOfSupplyCode)],
       ['Reverse charge', inv.reverseCharge ? 'Yes' : 'No'],

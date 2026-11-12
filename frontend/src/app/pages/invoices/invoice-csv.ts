@@ -1,6 +1,6 @@
 import { InvoiceListItem } from '../../core/data/models';
 import { downloadCsv } from '../../core/ui/csv';
-import { todayIso } from '../../core/ui/dates';
+import { formatTime, todayIso } from '../../core/ui/dates';
 
 const STATUS_LABEL = { draft: 'Draft', unpaid: 'Unpaid', overdue: 'Overdue', paid: 'Paid' } as const;
 
@@ -8,10 +8,11 @@ const STATUS_LABEL = { draft: 'Draft', unpaid: 'Unpaid', overdue: 'Overdue', pai
 export function exportInvoicesCsv(rows: InvoiceListItem[]): void {
   downloadCsv(
     `invoices-${todayIso()}.csv`,
-    ['Invoice No', 'Date', 'Due date', 'Client', 'Client GSTIN', 'Items', 'Taxable', 'Tax', 'Total', 'Status'],
+    ['Invoice No', 'Date', 'Time', 'Due date', 'Client', 'Client GSTIN', 'Items', 'Taxable', 'Tax', 'Total', 'Status'],
     rows.map((r) => [
       r.invoiceNumber,
       r.invoiceDate,
+      formatTime(r.createdAt),
       r.dueDate,
       r.clientName,
       r.clientGstin,

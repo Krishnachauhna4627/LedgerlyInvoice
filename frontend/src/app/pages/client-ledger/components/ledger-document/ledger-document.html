@@ -32,7 +32,7 @@
       <tbody>
         @for (e of l.entries; track e.type + e.id) {
           <tr>
-            <td class="nowrap">{{ formatDmy(e.date) }}</td>
+            <td class="nowrap">{{ formatDmy(e.date) }}<span class="time">{{ e.createdAt | time }}</span></td>
             <td>{{ e.type === 'sale' ? 'Sale' : 'Rcpt' }}</td>
             <td class="nowrap">
               @if (e.type === 'sale') {

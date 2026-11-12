@@ -59,6 +59,8 @@ class InvoiceModel extends Model
             'id'            => (int) $row['id'],
             'invoiceNumber' => $row['invoice_number'],
             'invoiceDate'   => $row['invoice_date'],
+            // When it was saved (ISO timestamp); the date above has no time.
+            'createdAt'     => iso_timestamp($row['created_at'] ?? null),
             'dueDate'       => $row['due_date'],
             'status'        => $row['status'],
             'displayStatus' => self::displayStatus($row),

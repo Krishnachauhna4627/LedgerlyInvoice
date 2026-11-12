@@ -85,7 +85,7 @@
             @for (p of page.rows(); track p.id) {
               <tr>
                 <td class="strong">{{ p.paymentNumber }}</td>
-                <td>{{ formatDmy(p.purchaseDate) }}</td>
+                <td>{{ formatDmy(p.purchaseDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
                 <td class="strong">{{ p.vendorName }}</td>
                 <td>{{ itemsText(p) }}</td>
                 <td>{{ modeText(p) }}</td>
@@ -110,7 +110,7 @@
           <li class="card">
             <div class="card__main">
               <a class="card__title" [routerLink]="['/payments', p.id, 'edit']">{{ p.vendorName }}</a>
-              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.purchaseDate) }} · {{ modeText(p) }}</span>
+              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }} · {{ modeText(p) }}</span>
               <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
               <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>
             </div>

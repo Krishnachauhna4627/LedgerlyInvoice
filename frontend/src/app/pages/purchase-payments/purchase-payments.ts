@@ -6,7 +6,7 @@ import { PurchasePaymentService } from '../../core/data/purchase-payment.service
 import { round2 } from '../../core/gst/gst';
 import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { downloadCsv } from '../../core/ui/csv';
-import { financialYear, formatDmy } from '../../core/ui/dates';
+import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -14,13 +14,14 @@ import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
+import { TimePipe } from '../../shared/pipes/time.pipe';
 
 const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 
 // /payments — money paid to vendors for purchases, with filters and cash / bank totals.
 @Component({
   selector: 'app-purchase-payments-page',
-  imports: [PageHeader, Icon, Modal, InrPipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, InrPipe, TimePipe, RouterLink, ShowMore],
   templateUrl: './purchase-payments.html',
   styleUrl: './purchase-payments.scss',
 })
@@ -115,11 +116,12 @@ export class PurchasePayments {
   protected exportCsv(): void {
     downloadCsv(
       `payments${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Payment No.', 'Date', 'Vendor', 'Item', 'Qty', 'Unit', 'Rate', 'GST %', 'Taxable', 'GST', 'Line total', 'Payment total', 'Mode', 'Note'],
+      ['Payment No.', 'Date', 'Time', 'Vendor', 'Item', 'Qty', 'Unit', 'Rate', 'GST %', 'Taxable', 'GST', 'Line total', 'Payment total', 'Mode', 'Note'],
       this.payments().flatMap((p) =>
         p.lines.map((l, i) => [
           p.paymentNumber,
           formatDmy(p.purchaseDate),
+          formatTime(p.createdAt),
           p.vendorName,
           l.description,
           l.quantity,

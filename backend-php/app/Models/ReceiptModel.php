@@ -93,6 +93,8 @@ class ReceiptModel extends Model
             'clientName'    => $row['client_name'],
             'receiptNumber' => $row['receipt_number'],
             'receiptDate'   => $row['receipt_date'],
+            // When it was saved (ISO timestamp); the date above has no time.
+            'createdAt'     => iso_timestamp($row['created_at'] ?? null),
             'mode'          => $row['mode'],
             'bankAccountId' => $row['bank_account_id'] === null ? null : (int) $row['bank_account_id'],
             'bankAccount'   => self::bankAccountDto($row),

@@ -46,13 +46,13 @@ class ItemModel extends Model
     {
         $companyId = (int) $item['company_id'];
         $purchases = $this->db->table('purchase_payment_items l')
-            ->select('p.id, p.payment_number AS number, p.purchase_date AS date, p.vendor_name AS party, l.id AS line_id, l.quantity, l.unit, l.unit_price')
+            ->select('p.id, p.payment_number AS number, p.purchase_date AS date, p.vendor_name AS party, p.created_at, l.id AS line_id, l.quantity, l.unit, l.unit_price')
             ->join('purchase_payments p', 'p.id = l.purchase_payment_id')
             ->where('l.item_id', $item['id'])
             ->where('p.company_id', $companyId)
             ->get()->getResultArray();
         $sales = $this->db->table('invoice_items l')
-            ->select('i.id, i.invoice_number AS number, i.invoice_date AS date, i.client_name AS party, l.id AS line_id, l.quantity, l.unit, l.unit_price')
+            ->select('i.id, i.invoice_number AS number, i.invoice_date AS date, i.client_name AS party, i.created_at, l.id AS line_id, l.quantity, l.unit, l.unit_price')
             ->join('invoices i', 'i.id = l.invoice_id')
             ->where('l.item_id', $item['id'])
             ->where('i.company_id', $companyId)
@@ -64,6 +64,8 @@ class ItemModel extends Model
             'id'        => (int) $r['id'],
             'lineId'    => (int) $r['line_id'],
             'date'      => $r['date'],
+            // When the purchase/invoice was saved (the date above has no time).
+            'createdAt' => iso_timestamp($r['created_at']),
             'number'    => $r['number'],
             'party'     => $r['party'],
             'unit'      => $r['unit'],

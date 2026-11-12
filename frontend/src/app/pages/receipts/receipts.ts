@@ -9,7 +9,7 @@ import { createReceiptPdf } from '../../core/receipts/receipt-pdf';
 import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { ReceiptService } from '../../core/data/receipt.service';
 import { downloadCsv } from '../../core/ui/csv';
-import { financialYear, formatDmy } from '../../core/ui/dates';
+import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { round2 } from '../../core/gst/gst';
@@ -19,13 +19,14 @@ import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
+import { TimePipe } from '../../shared/pipes/time.pipe';
 
 export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 
 // /receipts — every receipt from customers, with filters and cash / bank totals.
 @Component({
   selector: 'app-receipts-page',
-  imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, TimePipe, RouterLink, ShowMore],
   templateUrl: './receipts.html',
   styleUrl: './receipts.scss',
 })
@@ -158,8 +159,8 @@ export class Receipts {
   protected exportCsv(): void {
     downloadCsv(
       `receipts${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Receipt No.', 'Date', 'Customer', 'Mode', 'Narration', 'Amount'],
-      this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), r.clientName, this.modeText(r), r.reference, r.amount]),
+      ['Receipt No.', 'Date', 'Time', 'Customer', 'Mode', 'Narration', 'Amount'],
+      this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), formatTime(r.createdAt), r.clientName, this.modeText(r), r.reference, r.amount]),
     );
   }
 }

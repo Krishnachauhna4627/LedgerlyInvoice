@@ -5,15 +5,16 @@ import { toApiError } from '../../core/api/api-error';
 import { ItemService } from '../../core/data/item.service';
 import { StockLedger, StockLedgerEntry } from '../../core/data/models';
 import { downloadCsv } from '../../core/ui/csv';
-import { formatDmy } from '../../core/ui/dates';
+import { formatDmy, formatTime } from '../../core/ui/dates';
 import { Icon } from '../../shared/components/icon/icon';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
+import { TimePipe } from '../../shared/pipes/time.pipe';
 
 // /items/:id — stock ledger of one product: opening stock, purchases in, sales out, stock in hand.
 @Component({
   selector: 'app-item-ledger-page',
-  imports: [PageHeader, Icon, RouterLink, DecimalPipe, InrPipe],
+  imports: [PageHeader, Icon, RouterLink, DecimalPipe, InrPipe, TimePipe],
   templateUrl: './item-ledger.html',
   styleUrl: './item-ledger.scss',
 })
@@ -56,11 +57,12 @@ export class ItemLedger {
     if (!l) return;
     downloadCsv(
       `stock-ledger-${l.item.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
-      ['Date', 'Type', 'Vch/Bill No', 'Vendor/Customer', 'Rate', 'In', 'Out', 'Balance'],
+      ['Date', 'Time', 'Type', 'Vch/Bill No', 'Vendor/Customer', 'Rate', 'In', 'Out', 'Balance'],
       [
-        ['', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
+        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
         ...l.entries.map((e) => [
           formatDmy(e.date),
+          formatTime(e.createdAt),
           e.type === 'purchase' ? 'Purchase' : 'Sale',
           e.number,
           e.party,
@@ -69,8 +71,8 @@ export class ItemLedger {
           e.quantityOut || '',
           e.balance,
         ]),
-        ['', 'Total', '', '', '', l.totals.purchased, l.totals.sold, ''],
-        ['', 'In stock', '', '', '', '', '', l.totals.closingStock],
+        ['', '', 'Total', '', '', '', l.totals.purchased, l.totals.sold, ''],
+        ['', '', 'In stock', '', '', '', '', '', l.totals.closingStock],
       ],
     );
   }
