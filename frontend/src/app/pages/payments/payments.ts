@@ -1,9 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
-import { ReceiptMode, VendorPayment } from '../../core/data/models';
+import { CompanyService } from '../../core/data/company.service';
+import { Company, ReceiptMode, VendorPayment } from '../../core/data/models';
 import { VendorPaymentService } from '../../core/data/vendor-payment.service';
 import { round2 } from '../../core/gst/gst';
+import { createPaymentPdf } from '../../core/payments/payment-pdf';
+import { openPdfInNewTab } from '../../core/pdf/open-pdf';
 import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { downloadCsv } from '../../core/ui/csv';
 import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
@@ -46,6 +49,9 @@ export class Payments {
   protected readonly formOpen = signal(false);
   protected readonly editing = signal<VendorPayment | null>(null);
   protected readonly deleting = signal<VendorPayment | null>(null);
+  // Business details printed on the voucher, and the payment whose PDF is being made.
+  private readonly company = signal<Company | null>(null);
+  protected readonly printingId = signal<number | null>(null);
   protected readonly deleteBusy = signal(false);
 
   protected readonly formatDmy = formatDmy;
@@ -60,6 +66,9 @@ export class Payments {
   });
 
   constructor() {
+    inject(CompanyService)
+      .get()
+      .subscribe({ next: (company) => this.company.set(company) });
     this.load();
   }
 
@@ -100,6 +109,19 @@ export class Payments {
   protected modeText(p: VendorPayment): string {
     const account = p.mode === 'bank' ? bankAccountLabel(p.bankAccount) : null;
     return account ? `${MODE_LABEL[p.mode]} · ${account}` : MODE_LABEL[p.mode];
+  }
+
+  // Opens the payment voucher as a PDF in a new tab with the print dialog (falls back to a download if the tab is blocked).
+  protected async print(payment: VendorPayment): Promise<void> {
+    if (this.printingId() !== null) return;
+    this.printingId.set(payment.id);
+    try {
+      await openPdfInNewTab(() => createPaymentPdf(payment, this.company()), `Payment-${payment.paymentNumber}`);
+    } catch {
+      this.toast.error("Couldn't make the payment voucher PDF. Please try again.");
+    } finally {
+      this.printingId.set(null);
+    }
   }
 
   protected confirmDelete(): void {

@@ -76,7 +76,7 @@
               <th scope="col">Mode</th>
               <th scope="col">Narration</th>
               <th scope="col" class="num">Amount</th>
-              <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
+              <th scope="col" class="row-actions">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -89,7 +89,11 @@
                 <td [class.muted]="!p.reference">{{ p.reference || '—' }}</td>
                 <td class="num strong">{{ p.amount | inr }}</td>
                 <td class="row-actions">
-                  <button type="button" class="icon-button" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="openForm(p)">
+                  <button type="button" class="icon-button" [attr.aria-label]="'Print payment ' + p.paymentNumber + ' to ' + p.vendorName" title="Print payment voucher"
+                [disabled]="printingId() === p.id" (click)="print(p)">
+                <app-icon name="printer" [size]="16" />
+              </button>
+              <button type="button" class="icon-button" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="openForm(p)">
                     <app-icon name="pencil" [size]="16" />
                   </button>
                   <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="deleting.set(p)">
@@ -111,6 +115,10 @@
               <span class="card__amount">{{ p.amount | inr }}</span>
             </div>
             <div class="card__actions">
+              <button type="button" class="icon-button" [attr.aria-label]="'Print payment ' + p.paymentNumber + ' to ' + p.vendorName" title="Print payment voucher"
+                [disabled]="printingId() === p.id" (click)="print(p)">
+                <app-icon name="printer" [size]="16" />
+              </button>
               <button type="button" class="icon-button" [attr.aria-label]="'Edit payment ' + p.paymentNumber + ' to ' + p.vendorName" (click)="openForm(p)">
                 <app-icon name="pencil" [size]="16" />
               </button>

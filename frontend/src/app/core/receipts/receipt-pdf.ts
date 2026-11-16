@@ -5,12 +5,50 @@ import { formatDmy, formatTime } from '../ui/dates';
 import { oneLineAddress } from '../ledger/ledger-labels';
 import { receiptAccountLabel } from './receipt-labels';
 
-// One payment receipt as an A4 PDF, laid out on the top half of the page (so two fit a sheet
-// if cut): business header, "RECEIPT" bar, receipt no. / date, who paid how much and how,
-// and the signatory. With `autoPrint` the PDF viewer opens the print dialog as soon as it loads.
+// What a voucher PDF shows: a receipt (money in from a customer) or a payment (money out to a vendor).
+export interface Voucher {
+  // Bar title, e.g. 'RECEIPT' or 'PAYMENT VOUCHER'; also the PDF's document title.
+  title: string;
+  numberLabel: string;
+  number: string | null;
+  date: string;
+  createdAt?: string | null;
+  // 'Received with thanks from' / 'Paid to'.
+  partyLabel: string;
+  partyName: string;
+  amount: number;
+  // 'Cash', or 'Bank (SBI 1234…)'.
+  modeText: string;
+  reference: string | null;
+}
 
-export async function createReceiptPdf(receipt: Receipt, company: Company | null, autoPrint = true): Promise<Blob> {
-  const { doc, autoTable } = await newPdf(`Receipt ${receipt.receiptNumber ?? ''} - ${receipt.clientName}`, company?.name ?? '');
+// One money receipt as an A4 PDF.
+export function createReceiptPdf(receipt: Receipt, company: Company | null, autoPrint = true): Promise<Blob> {
+  const account = receiptAccountLabel(receipt, company);
+  return createVoucherPdf(
+    {
+      title: 'RECEIPT',
+      numberLabel: 'Receipt No.',
+      number: receipt.receiptNumber,
+      date: receipt.receiptDate,
+      createdAt: receipt.createdAt,
+      partyLabel: 'Received with thanks from',
+      partyName: receipt.clientName,
+      amount: receipt.amount,
+      modeText: receipt.mode === 'cash' || account === 'Bank' ? account : `Bank (${account})`,
+      reference: receipt.reference,
+    },
+    company,
+    autoPrint,
+  );
+}
+
+// A voucher as an A4 PDF, laid out on the top half of the page (so two fit a sheet if cut): business
+// header, title bar, number / date, who paid whom how much and how, and the signatory. With `autoPrint`
+// the PDF viewer opens the print dialog as soon as it loads.
+export async function createVoucherPdf(v: Voucher, company: Company | null, autoPrint = true): Promise<Blob> {
+  const title = v.title.charAt(0) + v.title.slice(1).toLowerCase();
+  const { doc, autoTable } = await newPdf(`${title} ${v.number ?? ''} - ${v.partyName}`, company?.name ?? '');
   const c = themeColors();
   const right = MARGIN + CONTENT_WIDTH;
   let y = MARGIN;
@@ -36,8 +74,6 @@ export async function createReceiptPdf(receipt: Receipt, company: Company | null
   }
   y += 3;
 
-  const account = receiptAccountLabel(receipt, company);
-  const mode = receipt.mode === 'cash' || account === 'Bank' ? account : `Bank (${account})`;
   const label = { fontStyle: 'bold' as const, cellWidth: 45 };
   autoTable(doc, {
     startY: y,
@@ -45,17 +81,17 @@ export async function createReceiptPdf(receipt: Receipt, company: Company | null
     theme: 'grid',
     styles: { font: FONT, fontSize: 10, cellPadding: 2.2, textColor: c.text, lineColor: c.border, lineWidth: 0.25, valign: 'middle' },
     body: [
-      [{ content: 'RECEIPT', colSpan: 4, styles: { fillColor: c.text, textColor: c.surface, fontStyle: 'bold', halign: 'center', fontSize: 11 } }],
+      [{ content: v.title, colSpan: 4, styles: { fillColor: c.text, textColor: c.surface, fontStyle: 'bold', halign: 'center', fontSize: 11 } }],
       [
-        { content: 'Receipt No.', styles: label },
-        { content: receipt.receiptNumber ?? '', styles: { fontStyle: 'bold' } },
+        { content: v.numberLabel, styles: label },
+        { content: v.number ?? '', styles: { fontStyle: 'bold' } },
         { content: 'Date', styles: { fontStyle: 'bold', cellWidth: 20 } },
-        { content: [formatDmy(receipt.receiptDate), formatTime(receipt.createdAt)].filter(Boolean).join('\n'), styles: { cellWidth: 30 } },
+        { content: [formatDmy(v.date), formatTime(v.createdAt)].filter(Boolean).join('\n'), styles: { cellWidth: 30 } },
       ],
-      [{ content: 'Received with thanks from', styles: label }, { content: receipt.clientName, colSpan: 3, styles: { fontStyle: 'bold' } }],
-      [{ content: 'The sum of', styles: label }, { content: amountInWords(receipt.amount), colSpan: 3 }],
-      [{ content: 'By', styles: label }, { content: mode, colSpan: 3 }],
-      ...(receipt.reference ? [[{ content: 'Narration', styles: label }, { content: receipt.reference, colSpan: 3 }]] : []),
+      [{ content: v.partyLabel, styles: label }, { content: v.partyName, colSpan: 3, styles: { fontStyle: 'bold' } }],
+      [{ content: 'The sum of', styles: label }, { content: amountInWords(v.amount), colSpan: 3 }],
+      [{ content: 'By', styles: label }, { content: v.modeText, colSpan: 3 }],
+      ...(v.reference ? [[{ content: 'Narration', styles: label }, { content: v.reference, colSpan: 3 }]] : []),
     ],
   });
   y = finalY(doc) + 6;
@@ -69,7 +105,7 @@ export async function createReceiptPdf(receipt: Receipt, company: Company | null
   doc.setFont(FONT, 'bold');
   doc.setFontSize(13);
   doc.setTextColor(...c.text);
-  doc.text(`₹ ${money(receipt.amount)}`, MARGIN + boxWidth / 2, y + boxHeight / 2 + 1.6, { align: 'center' });
+  doc.text(`₹ ${money(v.amount)}`, MARGIN + boxWidth / 2, y + boxHeight / 2 + 1.6, { align: 'center' });
 
   const signWidth = 60;
   let sy = y + lineHeight(9.5) - 1;
