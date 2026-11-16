@@ -84,7 +84,7 @@ export class Reports {
       const p = r.purchases.byMonth.find((m) => m.month === month);
       const sales = s?.total ?? 0;
       const purchases = p?.total ?? 0;
-      return { month, invoices: s?.count ?? 0, sales, bills: p?.count ?? 0, purchases, difference: round2(sales - purchases) };
+      return { month, invoices: s?.count ?? 0, sales, bills: p?.count ?? 0, purchases };
     });
   });
 

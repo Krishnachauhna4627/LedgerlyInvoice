@@ -83,7 +83,6 @@
                 <th scope="col" class="num">Sales</th>
                 <th scope="col" class="num">Bills</th>
                 <th scope="col" class="num">Purchases</th>
-                <th scope="col" class="num">Sales − purchases</th>
               </tr>
             </thead>
             <tbody>
@@ -94,7 +93,6 @@
                   <td class="num">{{ m.sales | inr }}</td>
                   <td class="num">{{ m.bills }}</td>
                   <td class="num">{{ m.purchases | inr }}</td>
-                  <td class="num strong" [class.negative]="m.difference < 0">{{ m.difference | inr }}</td>
                 </tr>
               }
             </tbody>
