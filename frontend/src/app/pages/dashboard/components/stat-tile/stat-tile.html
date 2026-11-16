@@ -1,0 +1,36 @@
+<a class="tile" [routerLink]="link()" [queryParams]="query()">
+  <div class="tile__head">
+    <span class="tile__label">{{ label() }}</span>
+    <span class="tile__icon"><app-icon [name]="icon()" [size]="18" /></span>
+  </div>
+  <div class="tile__row">
+    <span class="tile__value">{{ value() }}</span>
+    @if (spark(); as s) {
+      <svg class="tile__spark" viewBox="0 0 64 28" preserveAspectRatio="none" aria-hidden="true">
+        <path class="tile__spark-area" [attr.d]="s.area" />
+        <path class="tile__spark-line" [attr.d]="s.line" vector-effect="non-scaling-stroke" />
+      </svg>
+    }
+  </div>
+  <div class="tile__row">
+    @if (note()) {
+      <span class="tile__note">{{ note() }}</span>
+    }
+    @if (changeText()) {
+      <span
+        class="tile__change"
+        [class.tile__change--up]="change()! > 0"
+        [class.tile__change--down]="change()! < 0"
+        [attr.aria-label]="changeText() + ' from the previous period'"
+        title="Compared with the previous period"
+      >
+        @if (change()! > 0) {
+          ▲
+        } @else if (change()! < 0) {
+          ▼
+        }
+        {{ changeText() }}
+      </span>
+    }
+  </div>
+</a>

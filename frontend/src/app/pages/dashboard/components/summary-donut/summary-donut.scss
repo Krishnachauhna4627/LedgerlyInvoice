@@ -1,0 +1,85 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.donut {
+  container-type: inline-size;
+  height: 100%;
+  padding: var(--space-4);
+
+  h2 {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-base);
+    font-weight: 700;
+  }
+}
+
+// Ring and legend side by side; the legend drops below the ring in a narrow card.
+.donut__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.donut__ring {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+}
+
+.donut__track {
+  fill: none;
+  stroke: var(--color-bg);
+  stroke-width: 18;
+}
+
+.donut__arc {
+  fill: none;
+  stroke-width: 18;
+  transition: stroke-dasharray 300ms ease;
+}
+
+.donut__legend {
+  flex: 1 1 140px;
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr);
+    column-gap: var(--space-2);
+    align-items: center;
+  }
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.donut__label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+
+  small {
+    margin-left: var(--space-1);
+    font-size: var(--text-xs);
+  }
+}
+
+.donut__value {
+  grid-column: 2;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,184 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.chart {
+  position: relative;
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.chart__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+
+  h2 {
+    font-size: var(--text-base);
+    font-weight: 700;
+  }
+}
+
+.legend {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch--sales,
+.bar--sales {
+  background: #4f46e5;
+}
+
+.swatch--purchases,
+.bar--purchases {
+  background: #d9711f;
+}
+
+.plot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 180px auto;
+  column-gap: var(--space-2);
+}
+
+.axis {
+  position: relative;
+  min-width: 36px;
+}
+
+.axis__tick {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bars {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.grid-line--base {
+  border-top-color: var(--color-text-muted);
+}
+
+// Each month is one hover target the full height of the plot, bigger than its bars.
+.month {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.month--active {
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+.bar {
+  position: relative;
+  flex: 0 1 28px;
+  min-width: 4px;
+  border-radius: 4px 4px 0 0;
+  transition: height 300ms ease;
+}
+
+.tip {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% - 24px);
+  left: 60%;
+  display: grid;
+  gap: 2px;
+  min-width: 170px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  pointer-events: none;
+
+  strong {
+    color: var(--color-text);
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  b {
+    margin-left: auto;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .swatch {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+.tip--left {
+  left: auto;
+  right: 60%;
+}
+
+.labels {
+  grid-column: 2;
+  display: flex;
+  padding-top: var(--space-2);
+
+  span {
+    flex: 1 1 0;
+    text-align: center;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+}
+
+.chart__empty {
+  margin-top: var(--space-2);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

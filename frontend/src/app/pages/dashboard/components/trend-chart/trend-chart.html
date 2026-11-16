@@ -1,0 +1,58 @@
+<section class="panel chart">
+  <header class="chart__head">
+    <h2>Sales vs purchases</h2>
+    <ul class="legend">
+      <li><span class="swatch swatch--sales"></span>Sales</li>
+      <li><span class="swatch swatch--purchases"></span>Purchases</li>
+    </ul>
+  </header>
+
+  <div class="plot" aria-hidden="true">
+    <div class="axis">
+      @for (t of scale().ticks; track t.value) {
+        <span class="axis__tick" [style.bottom.%]="t.pct">{{ t.label }}</span>
+      }
+    </div>
+    <div class="bars">
+      @for (t of scale().ticks; track t.value) {
+        <span class="grid-line" [class.grid-line--base]="t.value === 0" [style.bottom.%]="t.pct"></span>
+      }
+      @for (m of months(); track m.month; let i = $index) {
+        <div
+          class="month"
+          [class.month--active]="active() === i"
+          (mouseenter)="active.set(i)"
+          (mouseleave)="active.set(null)"
+        >
+          <span class="bar bar--sales" [style.height.%]="m.salesPct"></span>
+          <span class="bar bar--purchases" [style.height.%]="m.purchasesPct"></span>
+          @if (active() === i) {
+            <div class="tip" [class.tip--left]="i >= months().length / 2">
+              <strong>{{ m.label }} {{ m.month.slice(0, 4) }}</strong>
+              <span><i class="swatch swatch--sales"></i>Sales <b>{{ m.sales | inr }}</b></span>
+              <span><i class="swatch swatch--purchases"></i>Purchases <b>{{ m.purchases | inr }}</b></span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <div class="labels">
+      @for (m of months(); track m.month) {
+        <span>{{ m.label }}</span>
+      }
+    </div>
+  </div>
+  @if (empty()) {
+    <p class="chart__empty">No sales or purchases in these months yet.</p>
+  }
+
+  <table class="sr-only">
+    <caption>Sales and purchases by month</caption>
+    <thead><tr><th scope="col">Month</th><th scope="col">Sales</th><th scope="col">Purchases</th></tr></thead>
+    <tbody>
+      @for (m of months(); track m.month) {
+        <tr><th scope="row">{{ m.label }} {{ m.month.slice(0, 4) }}</th><td>{{ m.sales | inr }}</td><td>{{ m.purchases | inr }}</td></tr>
+      }
+    </tbody>
+  </table>
+</section>

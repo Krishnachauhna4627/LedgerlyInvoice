@@ -1,0 +1,28 @@
+<section class="panel donut">
+  <h2>{{ title() }}</h2>
+  <div class="donut__body">
+    <svg class="donut__ring" viewBox="0 0 100 100" role="img" [attr.aria-label]="title()">
+      <circle cx="50" cy="50" [attr.r]="r" class="donut__track" />
+      @for (a of arcs(); track a.color) {
+        <circle
+          cx="50"
+          cy="50"
+          [attr.r]="r"
+          class="donut__arc"
+          [attr.stroke]="a.color"
+          [attr.stroke-dasharray]="a.dash"
+          [attr.stroke-dashoffset]="a.offset"
+        />
+      }
+    </svg>
+    <ul class="donut__legend">
+      @for (s of slices(); track s.label) {
+        <li>
+          <span class="swatch" [style.background]="s.color"></span>
+          <span class="donut__label">{{ s.label }} <small>{{ percent(s.value) }}</small></span>
+          <span class="donut__value">{{ s.value | inr }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

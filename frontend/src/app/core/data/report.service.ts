@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DashboardSummary, PurchaseReport, SalesExportRow, SalesReport } from './models';
+import { DashboardPeriod, DashboardSummary, PurchaseReport, SalesExportRow, SalesReport } from './models';
 
 export interface DateRange {
   from?: string;
@@ -19,8 +19,8 @@ const rangeParams = ({ from, to }: DateRange) => {
 export class ReportService {
   private readonly http = inject(HttpClient);
 
-  dashboard(): Observable<DashboardSummary> {
-    return this.http.get<DashboardSummary>('/api/reports/dashboard');
+  dashboard(period: DashboardPeriod = 'this_month'): Observable<DashboardSummary> {
+    return this.http.get<DashboardSummary>('/api/reports/dashboard', { params: { period } });
   }
 
   sales(range: DateRange): Observable<SalesReport> {

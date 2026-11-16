@@ -6,8 +6,6 @@ use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
 use App\Libraries\Gst;
 use App\Libraries\InvoiceService;
-use App\Libraries\LedgerService;
-use App\Models\InvoiceModel;
 use CodeIgniter\Database\BaseBuilder;
 
 /**
@@ -19,30 +17,192 @@ class Reports extends BaseController
     private const SUM_COLUMNS = 'COUNT(*) AS count, SUM(sub_total) AS subTotal, SUM(total_cgst) AS cgst, SUM(total_sgst) AS sgst,'
         . ' SUM(total_igst) AS igst, SUM(total_tax) AS tax, SUM(grand_total) AS total';
 
+    /**
+     * Dashboard for ?period= (this_month — the default — last_month, this_quarter, this_year = financial year):
+     * money in and out over the period, receivable/payable balances at its end, each with the same figure for the
+     * previous period (for the % change), plus month-by-month trend for the charts and sparklines.
+     */
     public function dashboard()
     {
-        $companyId  = $this->companyId();
-        $db         = db_connect();
-        $monthStart = substr(today(), 0, 7) . '-01';
-        $sumOf      = static fn (BaseBuilder $q): array => $q->select('COUNT(*) AS count, SUM(grand_total) AS amount', false)->get()->getRowArray();
+        $companyId = $this->companyId();
+        $db        = db_connect();
+        $period    = $this->request->getGet('period') ?? 'this_month';
+        if (! is_string($period) || ! in_array($period, self::DASHBOARD_PERIODS, true)) {
+            throw new HttpError(404, 'Not found.');
+        }
+        ['from' => $from, 'to' => $to, 'prevFrom' => $prevFrom, 'prevTo' => $prevTo, 'months' => $months] = self::dashboardPeriod($period, today());
 
-        $thisMonth   = $sumOf($this->issuedInvoices($companyId, ['from' => $monthStart]));
-        // What customers owe (their balances after receipts); advances don't reduce it. Count = customers with dues.
-        $balances = array_column(
-            $db->table('clients')->select(LedgerService::BALANCE_SQL . ' AS balance', false)->where('company_id', $companyId)->get()->getResultArray(),
-            'balance',
-        );
-        $dues = array_filter(array_map('floatval', $balances), static fn (float $balance): bool => $balance > 0);
-        $overdue     = $sumOf(InvoiceModel::whereDisplayStatus($db->table('invoices')->where('company_id', $companyId), 'overdue'));
+        $flows = function (string $f, string $t) use ($companyId): array {
+            $sales     = $this->issuedInvoices($companyId, ['from' => $f, 'to' => $t])->select('COUNT(*) AS count, SUM(grand_total) AS amount', false)->get()->getRowArray();
+            $purchases = $this->purchasesIn($companyId, ['from' => $f, 'to' => $t])->select('COUNT(*) AS count, SUM(grand_total) AS amount', false)->get()->getRowArray();
+            $received  = self::sumIn('receipts', 'receipt_date', $companyId, $f, $t);
+            $paid      = self::sumIn('vendor_payments', 'payment_date', $companyId, $f, $t);
+
+            return array_map(static fn (array $r): array => ['amount' => (float) ($r['amount'] ?? 0), 'count' => (int) $r['count']],
+                compact('sales', 'purchases', 'received', 'paid'));
+        };
+        $now  = $flows($from, $to);
+        $prev = $flows($prevFrom, $prevTo);
+        $receivable     = self::receivableAt($companyId, $to);
+        $payable        = self::payableAt($companyId, $to);
+        $prevReceivable = self::receivableAt($companyId, $prevTo);
+        $prevPayable    = self::payableAt($companyId, $prevTo);
+
+        $vendors = $db->query(
+            'SELECT COUNT(*) AS n FROM (SELECT vendor_name FROM purchases WHERE company_id = ? UNION SELECT vendor_name FROM vendor_payments WHERE company_id = ?) v',
+            [$companyId, $companyId],
+        )->getRowArray();
+
+        $stat = static fn (array $cur, array $old): array => [...$cur, 'previous' => $old['amount']];
 
         return $this->json([
-            'thisMonth'      => ['sales' => (float) ($thisMonth['amount'] ?? 0), 'invoiceCount' => (int) $thisMonth['count']],
-            'outstanding'    => ['amount' => Gst::round2(array_sum($dues)), 'count' => count($dues)],
-            'overdue'        => ['amount' => (float) ($overdue['amount'] ?? 0), 'count' => (int) $overdue['count']],
+            'period'         => ['key' => $period, 'from' => $from, 'to' => $to],
+            'sales'          => $stat($now['sales'], $prev['sales']),
+            'purchases'      => $stat($now['purchases'], $prev['purchases']),
+            'received'       => $stat($now['received'], $prev['received']),
+            'paid'           => $stat($now['paid'], $prev['paid']),
+            // Balances at the end of the period; count = customers / vendors with dues.
+            'receivable'     => $stat($receivable, $prevReceivable),
+            'payable'        => $stat($payable, $prevPayable),
             'clientCount'    => $db->table('clients')->where('company_id', $companyId)->countAllResults(),
+            'vendorCount'    => (int) $vendors['n'],
             'itemCount'      => $db->table('items')->where('company_id', $companyId)->countAllResults(),
+            'trend'          => $this->monthlyTrend($companyId, $to, $months),
             'recentInvoices' => (new InvoiceService())->listInvoices($companyId, ['sort' => 'date_desc', 'limit' => 6]),
         ]);
+    }
+
+    private const DASHBOARD_PERIODS = ['this_month', 'last_month', 'this_quarter', 'this_year'];
+
+    /**
+     * The period's dates, and the previous period of the same kind cut to the same length (so month-to-date is
+     * compared with the same days of last month). months = how many months the trend charts show.
+     *
+     * @return array{from: string, to: string, prevFrom: string, prevTo: string, months: int}
+     */
+    public static function dashboardPeriod(string $period, string $today): array
+    {
+        [$y, $m] = array_map('intval', explode('-', $today));
+        [$from, $to, $length] = match ($period) {
+            'last_month'   => [self::monthStart($y, $m - 1), self::monthEnd($y, $m - 1), 1],
+            'this_quarter' => [self::monthStart($y, $m - ($m - 1) % 3), $today, 3],
+            // Indian financial year: 1 April – 31 March.
+            'this_year'    => [($m >= 4 ? $y : $y - 1) . '-04-01', $today, 12],
+            default        => [self::monthStart($y, $m), $today, 1],
+        };
+        [$ty, $tm, $td] = array_map('intval', explode('-', $to));
+        $prevEnd = self::monthEnd($ty, $tm - $length);
+        // Same day of the month, clamped to that month's last day (and the whole month when $to is a month end).
+        $prevTo  = $to === self::monthEnd($ty, $tm) ? $prevEnd : min($prevEnd, substr($prevEnd, 0, 8) . sprintf('%02d', $td));
+        [$fy, $fm] = array_map('intval', explode('-', $from));
+
+        return [
+            'from'     => $from,
+            'to'       => $to,
+            'prevFrom' => self::monthStart($fy, $fm - $length),
+            'prevTo'   => $prevTo,
+            'months'   => max(6, $length === 12 ? ($ty * 12 + $tm) - ($fy * 12 + $fm) + 1 : 6),
+        ];
+    }
+
+    private static function monthStart(int $y, int $m): string
+    {
+        return date('Y-m-d', mktime(0, 0, 0, $m, 1, $y));
+    }
+
+    private static function monthEnd(int $y, int $m): string
+    {
+        return date('Y-m-d', mktime(0, 0, 0, $m + 1, 0, $y));
+    }
+
+    /**
+     * @return array{count: int|string, amount: mixed}
+     */
+    private static function sumIn(string $table, string $dateColumn, int $companyId, string $from, string $to): array
+    {
+        return db_connect()->table($table)->select('COUNT(*) AS count, SUM(amount) AS amount', false)
+            ->where('company_id', $companyId)->where("{$dateColumn} >=", $from)->where("{$dateColumn} <=", $to)
+            ->get()->getRowArray();
+    }
+
+    /**
+     * What customers owed at the end of $date (opening balance + sales − receipts); advances don't reduce it.
+     *
+     * @return array{amount: float, count: int}
+     */
+    private static function receivableAt(int $companyId, string $date): array
+    {
+        $row = db_connect()->query(
+            "SELECT SUM(GREATEST(bal, 0)) AS amount, SUM(bal > 0) AS count FROM (
+               SELECT c.opening_balance
+                 + COALESCE((SELECT SUM(i.grand_total) FROM invoices i WHERE i.client_id = c.id AND i.status <> 'draft' AND i.invoice_date <= ?), 0)
+                 - COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = c.id AND r.receipt_date <= ?), 0) AS bal
+               FROM clients c WHERE c.company_id = ?) t",
+            [$date, $date, $companyId],
+        )->getRowArray();
+
+        return ['amount' => Gst::round2((float) ($row['amount'] ?? 0)), 'count' => (int) ($row['count'] ?? 0)];
+    }
+
+    /**
+     * What we owed vendors at the end of $date (purchase bills − payments, per vendor name); advances don't reduce it.
+     *
+     * @return array{amount: float, count: int}
+     */
+    private static function payableAt(int $companyId, string $date): array
+    {
+        $row = db_connect()->query(
+            'SELECT SUM(GREATEST(bal, 0)) AS amount, SUM(bal > 0) AS count FROM (
+               SELECT vendor_name, SUM(amt) AS bal FROM (
+                 SELECT vendor_name, grand_total AS amt FROM purchases WHERE company_id = ? AND purchase_date <= ?
+                 UNION ALL
+                 SELECT vendor_name, -amount AS amt FROM vendor_payments WHERE company_id = ? AND payment_date <= ?
+               ) u GROUP BY vendor_name) t',
+            [$companyId, $date, $companyId, $date],
+        )->getRowArray();
+
+        return ['amount' => Gst::round2((float) ($row['amount'] ?? 0)), 'count' => (int) ($row['count'] ?? 0)];
+    }
+
+    /**
+     * The last $months months up to $to's month: sales, purchases, received and paid in each, and the
+     * receivable / payable balances at each month's end (or at $to for its own month).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function monthlyTrend(int $companyId, string $to, int $months): array
+    {
+        [$ty, $tm] = array_map('intval', explode('-', $to));
+        $first = self::monthStart($ty, $tm - $months + 1);
+        $db    = db_connect();
+        $byMonth = static fn (BaseBuilder $q, string $dateColumn, string $sumColumn): array => array_column(
+            $q->select("DATE_FORMAT({$dateColumn}, '%Y-%m') AS month, SUM({$sumColumn}) AS amount", false)
+                ->where("{$dateColumn} >=", $first)->where("{$dateColumn} <=", $to)
+                ->groupBy('month')->get()->getResultArray(),
+            'amount',
+            'month',
+        );
+        $sales     = $byMonth($this->issuedInvoices($companyId, []), 'invoice_date', 'grand_total');
+        $purchases = $byMonth($this->purchasesIn($companyId, []), 'purchase_date', 'grand_total');
+        $received  = $byMonth($db->table('receipts')->where('company_id', $companyId), 'receipt_date', 'amount');
+        $paid      = $byMonth($db->table('vendor_payments')->where('company_id', $companyId), 'payment_date', 'amount');
+
+        $trend = [];
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $month   = substr(self::monthStart($ty, $tm - $i), 0, 7);
+            $end     = min(self::monthEnd($ty, $tm - $i), $to);
+            $trend[] = [
+                'month'      => $month,
+                'sales'      => (float) ($sales[$month] ?? 0),
+                'purchases'  => (float) ($purchases[$month] ?? 0),
+                'received'   => (float) ($received[$month] ?? 0),
+                'paid'       => (float) ($paid[$month] ?? 0),
+                'receivable' => self::receivableAt($companyId, $end)['amount'],
+                'payable'    => self::payableAt($companyId, $end)['amount'],
+            ];
+        }
+
+        return $trend;
     }
 
     /**

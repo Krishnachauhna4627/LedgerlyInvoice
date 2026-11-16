@@ -1,5 +1,92 @@
 @use 'breakpoints' as bp;
 
+.period select {
+  min-height: 36px;
+  width: auto;
+}
+
+// Tiles, the bar chart and the two summary donuts.
+// Phones: 2 columns · tablets/laptops: 6 (tiles in threes) · wide: 5 named areas like
+//   sales     receivable  received  people  items
+//   purchases payable     paid      rsum    psum
+//   chart     chart       chart     rsum    psum
+.overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  transition: opacity var(--transition);
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  @include bp.up(xl) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-areas:
+      'sales receivable received people items'
+      'purchases payable paid rsum psum'
+      'chart chart chart rsum psum';
+  }
+
+  > * {
+    @include bp.up(md) {
+      grid-column: span 2;
+    }
+  }
+
+  // Sales spans both columns on phones so the ₹ amount has room.
+  > .area-sales {
+    grid-column: 1 / -1;
+
+    @include bp.up(md) {
+      grid-column: span 2;
+    }
+  }
+
+  > .area-chart {
+    grid-column: 1 / -1;
+  }
+
+  > .area-rsum,
+  > .area-psum {
+    grid-column: 1 / -1;
+
+    @include bp.up(sm) {
+      grid-column: span 1;
+    }
+
+    @include bp.up(md) {
+      grid-column: span 3;
+    }
+  }
+
+  // Phones: the last of the 7 tiles after Sales takes the full row.
+  > .area-items {
+    grid-column: 1 / -1;
+  }
+
+  > .area-people,
+  > .area-items {
+    @include bp.up(md) {
+      grid-column: span 3;
+    }
+  }
+
+  @include bp.up(xl) {
+    @each $area in sales, receivable, received, people, items, purchases, payable, paid, rsum, psum, chart {
+      > .area-#{$area} {
+        grid-column: auto;
+        grid-area: #{$area};
+      }
+    }
+  }
+}
+
+.overview--loading {
+  opacity: 0.6;
+}
+
 .grid {
   display: grid;
   gap: var(--space-5);

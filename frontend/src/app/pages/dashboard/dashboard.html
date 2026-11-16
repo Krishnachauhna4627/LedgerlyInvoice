@@ -1,4 +1,12 @@
 <app-page-header title="Dashboard" [subtitle]="subtitle()">
+  <label class="period">
+    <span class="sr-only">Period</span>
+    <select [value]="period()" (change)="changePeriod($any($event.target).value)">
+      @for (p of periods; track p.value) {
+        <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
+      }
+    </select>
+  </label>
   <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create Invoice</a>
 </app-page-header>
 
@@ -10,7 +18,27 @@
       <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
   } @else if (summary(); as s) {
-    <app-stat-tiles [summary]="s" />
+    <div class="overview" [class.overview--loading]="loading()">
+      <h2 class="sr-only">Summary</h2>
+      @for (t of tiles(); track t.key) {
+        <app-stat-tile
+          [class]="'area-' + t.key"
+          [label]="t.label"
+          [value]="t.value"
+          [note]="t.note"
+          [icon]="t.icon"
+          [tone]="t.tone"
+          [link]="t.link"
+          [query]="t.query"
+          [series]="t.series"
+          [current]="t.current"
+          [previous]="t.previous"
+        />
+      }
+      <app-trend-chart class="area-chart" [trend]="s.trend" />
+      <app-summary-donut class="area-rsum" title="Receivable summary" [slices]="receivableSlices()" />
+      <app-summary-donut class="area-psum" title="Payables summary" [slices]="payableSlices()" />
+    </div>
 
     <div class="grid" [class.grid--single]="setupDone()">
       <app-recent-invoices [invoices]="s.recentInvoices" />

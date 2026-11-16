@@ -298,13 +298,39 @@ export interface InvoiceQuery {
   limit?: number;
 }
 
+export type DashboardPeriod = 'this_month' | 'last_month' | 'this_quarter' | 'this_year';
+
+// A dashboard figure for the period, with the same figure for the previous period (for the % change).
+export interface DashboardStat {
+  amount: number;
+  count: number;
+  previous: number;
+}
+
+export interface DashboardTrendMonth {
+  month: string; // 'YYYY-MM'
+  sales: number;
+  purchases: number;
+  received: number;
+  paid: number;
+  // Balances at the month's end.
+  receivable: number;
+  payable: number;
+}
+
 export interface DashboardSummary {
-  thisMonth: { sales: number; invoiceCount: number };
-  // Total of customer balances still due, and how many customers owe something.
-  outstanding: { amount: number; count: number };
-  overdue: { amount: number; count: number };
+  period: { key: DashboardPeriod; from: string; to: string };
+  sales: DashboardStat;
+  purchases: DashboardStat;
+  received: DashboardStat;
+  paid: DashboardStat;
+  // Balances at the period's end; count = customers / vendors with dues.
+  receivable: DashboardStat;
+  payable: DashboardStat;
   clientCount: number;
+  vendorCount: number;
   itemCount: number;
+  trend: DashboardTrendMonth[];
   recentInvoices: InvoiceListItem[];
 }
 
