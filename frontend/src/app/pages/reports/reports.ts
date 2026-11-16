@@ -19,6 +19,9 @@ type PeriodChoice = Period | 'custom';
 
 const MONTH = new Intl.DateTimeFormat('en-IN', { month: 'short', year: 'numeric' });
 
+// A GST cell of an export: empty when the document carries no GST at all (a side without a GSTIN).
+const noTax = (documentTax: number, value: number): number | '' => (documentTax ? value : '');
+
 // Sales and purchases for a date range side by side (drafts are not sales), with GST-ready CSV exports.
 @Component({
   selector: 'app-reports-page',
@@ -55,15 +58,22 @@ export class Reports {
     return [
       { label: 'Sales', value: s.total, note: `${s.count} invoice${s.count === 1 ? '' : 's'}`, main: true, link: '/invoices', query: dates },
       { label: 'Purchases', value: p.total, note: `${p.count} bill${p.count === 1 ? '' : 's'}`, main: true, link: '/purchases', query: dates },
-      { label: 'GST on sales', value: s.tax, note: 'Output tax', main: false },
-      { label: 'GST on purchases', value: p.tax, note: 'Input tax', main: false },
-      { label: 'Net GST', value: round2(s.tax - p.tax), note: 'Sales GST − purchase GST', main: false },
+      // No GST on anything in the period (no GSTIN on one side): GST isn't mentioned.
+      ...(s.tax || p.tax
+        ? [
+            { label: 'GST on sales', value: s.tax, note: 'Output tax', main: false },
+            { label: 'GST on purchases', value: p.tax, note: 'Input tax', main: false },
+            { label: 'Net GST', value: round2(s.tax - p.tax), note: 'Sales GST − purchase GST', main: false },
+          ]
+        : []),
     ];
   });
 
   protected readonly salesTiles = computed(() => {
     const t = this.report()?.sales.totals;
     if (!t) return [];
+    // No GST on any sale in the period: just the total.
+    if (!t.tax) return [{ label: 'Grand total', value: t.total }];
     return [
       { label: 'Taxable value', value: t.subTotal },
       { label: 'CGST', value: t.cgst },
@@ -181,7 +191,7 @@ export class Reports {
       [...purchases].reverse().flatMap((p) =>
         p.lines.map((l, index) => [
           p.purchaseNumber, p.purchaseDate, p.vendorName, index + 1, l.description, l.hsnSac, l.quantity, l.unit,
-          l.unitPrice, l.gstRate, l.taxableAmount, l.totalTax, l.lineTotal, index === 0 ? p.totals.grandTotal : '', index === 0 ? p.note : '',
+          l.unitPrice, noTax(p.totals.totalTax, l.gstRate), l.taxableAmount, noTax(p.totals.totalTax, l.totalTax), l.lineTotal, index === 0 ? p.totals.grandTotal : '', index === 0 ? p.note : '',
         ]),
       ),
     );
@@ -195,7 +205,8 @@ export class Reports {
         'CGST', 'SGST', 'IGST', 'Total Tax', 'Grand Total', 'Note'],
       [...purchases].reverse().map((p) => [
         p.purchaseNumber, p.purchaseDate, p.vendorName, p.vendorGstin, p.vendorStateCode ? stateLabel(p.vendorStateCode) : '',
-        p.lines.length, p.totals.subTotal, p.totals.totalCgst, p.totals.totalSgst, p.totals.totalIgst, p.totals.totalTax,
+        p.lines.length, p.totals.subTotal, noTax(p.totals.totalTax, p.totals.totalCgst), noTax(p.totals.totalTax, p.totals.totalSgst),
+        noTax(p.totals.totalTax, p.totals.totalIgst), noTax(p.totals.totalTax, p.totals.totalTax),
         p.totals.grandTotal, p.note,
       ]),
     );
@@ -215,7 +226,8 @@ export class Reports {
       rows.map((r) => [
         r.invoiceNumber, r.invoiceDate, r.sellerName, r.sellerGstin, r.clientName, r.clientAddress,
         stateLabel(r.clientStateCode), r.clientGstin, stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No',
-        r.lines.length, r.subTotal, r.totalCgst, r.totalSgst, r.totalIgst, r.totalTax, r.grandTotal,
+        r.lines.length, r.subTotal, noTax(r.totalTax, r.totalCgst), noTax(r.totalTax, r.totalSgst), noTax(r.totalTax, r.totalIgst),
+        noTax(r.totalTax, r.totalTax), r.grandTotal,
       ]),
     );
   }
@@ -230,7 +242,8 @@ export class Reports {
         r.lines.map((l, index) => [
           r.invoiceNumber, r.invoiceDate, r.sellerName, r.sellerGstin, r.clientName, r.clientStateCode, r.clientGstin,
           stateLabel(r.placeOfSupplyCode), r.reverseCharge ? 'Yes' : 'No', index + 1, l.description, l.narration, l.hsnSac,
-          l.quantity, l.unit, l.unitPrice, l.gstRate, l.taxableAmount, l.cgst, l.sgst, l.igst, l.totalTax, l.lineTotal,
+          l.quantity, l.unit, l.unitPrice, noTax(r.totalTax, l.gstRate), l.taxableAmount, noTax(r.totalTax, l.cgst),
+          noTax(r.totalTax, l.sgst), noTax(r.totalTax, l.igst), noTax(r.totalTax, l.totalTax), l.lineTotal,
         ]),
       ),
     );

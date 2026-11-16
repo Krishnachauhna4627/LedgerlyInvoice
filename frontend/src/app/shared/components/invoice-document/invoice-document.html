@@ -1,6 +1,7 @@
 @let inv = invoice();
-<!-- A seller without a GSTIN can't charge GST separately: one tax-inclusive amount per line, no tax breakdown. -->
-@let gst = !!inv.seller.gstin;
+<!-- GST only when both the seller and the customer have a GSTIN (gstApplies()). Otherwise no GST is mentioned:
+     plain "INVOICE", one amount per line (tax-inclusive on invoices saved before this rule), no tax breakdown. -->
+@let gst = hasGst();
 <!-- Reverse charge: no GST is added, so tax columns and totals are hidden and the taxable amount is final. -->
 @let showTax = gst && !inv.reverseCharge;
 <article class="doc" [attr.aria-label]="(gst ? 'Tax invoice ' : 'Invoice ') + inv.invoiceNumber">

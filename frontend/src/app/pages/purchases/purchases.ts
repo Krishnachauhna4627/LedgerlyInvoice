@@ -111,8 +111,10 @@ export class Purchases {
       `purchases${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
       ['Party', 'GSTIN/UIN', 'Vendor state', 'Doc no.', 'Doc date', 'Qty', 'Unit', 'HSN', 'Particulars',
         'Bill value', 'Taxable value', 'Tax rate (%)', 'IGST', 'CGST', 'SGST', 'Note'],
-      this.purchases().flatMap((p) =>
-        p.lines.map((l, i) => [
+      this.purchases().flatMap((p) => {
+        // No GST on this bill (a side without a GSTIN): the tax columns stay empty.
+        const tax = (n: number) => (p.totals.totalTax ? money(n) : '');
+        return p.lines.map((l, i) => [
           p.vendorName,
           p.vendorGstin,
           p.vendorStateCode ? `${p.vendorStateCode}-${stateName(p.vendorStateCode)}` : '',
@@ -124,13 +126,13 @@ export class Purchases {
           l.description,
           i === 0 ? money(p.totals.grandTotal) : '',
           money(l.taxableAmount),
-          l.gstRate,
-          money(l.igst),
-          money(l.cgst),
-          money(l.sgst),
+          p.totals.totalTax ? l.gstRate : '',
+          tax(l.igst),
+          tax(l.cgst),
+          tax(l.sgst),
           i === 0 ? p.note : '',
-        ]),
-      ),
+        ]);
+      }),
     );
   }
 }

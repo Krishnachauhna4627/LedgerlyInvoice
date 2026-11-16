@@ -2,6 +2,7 @@ import type { jsPDF as JsPdf } from 'jspdf';
 import type { CellInput, RowInput, UserOptions } from 'jspdf-autotable';
 import { Invoice } from '../data/models';
 import { amountInWords } from '../gst/amount-in-words';
+import { gstApplies } from '../gst/gst';
 import { stateLabel } from '../gst/gst-states';
 import {
   BOTTOM,
@@ -51,7 +52,8 @@ class InvoicePdfWriter {
     private readonly autoTable: (doc: JsPdf, options: UserOptions) => void,
     private readonly inv: Invoice,
   ) {
-    this.gst = !!inv.seller.gstin;
+    // GST is mentioned only when both the seller and the customer have a GSTIN; otherwise a plain "INVOICE".
+    this.gst = gstApplies(inv.seller.gstin, inv.client.gstin);
     this.showTax = this.gst && !inv.reverseCharge;
     this.modern = inv.template === 'modern';
     this.minimal = inv.template === 'minimal';

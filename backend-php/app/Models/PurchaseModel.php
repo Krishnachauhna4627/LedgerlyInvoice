@@ -89,11 +89,12 @@ class PurchaseModel extends Model
         if (! $vendor) {
             throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved vendor.']);
         }
-        $company = $this->db->table('companies')->select('state_code')->where('id', $companyId)->get()->getRowArray();
+        $company = $this->db->table('companies')->select('state_code, gstin')->where('id', $companyId)->get()->getRowArray();
         // IGST when the vendor is in another state than our business; CGST + SGST otherwise (or when a state is missing).
         $isInterState = ! empty($company['state_code']) && $vendor['state_code'] !== $company['state_code'];
 
-        $lines = array_map(static fn (array $l): array => [...$l, ...Gst::calculateLine($l, $isInterState)], $body['lines']);
+        // No GST unless both the vendor and our business have a GSTIN (Gst::applies()).
+        $lines = Gst::calculateLines($body['lines'], $isInterState, false, Gst::applies($company['gstin'] ?? null, $vendor['gstin']));
         $sum   = static fn (string $key): float => Gst::round2(array_reduce($lines, static fn (float $t, array $l): float => $t + $l[$key], 0.0));
         $row   = [
             'purchase_number'   => $body['purchaseNumber'],

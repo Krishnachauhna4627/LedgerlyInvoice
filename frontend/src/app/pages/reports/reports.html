@@ -120,24 +120,32 @@
               <thead>
                 <tr>
                   <th scope="col">HSN/SAC</th>
-                  <th scope="col" class="num">GST %</th>
-                  <th scope="col" class="num">Taxable value</th>
-                  <th scope="col" class="num">CGST</th>
-                  <th scope="col" class="num">SGST</th>
-                  <th scope="col" class="num">IGST</th>
-                  <th scope="col" class="num">Total tax</th>
+                  @if (r.sales.totals.tax) {
+                    <th scope="col" class="num">GST %</th>
+                    <th scope="col" class="num">Taxable value</th>
+                    <th scope="col" class="num">CGST</th>
+                    <th scope="col" class="num">SGST</th>
+                    <th scope="col" class="num">IGST</th>
+                    <th scope="col" class="num">Total tax</th>
+                  } @else {
+                    <th scope="col" class="num">Value</th>
+                  }
                 </tr>
               </thead>
               <tbody>
                 @for (h of r.sales.byHsn; track $index) {
                   <tr>
                     <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
-                    <td class="num">{{ h.gstRate }}%</td>
-                    <td class="num">{{ h.taxable | inr }}</td>
-                    <td class="num">{{ h.cgst | inr }}</td>
-                    <td class="num">{{ h.sgst | inr }}</td>
-                    <td class="num">{{ h.igst | inr }}</td>
-                    <td class="num strong">{{ h.tax | inr }}</td>
+                    @if (r.sales.totals.tax) {
+                      <td class="num">{{ h.gstRate }}%</td>
+                      <td class="num">{{ h.taxable | inr }}</td>
+                      <td class="num">{{ h.cgst | inr }}</td>
+                      <td class="num">{{ h.sgst | inr }}</td>
+                      <td class="num">{{ h.igst | inr }}</td>
+                      <td class="num strong">{{ h.tax | inr }}</td>
+                    } @else {
+                      <td class="num strong">{{ h.taxable | inr }}</td>
+                    }
                   </tr>
                 }
               </tbody>
@@ -151,14 +159,16 @@
         <div class="panel empty-state"><p>No purchases in this period.</p></div>
       } @else {
         <ul class="tiles tiles--purchases">
-          <li class="tile">
-            <span class="tile__label">Taxable value</span>
-            <span class="tile__value">{{ r.purchases.totals.subTotal | inr }}</span>
-          </li>
-          <li class="tile">
-            <span class="tile__label">GST</span>
-            <span class="tile__value">{{ r.purchases.totals.tax | inr }}</span>
-          </li>
+          @if (r.purchases.totals.tax) {
+            <li class="tile">
+              <span class="tile__label">Taxable value</span>
+              <span class="tile__value">{{ r.purchases.totals.subTotal | inr }}</span>
+            </li>
+            <li class="tile">
+              <span class="tile__label">GST</span>
+              <span class="tile__value">{{ r.purchases.totals.tax | inr }}</span>
+            </li>
+          }
           <li class="tile tile--total">
             <span class="tile__label">Grand total</span>
             <span class="tile__value">{{ r.purchases.totals.total | inr }}</span>
@@ -172,18 +182,26 @@
               <thead>
                 <tr>
                   <th scope="col">HSN/SAC</th>
-                  <th scope="col" class="num">GST %</th>
-                  <th scope="col" class="num">Taxable value</th>
-                  <th scope="col" class="num">GST</th>
+                  @if (r.purchases.totals.tax) {
+                    <th scope="col" class="num">GST %</th>
+                    <th scope="col" class="num">Taxable value</th>
+                    <th scope="col" class="num">GST</th>
+                  } @else {
+                    <th scope="col" class="num">Value</th>
+                  }
                 </tr>
               </thead>
               <tbody>
                 @for (h of r.purchases.byHsn; track $index) {
                   <tr>
                     <td class="strong" [class.muted]="!h.hsnSac">{{ h.hsnSac || 'Not set' }}</td>
-                    <td class="num">{{ h.gstRate }}%</td>
-                    <td class="num">{{ h.taxable | inr }}</td>
-                    <td class="num strong">{{ h.tax | inr }}</td>
+                    @if (r.purchases.totals.tax) {
+                      <td class="num">{{ h.gstRate }}%</td>
+                      <td class="num">{{ h.taxable | inr }}</td>
+                      <td class="num strong">{{ h.tax | inr }}</td>
+                    } @else {
+                      <td class="num strong">{{ h.taxable | inr }}</td>
+                    }
                   </tr>
                 }
               </tbody>

@@ -20,6 +20,8 @@ export class LineItems {
   readonly items = input.required<Item[]>();
   readonly amounts = input.required<LineAmounts[]>();
   readonly errorFor = input.required<(path: string) => string | null>();
+  // false when the document carries no GST (a side without a GSTIN): the GST %, Taxable and Tax columns are hidden.
+  readonly showTax = input(true);
 
   readonly picked = output<{ index: number; itemId: number }>();
   readonly newItem = output<number>();
@@ -32,7 +34,7 @@ export class LineItems {
     this.items().map((i) => ({
       id: i.id,
       label: i.name,
-      detail: [i.hsnSac ? `HSN ${i.hsnSac}` : null, `₹${i.unitPrice}`, `GST ${i.gstRate}%`].filter(Boolean).join(' · '),
+      detail: [i.hsnSac ? `HSN ${i.hsnSac}` : null, `₹${i.unitPrice}`, this.showTax() ? `GST ${i.gstRate}%` : null].filter(Boolean).join(' · '),
       keywords: i.hsnSac ?? '',
     })),
   );

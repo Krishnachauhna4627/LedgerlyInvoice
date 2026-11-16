@@ -110,6 +110,7 @@
             [lines]="lines"
             [items]="items()"
             [amounts]="calculation().lines"
+            [showTax]="gstApplies()"
             [errorFor]="errorFor"
             (picked)="applyItem($event.index, $event.itemId)"
             (newItem)="newItemLine.set($event)"
@@ -117,15 +118,20 @@
             (added)="addLine()"
           />
           <dl class="totals">
-            <div><dt>Taxable amount</dt><dd>{{ calculation().subTotal | inr }}</dd></div>
-            @if (calculation().isInterState) {
-              <div><dt>IGST</dt><dd>{{ calculation().totalIgst | inr }}</dd></div>
-            } @else {
-              <div><dt>CGST</dt><dd>{{ calculation().totalCgst | inr }}</dd></div>
-              <div><dt>SGST</dt><dd>{{ calculation().totalSgst | inr }}</dd></div>
+            @if (gstApplies()) {
+              <div><dt>Taxable amount</dt><dd>{{ calculation().subTotal | inr }}</dd></div>
+              @if (calculation().isInterState) {
+                <div><dt>IGST</dt><dd>{{ calculation().totalIgst | inr }}</dd></div>
+              } @else {
+                <div><dt>CGST</dt><dd>{{ calculation().totalCgst | inr }}</dd></div>
+                <div><dt>SGST</dt><dd>{{ calculation().totalSgst | inr }}</dd></div>
+              }
             }
             <div class="totals__grand"><dt>Bill total</dt><dd>{{ calculation().grandTotal | inr }}</dd></div>
           </dl>
+          @if (noGstNote(); as note) {
+            <p class="no-gst">{{ note }}</p>
+          }
         </section>
       </div>
 

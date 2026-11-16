@@ -7,7 +7,10 @@ import { InrPipe } from '../../../../shared/pipes/inr.pipe';
   imports: [InrPipe],
   template: `
     <dl class="totals">
-      @if (reverseCharge()) {
+      @if (noGstNote()) {
+        <dt class="grand">Total</dt>
+        <dd class="grand">{{ totals().grandTotal | inr }}</dd>
+      } @else if (reverseCharge()) {
         <dt class="grand">Taxable amount</dt>
         <dd class="grand">{{ totals().subTotal | inr }}</dd>
       } @else {
@@ -28,7 +31,7 @@ import { InrPipe } from '../../../../shared/pipes/inr.pipe';
     </dl>
     <p class="words">{{ words() }}</p>
     <p class="supply">
-      {{ reverseCharge() ? 'Reverse charge — no GST added; the taxable amount is the final amount.'
+      {{ noGstNote() ? noGstNote() : reverseCharge() ? 'Reverse charge — no GST added; the taxable amount is the final amount.'
         : isInterState() ? 'Inter-state supply — IGST applies.' : 'Intra-state supply — CGST + SGST apply.' }}
     </p>
   `,
@@ -65,5 +68,7 @@ export class TotalsSummary {
   readonly totals = input.required<InvoiceTotals>();
   readonly isInterState = input(false);
   readonly reverseCharge = input(false);
+  // Set when the invoice carries no GST (a side without a GSTIN): only the total is shown, with this note.
+  readonly noGstNote = input('');
   readonly words = input('');
 }

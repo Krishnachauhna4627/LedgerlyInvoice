@@ -63,14 +63,41 @@ class Gst
     }
 
     /**
+     * GST is calculated only when both sides have a GSTIN: our business and the party (customer on a sale,
+     * vendor on a purchase). Otherwise the document carries no GST at all (rate 0, no CGST/SGST/IGST).
+     */
+    public static function applies(?string $ourGstin, ?string $partyGstin): bool
+    {
+        return trim((string) $ourGstin) !== '' && trim((string) $partyGstin) !== '';
+    }
+
+    /**
+     * Lines with GST worked out; with $gstApplies false every line's GST rate is set to 0 (see applies()).
+     *
+     * @param list<array<string, mixed>> $lines
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function calculateLines(array $lines, bool $isInterState, bool $reverseCharge = false, bool $gstApplies = true): array
+    {
+        return array_map(static function (array $line) use ($isInterState, $reverseCharge, $gstApplies): array {
+            if (! $gstApplies) {
+                $line['gstRate'] = 0.0;
+            }
+
+            return [...$line, ...self::calculateLine($line, $isInterState, $reverseCharge)];
+        }, $lines);
+    }
+
+    /**
      * @param list<array<string, mixed>> $lines
      *
      * @return array{isInterState: bool, lines: list<array<string, mixed>>, totals: array<string, float>}
      */
-    public static function calculateInvoice(array $lines, string $sellerStateCode, string $placeOfSupplyCode, bool $reverseCharge = false): array
+    public static function calculateInvoice(array $lines, string $sellerStateCode, string $placeOfSupplyCode, bool $reverseCharge = false, bool $gstApplies = true): array
     {
         $isInterState = $placeOfSupplyCode !== $sellerStateCode;
-        $calculated   = array_map(static fn (array $line): array => [...$line, ...self::calculateLine($line, $isInterState, $reverseCharge)], $lines);
+        $calculated   = self::calculateLines($lines, $isInterState, $reverseCharge, $gstApplies);
         $sum          = static fn (string $key): float => self::round2(array_reduce($calculated, static fn (float $total, array $line): float => $total + $line[$key], 0.0));
 
         $totals = [

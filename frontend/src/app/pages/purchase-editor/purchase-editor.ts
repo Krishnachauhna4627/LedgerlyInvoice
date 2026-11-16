@@ -9,7 +9,7 @@ import { CompanyService } from '../../core/data/company.service';
 import { ItemService } from '../../core/data/item.service';
 import { Client, Item, PurchaseInput, PurchaseLine } from '../../core/data/models';
 import { PurchaseService } from '../../core/data/purchase.service';
-import { calculateLine, round2 } from '../../core/gst/gst';
+import { calculateLine, gstApplies, round2 } from '../../core/gst/gst';
 import { stateLabel } from '../../core/gst/gst-states';
 import { todayIso } from '../../core/ui/dates';
 import { ToastService } from '../../core/ui/toast.service';
@@ -62,6 +62,7 @@ export class PurchaseEditor {
   // Vendors are picked from the saved parties (the customer list), like the customer on an invoice.
   protected readonly clients = signal<Client[]>([]);
   private readonly companyStateCode = signal<string | null>(null);
+  private readonly companyGstin = signal<string | null>(null);
   // Vendor name on a bill whose party isn't saved (recorded before vendors were picked, or the party was deleted).
   protected readonly oldVendorName = signal<string | null>(null);
   protected readonly showClientDialog = signal(false);
@@ -99,12 +100,21 @@ export class PurchaseEditor {
     })),
   );
 
+  // GST only when both the vendor and the business have a GSTIN (same rule as the server).
+  protected readonly gstApplies = computed(() => gstApplies(this.companyGstin(), this.selectedClient()?.gstin));
+  protected readonly noGstNote = computed(() => {
+    if (this.gstApplies()) return '';
+    if (!this.companyGstin()) return 'Your business has no GSTIN — no GST on this bill.';
+    return this.selectedClient() ? 'This vendor has no GSTIN — no GST on this bill.' : 'Choose a vendor to see if GST applies.';
+  });
+
   // Live preview; the server recalculates on save. IGST when the vendor is in another state than the
   // business, CGST + SGST otherwise (same rule as PurchaseModel::savePurchase()).
   protected readonly calculation = computed(() => {
     const ours = this.companyStateCode();
     const isInterState = !!ours && !!this.selectedClient() && this.selectedClient()!.stateCode !== ours;
-    const lines = this.value().lines.map((l) => calculateLine(l, isInterState));
+    const applies = this.gstApplies();
+    const lines = this.value().lines.map((l) => calculateLine(applies ? l : { ...l, gstRate: 0 }, isInterState));
     const sum = (key: 'taxableAmount' | 'cgst' | 'sgst' | 'igst' | 'totalTax') => round2(lines.reduce((t, l) => t + l[key], 0));
     const subTotal = sum('taxableAmount');
     const totalTax = sum('totalTax');
@@ -127,6 +137,7 @@ export class PurchaseEditor {
         this.items.set(items);
         this.clients.set(clients);
         this.companyStateCode.set(company.stateCode || null);
+        this.companyGstin.set(company.gstin || null);
         if (purchase) {
           const saved = clients.some((c) => c.id === purchase.clientId);
           this.oldVendorName.set(saved ? null : purchase.vendorName);

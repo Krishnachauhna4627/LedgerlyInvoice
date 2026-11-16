@@ -26,8 +26,11 @@ export class GstTotals {
 
   protected readonly boxes = computed<{ label: string; value: number; icon: IconName }[]>(() => {
     const t = this.totals();
+    const value = { label: this.valueLabel(), value: t.value, icon: 'rupee' as IconName };
+    // No GST in any of the documents shown (no GSTIN on one side): don't mention GST at all.
+    if (!t.igst && !t.cgst && !t.sgst) return [value];
     return [
-      { label: this.valueLabel(), value: t.value, icon: 'rupee' },
+      value,
       { label: 'Taxable value', value: t.taxable, icon: 'receipt' },
       { label: 'IGST', value: t.igst, icon: 'percent' },
       { label: 'CGST', value: t.cgst, icon: 'percent' },

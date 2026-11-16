@@ -124,7 +124,7 @@
                 }
               </select>
               <span id="inv-pos-hint" class="hint">
-                {{ value().reverseCharge ? 'Reverse charge: no GST added' : calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
+                {{ !gstApplies() ? 'No GSTIN: no GST' : value().reverseCharge ? 'Reverse charge: no GST added' : calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
               </span>
             </div>
             <div class="field">
@@ -149,6 +149,7 @@
             [lines]="lines"
             [items]="items()"
             [amounts]="calculation().lines"
+            [showTax]="gstApplies()"
             [errorFor]="errorFor"
             (picked)="applyItem($event.index, $event.itemId)"
             (newItem)="newItemLine.set($event)"
@@ -156,7 +157,7 @@
             (added)="addLine()"
           />
           <div class="summary">
-            <app-totals-summary [totals]="calculation().totals" [isInterState]="calculation().isInterState" [reverseCharge]="value().reverseCharge" [words]="words()" />
+            <app-totals-summary [totals]="calculation().totals" [isInterState]="calculation().isInterState" [reverseCharge]="value().reverseCharge" [noGstNote]="noGstNote()" [words]="words()" />
           </div>
         </section>
       </div>

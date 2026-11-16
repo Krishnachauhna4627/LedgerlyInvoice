@@ -34,20 +34,23 @@ export function exportInvoicesCsv(rows: InvoiceListItem[]): void {
         status: first ? STATUS_LABEL[inv.displayStatus] : '',
       });
       const lines = inv.lines ?? [];
+      // No GST on this invoice (a side without a GSTIN): the tax columns stay empty.
+      const hasTax = inv.totalTax !== 0;
+      const tax = (n: number) => (hasTax ? money(n) : '');
 
       // No lines: one row with the invoice's own totals.
       if (!lines.length) {
         const { value, due, status } = invoiceOnly(true);
         return [[
           ...party, '', '', '', '', value, money(inv.subTotal), '',
-          money(inv.totalIgst), money(inv.totalCgst), money(inv.totalSgst), due, status,
+          tax(inv.totalIgst), tax(inv.totalCgst), tax(inv.totalSgst), due, status,
         ]];
       }
       return lines.map((line, i) => {
         const { value, due, status } = invoiceOnly(i === 0);
         return [
           ...party, line.quantity, line.unit, line.hsnSac, line.description, value, money(line.taxableAmount),
-          line.gstRate, money(line.igst), money(line.cgst), money(line.sgst), due, status,
+          hasTax ? line.gstRate : '', tax(line.igst), tax(line.cgst), tax(line.sgst), due, status,
         ];
       });
     }),

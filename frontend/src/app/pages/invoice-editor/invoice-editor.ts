@@ -20,7 +20,7 @@ import { CompanyService } from '../../core/data/company.service';
 import { ItemService } from '../../core/data/item.service';
 import { Client, Company, Invoice, InvoiceInput, InvoiceStatus, InvoiceTemplate, Item } from '../../core/data/models';
 import { amountInWords } from '../../core/gst/amount-in-words';
-import { calculateInvoice } from '../../core/gst/gst';
+import { calculateInvoice, gstApplies } from '../../core/gst/gst';
 import { GST_STATES, stateLabel } from '../../core/gst/gst-states';
 import { InvoiceService } from '../../core/invoices/invoice.service';
 import { addDays, todayIso } from '../../core/ui/dates';
@@ -144,10 +144,18 @@ export class InvoiceEditor {
 
   protected readonly sellerStateCode = computed(() => this.company()?.stateCode ?? null);
 
+  // GST only when both the business and the customer have a GSTIN (same rule as the server).
+  protected readonly gstApplies = computed(() => gstApplies(this.company()?.gstin, this.selectedClient()?.gstin));
+  protected readonly noGstNote = computed(() => {
+    if (this.gstApplies()) return '';
+    if (!this.company()?.gstin) return 'Your business has no GSTIN — no GST is charged.';
+    return this.selectedClient() ? 'This customer has no GSTIN — no GST is charged.' : 'Choose a customer to see if GST applies.';
+  });
+
   protected readonly calculation = computed(() => {
     const v = this.value();
     const placeOfSupply = v.placeOfSupplyCode || this.selectedClient()?.stateCode || null;
-    return calculateInvoice(v.lines, this.sellerStateCode(), placeOfSupply, v.reverseCharge);
+    return calculateInvoice(v.lines, this.sellerStateCode(), placeOfSupply, v.reverseCharge, this.gstApplies());
   });
 
   protected readonly words = computed(() => amountInWords(this.calculation().totals.grandTotal));

@@ -3,6 +3,9 @@
 // Wide: a grid row per line with one header row. Narrower: each line is a card with its own labels.
 $columns: minmax(170px, 2.2fr) minmax(90px, 1fr) minmax(60px, 0.65fr) minmax(76px, 0.7fr) minmax(88px, 1fr)
   minmax(68px, 0.7fr) minmax(90px, 0.95fr) minmax(80px, 0.85fr) minmax(100px, 1fr) 36px;
+// Without GST: product, HSN, qty, unit, rate, amount, remove.
+$columns-no-tax: minmax(170px, 2.6fr) minmax(90px, 1fr) minmax(60px, 0.65fr) minmax(76px, 0.7fr) minmax(88px, 1fr)
+  minmax(100px, 1fr) 36px;
 // Smallest width the desktop row fits in: the column minimums above + 9 gaps (12px) + row padding (2 × 12px).
 $row-min-width: 858px + 9 * 12px + 2 * 12px;
 
@@ -27,6 +30,11 @@ $row-min-width: 858px + 9 * 12px + 2 * 12px;
     grid-template-columns: $columns;
     gap: var(--space-3);
     padding: var(--space-2) var(--space-3);
+
+    &.no-tax {
+      grid-template-columns: $columns-no-tax;
+    }
+
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     background: var(--color-bg);
     color: var(--color-text-muted);
@@ -67,6 +75,11 @@ $row-min-width: 858px + 9 * 12px + 2 * 12px;
   @include row-layout {
     grid-template-columns: $columns;
     align-items: start;
+
+    &.no-tax {
+      grid-template-columns: $columns-no-tax;
+    }
+
     padding: var(--space-3);
     border-width: 0 0 1px;
     border-radius: 0;

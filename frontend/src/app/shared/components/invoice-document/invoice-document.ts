@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { Invoice } from '../../../core/data/models';
 import { amountInWords } from '../../../core/gst/amount-in-words';
+import { gstApplies } from '../../../core/gst/gst';
 import { stateLabel } from '../../../core/gst/gst-states';
 import { formatInvoiceDate, hsnSummary, inclusiveRate } from '../../../core/invoices/invoice-summary';
 import { InrPipe } from '../../pipes/inr.pipe';
@@ -19,6 +20,8 @@ export class InvoiceDocument {
   readonly invoice = input.required<Invoice>();
 
   protected readonly stateLabel = stateLabel;
+  // GST is mentioned only when both the seller and the customer have a GSTIN.
+  protected readonly hasGst = computed(() => gstApplies(this.invoice().seller.gstin, this.invoice().client.gstin));
   protected readonly words = computed(() => amountInWords(this.invoice().totals.grandTotal));
 
   protected readonly hsnSummary = computed(() => hsnSummary(this.invoice().lines));

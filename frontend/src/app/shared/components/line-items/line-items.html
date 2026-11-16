@@ -1,13 +1,17 @@
-<div class="head" aria-hidden="true">
+<div class="head" [class.no-tax]="!showTax()" aria-hidden="true">
   <span>Product/Service</span>
   <span>HSN/SAC</span>
   <span>Qty</span>
   <span>Unit</span>
   <span>Rate (₹)</span>
-  <span>GST %</span>
-  <span class="num">Taxable</span>
-  <span class="num">Tax</span>
-  <span class="num">Total</span>
+  @if (showTax()) {
+    <span>GST %</span>
+    <span class="num">Taxable</span>
+    <span class="num">Tax</span>
+    <span class="num">Total</span>
+  } @else {
+    <span class="num">Amount</span>
+  }
   <span></span>
 </div>
 
@@ -19,7 +23,7 @@
 
 <ol class="lines">
   @for (line of lines().controls; track line; let i = $index) {
-    <li class="line" [formGroup]="$any(line)">
+    <li class="line" [class.no-tax]="!showTax()" [formGroup]="$any(line)">
       <div class="cell cell--item">
         <div class="item-label">
           <label class="field__label" [for]="'line-' + i + '-item'">Product/Service {{ i + 1 }}</label>
@@ -78,6 +82,7 @@
         }
       </div>
 
+      @if (showTax()) {
       <div class="cell">
         <label class="field__label" [for]="'line-' + i + '-gst'">GST %</label>
         <input class="input" type="number" min="0" max="100" step="0.01" inputmode="decimal" list="line-gst-rates" [id]="'line-' + i + '-gst'" formControlName="gstRate"
@@ -95,8 +100,9 @@
         <span class="field__label">Tax</span>
         <span class="amount">{{ amounts()[i]?.totalTax | inr }}</span>
       </div>
+      }
       <div class="cell cell--amount">
-        <span class="field__label">Total</span>
+        <span class="field__label">{{ showTax() ? 'Total' : 'Amount' }}</span>
         <span class="amount amount--strong">{{ amounts()[i]?.lineTotal | inr }}</span>
       </div>
 

@@ -69,16 +69,24 @@
             }
             @if (line) {
               <td class="num">{{ line.taxableAmount | inr: false }}</td>
-              <td class="num">{{ line.gstRate }}%</td>
-              <td class="num">{{ line.igst | inr: false }}</td>
-              <td class="num">{{ line.cgst | inr: false }}</td>
-              <td class="num">{{ line.sgst | inr: false }}</td>
+              <!-- No GST on this document (a side without a GSTIN): nothing to mention. -->
+              @if (inv.totalTax) {
+                <td class="num">{{ line.gstRate }}%</td>
+                <td class="num">{{ line.igst | inr: false }}</td>
+                <td class="num">{{ line.cgst | inr: false }}</td>
+                <td class="num">{{ line.sgst | inr: false }}</td>
+              } @else {
+                <td class="num muted" title="No GST">—</td>
+                <td class="num muted">—</td>
+                <td class="num muted">—</td>
+                <td class="num muted">—</td>
+              }
             } @else {
               <td class="num">{{ inv.subTotal | inr: false }}</td>
               <td></td>
-              <td class="num">{{ inv.totalIgst | inr: false }}</td>
-              <td class="num">{{ inv.totalCgst | inr: false }}</td>
-              <td class="num">{{ inv.totalSgst | inr: false }}</td>
+              <td class="num" [class.muted]="!inv.totalTax">{{ inv.totalTax ? (inv.totalIgst | inr: false) : '—' }}</td>
+              <td class="num" [class.muted]="!inv.totalTax">{{ inv.totalTax ? (inv.totalCgst | inr: false) : '—' }}</td>
+              <td class="num" [class.muted]="!inv.totalTax">{{ inv.totalTax ? (inv.totalSgst | inr: false) : '—' }}</td>
             }
             @if (first) {
               <td class="num strong" [rowSpan]="span">

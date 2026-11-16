@@ -26,6 +26,11 @@ export interface InvoiceTotals {
   grandTotal: number;
 }
 
+// GST is calculated only when both sides have a GSTIN: our business and the party (customer on a sale,
+// vendor on a purchase). Otherwise the document carries no GST at all. Same rule as Gst::applies() on the server.
+export const gstApplies = (ourGstin: string | null | undefined, partyGstin: string | null | undefined): boolean =>
+  !!ourGstin?.trim() && !!partyGstin?.trim();
+
 // Under reverse charge no GST is added: the taxable amount is the final amount.
 export function calculateLine(line: LineInput, isInterState: boolean, reverseCharge = false): LineAmounts {
   const taxableAmount = round2((Number(line.quantity) || 0) * (Number(line.unitPrice) || 0));
@@ -41,10 +46,12 @@ export function calculateInvoice(
   sellerStateCode: string | null,
   placeOfSupplyCode: string | null,
   reverseCharge = false,
+  // false: no GST on any line (see gstApplies()).
+  applies = true,
 ): { isInterState: boolean; lines: LineAmounts[]; totals: InvoiceTotals } {
   // Without both codes we can't tell; treat as intra-state like the server does when they match.
   const isInterState = !!sellerStateCode && !!placeOfSupplyCode && sellerStateCode !== placeOfSupplyCode;
-  const amounts = lines.map((line) => calculateLine(line, isInterState, reverseCharge));
+  const amounts = lines.map((line) => calculateLine(applies ? line : { ...line, gstRate: 0 }, isInterState, reverseCharge));
   const sum = (key: keyof LineAmounts) => round2(amounts.reduce((total, a) => total + a[key], 0));
   const subTotal = sum('taxableAmount');
   const totalTax = sum('totalTax');
