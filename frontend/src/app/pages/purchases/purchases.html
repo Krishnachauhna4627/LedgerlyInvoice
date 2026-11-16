@@ -24,24 +24,7 @@
     }
   </div>
 
-  <ul class="summary-tiles">
-    <li class="summary-tile summary-tile--main">
-      <span class="summary-tile__label">Total purchases</span>
-      <span class="summary-tile__value">{{ totals().all | inr }}</span>
-    </li>
-    <li class="summary-tile">
-      <span class="summary-tile__label">Taxable</span>
-      <span class="summary-tile__value">{{ totals().taxable | inr }}</span>
-    </li>
-    <li class="summary-tile">
-      <span class="summary-tile__label">GST</span>
-      <span class="summary-tile__value">{{ totals().gst | inr }}</span>
-    </li>
-    <li class="summary-tile">
-      <span class="summary-tile__label">Bills</span>
-      <span class="summary-tile__value">{{ purchases().length }}</span>
-    </li>
-  </ul>
+  <app-gst-totals valueLabel="Purchase value" [totals]="totals()" [note]="totalsNote()" />
 
   <div class="panel">
     @if (loading()) {
@@ -59,66 +42,7 @@
         <a class="btn btn--primary btn--sm" routerLink="/purchases/new"><app-icon name="plus" [size]="16" /> Record Purchase</a>
       </div>
     } @else {
-      <div class="table-scroll desktop">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">Purchase No.</th>
-              <th scope="col">Date</th>
-              <th scope="col">Vendor</th>
-              <th scope="col">Items</th>
-              <th scope="col">Note</th>
-              <th scope="col" class="num">Taxable</th>
-              <th scope="col" class="num">GST</th>
-              <th scope="col" class="num">Total</th>
-              <th scope="col" class="row-actions"><span class="sr-only">Actions</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of page.rows(); track p.id) {
-              <tr>
-                <td class="strong"><a [routerLink]="['/purchases', p.id, 'edit']">{{ p.purchaseNumber }}</a></td>
-                <td>{{ formatDmy(p.purchaseDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
-                <td class="strong">{{ p.vendorName }}</td>
-                <td>{{ itemsText(p) }}</td>
-                <td [class.muted]="!p.note">{{ p.note || '—' }}</td>
-                <td class="num">{{ p.totals.subTotal | inr }}</td>
-                <td class="num">{{ p.totals.totalTax | inr }}</td>
-                <td class="num strong">{{ p.totals.grandTotal | inr }}</td>
-                <td class="row-actions">
-                  <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
-                    <app-icon name="pencil" [size]="16" />
-                  </a>
-                  <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="deleting.set(p)">
-                    <app-icon name="trash" [size]="16" />
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <ul class="cards">
-        @for (p of page.rows(); track p.id) {
-          <li class="card card--tappable">
-            <div class="card__main">
-              <a class="card__title card-link" [routerLink]="['/purchases', p.id, 'edit']">{{ p.vendorName }}</a>
-              <span class="card__meta">No. {{ p.purchaseNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }}</span>
-              <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
-              <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>
-            </div>
-            <div class="card__actions">
-              <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
-                <app-icon name="pencil" [size]="16" />
-              </a>
-              <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="deleting.set(p)">
-                <app-icon name="trash" [size]="16" />
-              </button>
-            </div>
-          </li>
-        }
-      </ul>
+      <app-purchase-table [purchases]="page.rows()" (remove)="deleting.set($event)" />
       <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
     }
   </div>

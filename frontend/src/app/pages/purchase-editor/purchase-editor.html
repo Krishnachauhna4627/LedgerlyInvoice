@@ -17,6 +17,60 @@
           <div class="form-alert" role="alert">{{ error() }}</div>
         }
 
+        <section aria-labelledby="pp-vendor-title">
+          <h2 id="pp-vendor-title" class="section-title">Vendor details</h2>
+
+          @if (clients().length === 0) {
+            <div class="empty-clients">
+              <p>You haven't saved any parties yet. Add the vendor you bought from.</p>
+              <button type="button" class="btn btn--primary btn--sm" (click)="showClientDialog.set(true)">
+                <app-icon name="plus" [size]="16" /> New vendor
+              </button>
+            </div>
+          } @else {
+            <div class="client-pick">
+              <div class="field">
+                <label class="field__label" for="pp-vendor">Vendor *</label>
+                <app-search-picker
+                  inputId="pp-vendor"
+                  [options]="clientOptions()"
+                  [selectedLabel]="selectedClient()?.name ?? ''"
+                  placeholder="Search vendor by name or GSTIN…"
+                  emptyText="No parties match. Use “New vendor”."
+                  [invalid]="!!errorFor('clientId')"
+                  describedBy="pp-vendor-error"
+                  (picked)="pickClient($event)"
+                />
+                @if (errorFor('clientId'); as message) {
+                  <span id="pp-vendor-error" class="field__error">{{ message }}</span>
+                }
+              </div>
+              <button type="button" class="btn btn--outline new-client" (click)="showClientDialog.set(true)">
+                <app-icon name="plus" [size]="16" /> New vendor
+              </button>
+            </div>
+          }
+          @if (errorFor('clientId') && clients().length === 0) {
+            <span class="field__error">{{ errorFor('clientId') }}</span>
+          }
+
+          @if (oldVendorName(); as old) {
+            <p class="hint-warn">
+              This bill was recorded for <strong>{{ old }}</strong> before vendors were picked from your parties
+              (or that party was deleted). Choose the vendor to save changes.
+            </p>
+          }
+
+          @if (selectedClient(); as client) {
+            <dl class="client-card">
+              <div><dt>Name</dt><dd>{{ client.name }}</dd></div>
+              <div><dt>GSTIN</dt><dd>{{ client.gstin || 'Not registered' }}</dd></div>
+              <div><dt>State</dt><dd>{{ stateLabel(client.stateCode) }}</dd></div>
+              <div class="wide"><dt>Address</dt><dd class="pre">{{ client.address || '—' }}</dd></div>
+            </dl>
+          }
+        </section>
+
         <section aria-labelledby="pp-details-title">
           <h2 id="pp-details-title" class="section-title">Purchase details</h2>
           <div class="details-grid">
@@ -26,20 +80,6 @@
                 [class.is-invalid]="errorFor('purchaseNumber')" [attr.aria-invalid]="!!errorFor('purchaseNumber')" aria-describedby="pp-number-error" />
               @if (errorFor('purchaseNumber'); as message) {
                 <span id="pp-number-error" class="field__error">{{ message }}</span>
-              }
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="pp-vendor">Vendor *</label>
-              <input id="pp-vendor" class="input" formControlName="vendorName" maxlength="150" autocomplete="off" list="pp-vendors"
-                placeholder="Who you bought from" [class.is-invalid]="errorFor('vendorName')" [attr.aria-invalid]="!!errorFor('vendorName')" aria-describedby="pp-vendor-error" />
-              <datalist id="pp-vendors">
-                @for (v of vendors(); track v) {
-                  <option [value]="v"></option>
-                }
-              </datalist>
-              @if (errorFor('vendorName'); as message) {
-                <span id="pp-vendor-error" class="field__error">{{ message }}</span>
               }
             </div>
 
@@ -78,7 +118,12 @@
           />
           <dl class="totals">
             <div><dt>Taxable amount</dt><dd>{{ calculation().subTotal | inr }}</dd></div>
-            <div><dt>GST</dt><dd>{{ calculation().totalTax | inr }}</dd></div>
+            @if (calculation().isInterState) {
+              <div><dt>IGST</dt><dd>{{ calculation().totalIgst | inr }}</dd></div>
+            } @else {
+              <div><dt>CGST</dt><dd>{{ calculation().totalCgst | inr }}</dd></div>
+              <div><dt>SGST</dt><dd>{{ calculation().totalSgst | inr }}</dd></div>
+            }
             <div class="totals__grand"><dt>Bill total</dt><dd>{{ calculation().grandTotal | inr }}</dd></div>
           </dl>
         </section>
@@ -96,6 +141,12 @@
     </form>
   }
 </div>
+
+<app-modal [open]="showClientDialog()" title="Add vendor" (closed)="showClientDialog.set(false)">
+  @if (showClientDialog()) {
+    <app-client-form (saved)="onClientCreated($event)" (cancelled)="showClientDialog.set(false)" />
+  }
+</app-modal>
 
 <app-modal [open]="newItemLine() !== null" title="Add product/service" (closed)="newItemLine.set(null)">
   @if (newItemLine() !== null) {

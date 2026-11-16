@@ -48,9 +48,12 @@ class Reports extends BaseController
         $prevReceivable = self::receivableAt($companyId, $prevTo);
         $prevPayable    = self::payableAt($companyId, $prevTo);
 
+        // Vendor names on purchases / payments that aren't saved parties (those are already in clientCount).
+        // Explicit collation: the purchases tables and clients were created with different defaults on some servers.
         $vendors = $db->query(
-            'SELECT COUNT(*) AS n FROM (SELECT vendor_name FROM purchases WHERE company_id = ? UNION SELECT vendor_name FROM vendor_payments WHERE company_id = ?) v',
-            [$companyId, $companyId],
+            'SELECT COUNT(*) AS n FROM (SELECT vendor_name FROM purchases WHERE company_id = ? UNION SELECT vendor_name FROM vendor_payments WHERE company_id = ?) v
+             WHERE NOT EXISTS (SELECT 1 FROM clients c WHERE c.company_id = ? AND c.name COLLATE utf8mb4_unicode_ci = v.vendor_name COLLATE utf8mb4_unicode_ci)',
+            [$companyId, $companyId, $companyId],
         )->getRowArray();
 
         $stat = static fn (array $cur, array $old): array => [...$cur, 'previous' => $old['amount']];

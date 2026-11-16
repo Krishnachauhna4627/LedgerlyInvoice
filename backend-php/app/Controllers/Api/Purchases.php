@@ -15,7 +15,7 @@ class Purchases extends BaseController
 {
     private const CLEANERS = [
         'purchaseNumber' => ['trim'],
-        'vendorName'     => ['trim'],
+        'clientId'       => ['number'],
         'purchaseDate'   => [],
         'note'           => ['trim', 'empty_to_null'],
         'lines'          => [],

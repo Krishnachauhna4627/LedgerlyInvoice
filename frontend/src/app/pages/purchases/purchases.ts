@@ -4,21 +4,23 @@ import { toApiError } from '../../core/api/api-error';
 import { Purchase } from '../../core/data/models';
 import { PurchaseService } from '../../core/data/purchase.service';
 import { round2 } from '../../core/gst/gst';
+import { stateName } from '../../core/gst/gst-states';
 import { downloadCsv } from '../../core/ui/csv';
-import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
+import { financialYear, formatDmy } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
+import { GstTotals, GstTotalsValue } from '../../shared/components/gst-totals/gst-totals';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../shared/pipes/time.pipe';
+import { PurchaseTable } from './components/purchase-table/purchase-table';
 
 // /purchases — purchase bills from vendors with the items bought, like invoices for sales.
 @Component({
   selector: 'app-purchases-page',
-  imports: [PageHeader, Icon, Modal, InrPipe, TimePipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, InrPipe, RouterLink, ShowMore, GstTotals, PurchaseTable],
   templateUrl: './purchases.html',
   styleUrl: './purchases.scss',
 })
@@ -40,9 +42,13 @@ export class Purchases {
   protected readonly deleteBusy = signal(false);
 
   protected readonly formatDmy = formatDmy;
-  protected readonly totals = computed(() => {
-    const sum = (key: 'subTotal' | 'totalTax' | 'grandTotal') => round2(this.purchases().reduce((total, p) => total + p.totals[key], 0));
-    return { taxable: sum('subTotal'), gst: sum('totalTax'), all: sum('grandTotal') };
+  protected readonly totals = computed<GstTotalsValue>(() => {
+    const sum = (key: keyof Purchase['totals']) => round2(this.purchases().reduce((total, p) => total + p.totals[key], 0));
+    return { value: sum('grandTotal'), taxable: sum('subTotal'), igst: sum('totalIgst'), cgst: sum('totalCgst'), sgst: sum('totalSgst') };
+  });
+  protected readonly totalsNote = computed(() => {
+    const n = this.purchases().length;
+    return `${n} bill${n === 1 ? '' : 's'}`;
   });
 
   constructor() {
@@ -71,13 +77,6 @@ export class Purchases {
     this.load();
   }
 
-  // "Cement", or "Cement + 2 more".
-  protected itemsText(p: Purchase): string {
-    const [first, ...rest] = p.lines;
-    if (!first) return '—';
-    return rest.length ? `${first.description} + ${rest.length} more` : first.description;
-  }
-
   protected confirmDelete(): void {
     const purchase = this.deleting();
     if (!purchase || this.deleteBusy()) return;
@@ -96,26 +95,31 @@ export class Purchases {
     });
   }
 
-  // One row per item, so the CSV shows everything bought.
+  // Same columns as the table, one row per item. Party, GSTIN, state, doc no. and date repeat on every line so
+  // the sheet can be filtered; the bill value is on the first line only, so summing it never counts a bill twice.
   protected exportCsv(): void {
+    const money = (n: number) => n.toFixed(2);
     downloadCsv(
       `purchases${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Purchase No.', 'Date', 'Time', 'Vendor', 'Item', 'Qty', 'Unit', 'Rate', 'GST %', 'Taxable', 'GST', 'Line total', 'Bill total', 'Note'],
+      ['Party', 'GSTIN/UIN', 'Vendor state', 'Doc no.', 'Doc date', 'Qty', 'Unit', 'HSN', 'Particulars',
+        'Bill value', 'Taxable value', 'Tax rate (%)', 'IGST', 'CGST', 'SGST', 'Note'],
       this.purchases().flatMap((p) =>
         p.lines.map((l, i) => [
+          p.vendorName,
+          p.vendorGstin,
+          p.vendorStateCode ? `${p.vendorStateCode}-${stateName(p.vendorStateCode)}` : '',
           p.purchaseNumber,
           formatDmy(p.purchaseDate),
-          formatTime(p.createdAt),
-          p.vendorName,
-          l.description,
           l.quantity,
           l.unit,
-          l.unitPrice,
+          l.hsnSac,
+          l.description,
+          i === 0 ? money(p.totals.grandTotal) : '',
+          money(l.taxableAmount),
           l.gstRate,
-          l.taxableAmount,
-          l.totalTax,
-          l.lineTotal,
-          i === 0 ? p.totals.grandTotal : '',
+          money(l.igst),
+          money(l.cgst),
+          money(l.sgst),
           i === 0 ? p.note : '',
         ]),
       ),

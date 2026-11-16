@@ -1,0 +1,117 @@
+@use 'breakpoints' as bp;
+
+// Table from md up; cards below.
+.wide {
+  display: none;
+
+  @include bp.up(md) {
+    display: block;
+  }
+}
+
+.data-table {
+  // Lines of one bill sit together; a stronger rule separates bills.
+  tbody + tbody {
+    border-top: 2px solid var(--color-border);
+  }
+
+  td {
+    vertical-align: top;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .party,
+  .particulars {
+    min-width: 140px;
+  }
+
+  // Pinned to the right edge so edit / delete stay reachable while the wide table scrolls.
+  .actions {
+    position: sticky;
+    right: 0;
+    width: 1%;
+    background: var(--color-surface);
+    box-shadow: -1px 0 0 var(--color-border);
+  }
+
+  th.actions {
+    background: var(--color-bg);
+  }
+}
+
+.actions__buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.number {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+}
+
+.note {
+  display: block;
+  max-width: 180px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.card__main {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card__title {
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.card__meta {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.card__amount {
+  font-weight: 600;
+}
+
+.card__actions {
+  display: flex;
+  flex-shrink: 0;
+}

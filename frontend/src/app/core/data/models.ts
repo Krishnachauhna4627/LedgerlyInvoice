@@ -85,8 +85,11 @@ export interface PurchaseLine {
   unit: string | null;
   unitPrice: number;
   gstRate: number;
-  // Calculated by the server.
+  // Calculated by the server; GST is CGST + SGST from a vendor in our state, IGST from another state.
   taxableAmount: number;
+  cgst: number;
+  sgst: number;
+  igst: number;
   totalTax: number;
   lineTotal: number;
 }
@@ -95,18 +98,24 @@ export interface Purchase {
   id: number;
   // Purchase No., unique per company.
   purchaseNumber: string;
+  // The vendor, a saved party (customer list). Null on bills recorded before vendors were picked, or if it was deleted.
+  clientId: number | null;
+  // Copied from the party when the bill was saved.
   vendorName: string;
+  vendorGstin: string | null;
+  vendorStateCode: string | null;
   purchaseDate: string;
   // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
   createdAt?: string | null;
   // Optional — vendor's bill no., etc.
   note: string | null;
   lines: PurchaseLine[];
-  totals: { subTotal: number; totalTax: number; grandTotal: number };
+  totals: { subTotal: number; totalCgst: number; totalSgst: number; totalIgst: number; totalTax: number; grandTotal: number };
 }
 
-export type PurchaseInput = Omit<Purchase, 'id' | 'createdAt' | 'lines' | 'totals'> & {
-  lines: Omit<PurchaseLine, 'taxableAmount' | 'totalTax' | 'lineTotal'>[];
+export type PurchaseInput = Pick<Purchase, 'purchaseNumber' | 'purchaseDate' | 'note'> & {
+  clientId: number;
+  lines: Omit<PurchaseLine, 'taxableAmount' | 'cgst' | 'sgst' | 'igst' | 'totalTax' | 'lineTotal'>[];
 };
 
 // Money paid to a vendor (the "Payments" page): payment details only, like a receipt.
@@ -114,6 +123,9 @@ export interface VendorPayment {
   id: number;
   // Payment No., unique per company.
   paymentNumber: string;
+  // The vendor, a saved party. Null on payments recorded before vendors were picked, or if it was deleted.
+  clientId: number | null;
+  // Copied from the party when the payment was saved.
   vendorName: string;
   paymentDate: string;
   // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
@@ -127,7 +139,7 @@ export interface VendorPayment {
   reference: string | null;
 }
 
-export type VendorPaymentInput = Omit<VendorPayment, 'id' | 'createdAt' | 'bankAccount'>;
+export type VendorPaymentInput = Omit<VendorPayment, 'id' | 'createdAt' | 'bankAccount' | 'clientId' | 'vendorName'> & { clientId: number };
 
 export interface LedgerEntry {
   type: 'sale' | 'receipt';

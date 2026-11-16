@@ -4,17 +4,18 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
 import { DisplayStatus, InvoiceListItem, InvoiceSort } from '../../core/data/models';
+import { round2 } from '../../core/gst/gst';
 import { InvoiceService } from '../../core/invoices/invoice.service';
 import { PERIODS, Period, periodRange } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { Modal } from '../../shared/components/modal/modal';
+import { GstTotals, GstTotalsValue } from '../../shared/components/gst-totals/gst-totals';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InvoiceTable, MenuRequest } from './components/invoice-table/invoice-table';
-import { InvoiceTotals } from './components/invoice-totals/invoice-totals';
 import { RowAction, RowMenu } from './components/row-menu/row-menu';
 import { exportInvoicesCsv } from './invoice-csv';
 
@@ -40,7 +41,7 @@ const SORTS: { value: InvoiceSort; label: string }[] = [
 // Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
 @Component({
   selector: 'app-invoices-page',
-  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTotals, InvoiceTable, RowMenu, ReceiptForm, ShowMore],
+  imports: [RouterLink, Icon, Modal, PageHeader, GstTotals, InvoiceTable, RowMenu, ReceiptForm, ShowMore],
   templateUrl: './invoices.html',
   styleUrl: './invoices.scss',
 })
@@ -104,6 +105,24 @@ export class Invoices {
     return status === 'all' ? this.rows() : this.rows().filter((r) => r.displayStatus === status);
   });
   protected readonly page = paged(this.visible);
+
+  // Totals of the invoices shown; drafts aren't sales, so they're left out.
+  private readonly issued = computed(() => this.visible().filter((i) => i.status !== 'draft'));
+  protected readonly totals = computed<GstTotalsValue>(() => {
+    const sum = (pick: (i: InvoiceListItem) => number) => round2(this.issued().reduce((total, i) => total + pick(i), 0));
+    return {
+      value: sum((i) => i.grandTotal),
+      taxable: sum((i) => i.subTotal),
+      igst: sum((i) => i.totalIgst),
+      cgst: sum((i) => i.totalCgst),
+      sgst: sum((i) => i.totalSgst),
+    };
+  });
+  protected readonly totalsNote = computed(() => {
+    const n = this.issued().length;
+    const drafts = this.visible().length - n;
+    return `${n} invoice${n === 1 ? '' : 's'}${drafts ? ` · ${drafts} draft${drafts === 1 ? '' : 's'} not counted` : ''}`;
+  });
 
   protected readonly selectedRows = computed(() => this.visible().filter((r) => this.selected().has(r.id)));
 

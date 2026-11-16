@@ -17,7 +17,7 @@ class VendorPayments extends BaseController
 {
     private const CLEANERS = [
         'paymentNumber' => ['trim'],
-        'vendorName'    => ['trim'],
+        'clientId'      => ['number'],
         'paymentDate'   => [],
         'mode'          => [],
         'bankAccountId' => ['nullable_number'],
@@ -96,7 +96,13 @@ class VendorPayments extends BaseController
      */
     private function validatedBody(): array
     {
-        $body = $this->validated('vendorPayment', self::CLEANERS);
+        $body   = $this->validated('vendorPayment', self::CLEANERS);
+        $vendor = db_connect()->table('clients')->select('id, name')
+            ->where('company_id', $this->companyId())->where('id', (int) $body['clientId'])->get()->getRowArray();
+        if (! $vendor) {
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved vendor.']);
+        }
+        $body = ['clientId' => (int) $vendor['id'], 'vendorName' => $vendor['name']] + $body;
         if ($body['mode'] !== 'bank' || $body['bankAccountId'] === null) {
             return ['bankAccountId' => null] + $body;
         }

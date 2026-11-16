@@ -1,20 +1,26 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../../../core/api/api-error';
+import { ClientService } from '../../../../core/data/client.service';
 import { CompanyService } from '../../../../core/data/company.service';
-import { BankAccount, ReceiptMode, VendorPayment, VendorPaymentInput } from '../../../../core/data/models';
+import { BankAccount, Client, ReceiptMode, VendorPayment, VendorPaymentInput } from '../../../../core/data/models';
+import { stateLabel } from '../../../../core/gst/gst-states';
 import { VendorPaymentService } from '../../../../core/data/vendor-payment.service';
 import { bankAccountLabel } from '../../../../core/receipts/receipt-labels';
 import { todayIso } from '../../../../core/ui/dates';
 import { ToastService } from '../../../../core/ui/toast.service';
+import { ClientForm } from '../../../../shared/components/client-form/client-form';
+import { Icon } from '../../../../shared/components/icon/icon';
+import { Modal } from '../../../../shared/components/modal/modal';
+import { PickerOption, SearchPicker } from '../../../../shared/components/search-picker/search-picker';
 
-type Field = 'paymentNumber' | 'vendorName' | 'paymentDate' | 'mode' | 'bankAccountId' | 'amount' | 'reference';
+type Field = 'paymentNumber' | 'clientId' | 'paymentDate' | 'mode' | 'bankAccountId' | 'amount' | 'reference';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
   paymentNumber: { required: 'Payment No. is required.', maxlength: 'Payment No. is too long.' },
-  vendorName: { required: 'Vendor is required.', maxlength: 'Vendor name is too long.' },
+  clientId: { required: 'Choose a vendor.' },
   paymentDate: { required: 'Payment date is required.' },
   mode: { required: 'Choose cash or bank.' },
   bankAccountId: {},
@@ -25,7 +31,7 @@ const MESSAGES: Record<Field, Record<string, string>> = {
 // Record / edit money paid to a vendor (payment details only). Emits the saved payment; the parent closes its modal.
 @Component({
   selector: 'app-payment-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, Icon, Modal, SearchPicker, ClientForm],
   templateUrl: './payment-form.html',
   styleUrl: './payment-form.scss',
 })
@@ -37,14 +43,27 @@ export class PaymentForm implements OnInit {
   readonly saved = output<VendorPayment>();
   readonly cancelled = output();
 
-  // Vendor names used before, for suggestions.
-  protected readonly vendors = signal<string[]>([]);
+  // Vendors are picked from the saved parties (the customer list), like on purchases.
+  protected readonly clients = signal<Client[]>([]);
+  // Vendor name on a payment whose party isn't saved (recorded before vendors were picked, or the party was deleted).
+  protected readonly oldVendorName = signal<string | null>(null);
+  protected readonly showClientDialog = signal(false);
+  private readonly clientId = signal<number | null>(null);
+  protected readonly selectedClient = computed(() => this.clients().find((c) => c.id === this.clientId()) ?? null);
+  protected readonly clientOptions = computed<PickerOption[]>(() =>
+    this.clients().map((c) => ({
+      id: c.id,
+      label: c.name,
+      detail: [c.gstin ?? 'No GSTIN', stateLabel(c.stateCode)].join(' · '),
+      keywords: c.gstin ?? '',
+    })),
+  );
   // The business's bank accounts (primary first), from Business Details.
   protected readonly bankAccounts = signal<BankAccount[]>([]);
   protected readonly bankAccountLabel = (a: BankAccount) => bankAccountLabel(a) ?? a.ifsc ?? `Account ${a.id}`;
   protected readonly form = inject(NonNullableFormBuilder).group({
     paymentNumber: ['', [Validators.required, Validators.maxLength(40)]],
-    vendorName: ['', [Validators.required, Validators.maxLength(150)]],
+    clientId: [null as number | null, Validators.required],
     paymentDate: [todayIso(), Validators.required],
     mode: ['bank' as ReceiptMode, Validators.required],
     bankAccountId: [null as number | null],
@@ -57,7 +76,20 @@ export class PaymentForm implements OnInit {
   protected readonly error = signal<string | null>(null);
 
   constructor() {
-    this.payments.vendors().subscribe({ next: (vendors) => this.vendors.set(vendors) });
+    inject(ClientService)
+      .list()
+      .subscribe({
+        next: (clients) => {
+          this.clients.set(clients);
+          // Editing a payment whose party isn't saved: ask for the vendor again.
+          const p = this.payment();
+          if (p && !clients.some((c) => c.id === p.clientId)) {
+            this.oldVendorName.set(p.vendorName);
+            this.form.controls.clientId.setValue(null);
+          }
+        },
+      });
+    this.form.controls.clientId.valueChanges.pipe(takeUntilDestroyed()).subscribe((id) => this.clientId.set(id));
     inject(CompanyService)
       .get()
       .subscribe({
@@ -76,7 +108,7 @@ export class PaymentForm implements OnInit {
     if (p) {
       this.form.setValue({
         paymentNumber: p.paymentNumber,
-        vendorName: p.vendorName,
+        clientId: p.clientId,
         paymentDate: p.paymentDate,
         mode: p.mode,
         bankAccountId: p.bankAccountId,
@@ -93,6 +125,18 @@ export class PaymentForm implements OnInit {
     }
   }
 
+  protected pickClient(id: number): void {
+    this.oldVendorName.set(null);
+    this.form.controls.clientId.setValue(id);
+    this.form.controls.clientId.markAsTouched();
+  }
+
+  protected onClientCreated(client: Client): void {
+    this.clients.update((list) => [...list, client].sort((a, b) => a.name.localeCompare(b.name)));
+    this.showClientDialog.set(false);
+    this.pickClient(client.id);
+  }
+
   protected errorFor(field: Field): string | null {
     const control = this.form.controls[field];
     if (!control.errors || !(control.touched || this.submitted())) return null;
@@ -106,7 +150,7 @@ export class PaymentForm implements OnInit {
     const v = this.form.getRawValue();
     const input: VendorPaymentInput = {
       paymentNumber: v.paymentNumber.trim(),
-      vendorName: v.vendorName.trim(),
+      clientId: v.clientId!,
       paymentDate: v.paymentDate,
       mode: v.mode,
       bankAccountId: v.mode === 'bank' && v.bankAccountId !== null ? Number(v.bankAccountId) : null,

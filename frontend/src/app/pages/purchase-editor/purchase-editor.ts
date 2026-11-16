@@ -4,17 +4,22 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, of } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
+import { ClientService } from '../../core/data/client.service';
+import { CompanyService } from '../../core/data/company.service';
 import { ItemService } from '../../core/data/item.service';
-import { Item, PurchaseInput, PurchaseLine } from '../../core/data/models';
+import { Client, Item, PurchaseInput, PurchaseLine } from '../../core/data/models';
 import { PurchaseService } from '../../core/data/purchase.service';
 import { calculateLine, round2 } from '../../core/gst/gst';
+import { stateLabel } from '../../core/gst/gst-states';
 import { todayIso } from '../../core/ui/dates';
 import { ToastService } from '../../core/ui/toast.service';
+import { ClientForm } from '../../shared/components/client-form/client-form';
 import { Icon } from '../../shared/components/icon/icon';
 import { ItemForm } from '../../shared/components/item-form/item-form';
 import { LineItems } from '../../shared/components/line-items/line-items';
 import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PickerOption, SearchPicker } from '../../shared/components/search-picker/search-picker';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 const positive: ValidatorFn = (c: AbstractControl): ValidationErrors | null => (Number(c.value) > 0 ? null : { positive: true });
@@ -29,7 +34,7 @@ const MESSAGES: Record<string, string> = {
 
 const FIELD_REQUIRED: Record<string, string> = {
   purchaseNumber: 'Purchase No. is required.',
-  vendorName: 'Vendor is required.',
+  clientId: 'Choose a vendor.',
   purchaseDate: 'Purchase date is required.',
   description: 'Choose an item for this line.',
   quantity: 'Quantity is required.',
@@ -41,7 +46,7 @@ const FIELD_REQUIRED: Record<string, string> = {
 // What was paid for it is recorded separately on /payments.
 @Component({
   selector: 'app-purchase-editor-page',
-  imports: [ReactiveFormsModule, RouterLink, Icon, InrPipe, PageHeader, Modal, ItemForm, LineItems],
+  imports: [ReactiveFormsModule, RouterLink, Icon, InrPipe, PageHeader, Modal, ItemForm, LineItems, SearchPicker, ClientForm],
   templateUrl: './purchase-editor.html',
   styleUrl: './purchase-editor.scss',
 })
@@ -54,7 +59,13 @@ export class PurchaseEditor {
 
   protected readonly title = this.purchaseId ? 'Edit Purchase' : 'Record Purchase';
   protected readonly items = signal<Item[]>([]);
-  protected readonly vendors = signal<string[]>([]);
+  // Vendors are picked from the saved parties (the customer list), like the customer on an invoice.
+  protected readonly clients = signal<Client[]>([]);
+  private readonly companyStateCode = signal<string | null>(null);
+  // Vendor name on a bill whose party isn't saved (recorded before vendors were picked, or the party was deleted).
+  protected readonly oldVendorName = signal<string | null>(null);
+  protected readonly showClientDialog = signal(false);
+  protected readonly stateLabel = stateLabel;
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly submitted = signal(false);
@@ -65,7 +76,7 @@ export class PurchaseEditor {
 
   protected readonly form = this.fb.group({
     purchaseNumber: ['', [Validators.required, Validators.maxLength(40)]],
-    vendorName: ['', [Validators.required, Validators.maxLength(150)]],
+    clientId: this.fb.control<number | null>(null, Validators.required),
     purchaseDate: [todayIso(), Validators.required],
     note: ['', Validators.maxLength(500)],
     lines: this.fb.array([this.lineGroup()]),
@@ -74,28 +85,54 @@ export class PurchaseEditor {
   private readonly value = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())), {
     initialValue: this.form.getRawValue(),
   });
-  // Live preview; the server recalculates on save. Purchases show GST as one amount.
+  protected readonly selectedClient = computed(() => {
+    const id = this.value().clientId;
+    return this.clients().find((c) => c.id === id) ?? null;
+  });
+
+  protected readonly clientOptions = computed<PickerOption[]>(() =>
+    this.clients().map((c) => ({
+      id: c.id,
+      label: c.name,
+      detail: [c.gstin ?? 'No GSTIN', stateLabel(c.stateCode)].join(' · '),
+      keywords: c.gstin ?? '',
+    })),
+  );
+
+  // Live preview; the server recalculates on save. IGST when the vendor is in another state than the
+  // business, CGST + SGST otherwise (same rule as PurchaseModel::savePurchase()).
   protected readonly calculation = computed(() => {
-    const lines = this.value().lines.map((l) => calculateLine(l, false));
-    const subTotal = round2(lines.reduce((t, l) => t + l.taxableAmount, 0));
-    const totalTax = round2(lines.reduce((t, l) => t + l.totalTax, 0));
-    return { lines, subTotal, totalTax, grandTotal: round2(subTotal + totalTax) };
+    const ours = this.companyStateCode();
+    const isInterState = !!ours && !!this.selectedClient() && this.selectedClient()!.stateCode !== ours;
+    const lines = this.value().lines.map((l) => calculateLine(l, isInterState));
+    const sum = (key: 'taxableAmount' | 'cgst' | 'sgst' | 'igst' | 'totalTax') => round2(lines.reduce((t, l) => t + l[key], 0));
+    const subTotal = sum('taxableAmount');
+    const totalTax = sum('totalTax');
+    return {
+      lines, isInterState, subTotal, totalTax,
+      totalCgst: sum('cgst'), totalSgst: sum('sgst'), totalIgst: sum('igst'),
+      grandTotal: round2(subTotal + totalTax),
+    };
   });
 
   constructor() {
     forkJoin({
       items: inject(ItemService).list(),
-      vendors: this.service.vendors(),
+      clients: inject(ClientService).list(),
+      company: inject(CompanyService).get(),
       purchase: this.purchaseId ? this.service.get(this.purchaseId) : of(null),
       next: this.purchaseId ? of(null) : this.service.nextNumber().pipe(map((r) => r.purchaseNumber)),
     }).subscribe({
-      next: ({ items, vendors, purchase, next }) => {
+      next: ({ items, clients, company, purchase, next }) => {
         this.items.set(items);
-        this.vendors.set(vendors);
+        this.clients.set(clients);
+        this.companyStateCode.set(company.stateCode || null);
         if (purchase) {
+          const saved = clients.some((c) => c.id === purchase.clientId);
+          this.oldVendorName.set(saved ? null : purchase.vendorName);
           this.form.patchValue({
             purchaseNumber: purchase.purchaseNumber,
-            vendorName: purchase.vendorName,
+            clientId: saved ? purchase.clientId : null,
             purchaseDate: purchase.purchaseDate,
             note: purchase.note ?? '',
           });
@@ -130,6 +167,19 @@ export class PurchaseEditor {
     });
   }
 
+  protected pickClient(id: number): void {
+    if (!this.clients().some((c) => c.id === id)) return;
+    this.oldVendorName.set(null);
+    this.form.patchValue({ clientId: id });
+    this.form.controls.clientId.markAsTouched();
+  }
+
+  protected onClientCreated(client: Client): void {
+    this.clients.update((list) => [...list, client].sort((a, b) => a.name.localeCompare(b.name)));
+    this.showClientDialog.set(false);
+    this.pickClient(client.id);
+  }
+
   protected applyItem(index: number, itemId: number): void {
     const item = this.items().find((i) => i.id === itemId);
     const line = this.lines.at(index);
@@ -160,7 +210,7 @@ export class PurchaseEditor {
     if (this.lines.length > 1) this.lines.removeAt(index);
   }
 
-  // Error text for a control path such as 'vendorName' or 'lines.0.quantity'.
+  // Error text for a control path such as 'clientId' or 'lines.0.quantity'.
   protected readonly errorFor = (path: string): string | null => {
     const control = this.form.get(path);
     if (!control?.errors || !(control.touched || this.submitted())) return null;
@@ -184,7 +234,7 @@ export class PurchaseEditor {
     const v = this.form.getRawValue();
     const input: PurchaseInput = {
       purchaseNumber: v.purchaseNumber.trim(),
-      vendorName: v.vendorName.trim(),
+      clientId: v.clientId!,
       purchaseDate: v.purchaseDate,
       note: v.note.trim() || null,
       lines: v.lines.map((l) => ({

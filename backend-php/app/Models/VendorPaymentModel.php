@@ -13,7 +13,7 @@ class VendorPaymentModel extends Model
 {
     protected $table         = 'vendor_payments';
     protected $returnType    = 'array';
-    protected $allowedFields = ['company_id', 'payment_number', 'vendor_name', 'payment_date', 'mode', 'bank_account_id', 'amount', 'reference'];
+    protected $allowedFields = ['company_id', 'payment_number', 'client_id', 'vendor_name', 'payment_date', 'mode', 'bank_account_id', 'amount', 'reference'];
 
     /**
      * This company's payments, with the bank account's name and number.
@@ -84,6 +84,8 @@ class VendorPaymentModel extends Model
         return [
             'id'            => (int) $row['id'],
             'paymentNumber' => $row['payment_number'],
+            // The saved party; null on payments recorded before vendors were picked from parties, or if it was deleted.
+            'clientId'      => $row['client_id'] === null ? null : (int) $row['client_id'],
             'vendorName'    => $row['vendor_name'],
             'paymentDate'   => $row['payment_date'],
             // When it was saved (ISO timestamp); the date above has no time.
@@ -97,7 +99,7 @@ class VendorPaymentModel extends Model
     }
 
     /**
-     * Validated API fields → columns.
+     * Validated API fields → columns (vendorName is the picked party's name, set by the controller).
      *
      * @param array<string, mixed> $body
      *
@@ -107,6 +109,7 @@ class VendorPaymentModel extends Model
     {
         return [
             'payment_number'  => $body['paymentNumber'],
+            'client_id'       => $body['clientId'],
             'vendor_name'     => $body['vendorName'],
             'payment_date'    => $body['paymentDate'],
             'mode'            => $body['mode'],

@@ -16,7 +16,8 @@ class PurchaseModel extends Model
     protected $table         = 'purchases';
     protected $returnType    = 'array';
     protected $allowedFields = [
-        'company_id', 'purchase_number', 'vendor_name', 'purchase_date', 'note', 'sub_total', 'total_tax', 'grand_total',
+        'company_id', 'purchase_number', 'client_id', 'vendor_name', 'vendor_gstin', 'vendor_state_code', 'purchase_date', 'note',
+        'sub_total', 'total_cgst', 'total_sgst', 'total_igst', 'total_tax', 'grand_total',
     ];
 
     private const ITEMS_TABLE = 'purchase_items';
@@ -83,15 +84,30 @@ class PurchaseModel extends Model
      */
     public function savePurchase(int $companyId, ?int $id, array $body): int
     {
-        $lines = array_map(static fn (array $l): array => [...$l, ...Gst::calculateLine($l, false)], $body['lines']);
+        $vendor = $this->db->table('clients')->select('id, name, gstin, state_code')
+            ->where('company_id', $companyId)->where('id', (int) $body['clientId'])->get()->getRowArray();
+        if (! $vendor) {
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved vendor.']);
+        }
+        $company = $this->db->table('companies')->select('state_code')->where('id', $companyId)->get()->getRowArray();
+        // IGST when the vendor is in another state than our business; CGST + SGST otherwise (or when a state is missing).
+        $isInterState = ! empty($company['state_code']) && $vendor['state_code'] !== $company['state_code'];
+
+        $lines = array_map(static fn (array $l): array => [...$l, ...Gst::calculateLine($l, $isInterState)], $body['lines']);
         $sum   = static fn (string $key): float => Gst::round2(array_reduce($lines, static fn (float $t, array $l): float => $t + $l[$key], 0.0));
         $row   = [
-            'purchase_number' => $body['purchaseNumber'],
-            'vendor_name'     => $body['vendorName'],
-            'purchase_date'   => $body['purchaseDate'],
-            'note'            => $body['note'],
-            'sub_total'       => $sum('taxableAmount'),
-            'total_tax'       => $sum('totalTax'),
+            'purchase_number'   => $body['purchaseNumber'],
+            'client_id'         => (int) $vendor['id'],
+            'vendor_name'       => $vendor['name'],
+            'vendor_gstin'      => $vendor['gstin'],
+            'vendor_state_code' => $vendor['state_code'],
+            'purchase_date'     => $body['purchaseDate'],
+            'note'              => $body['note'],
+            'sub_total'         => $sum('taxableAmount'),
+            'total_cgst'        => $sum('cgst'),
+            'total_sgst'        => $sum('sgst'),
+            'total_igst'        => $sum('igst'),
+            'total_tax'         => $sum('totalTax'),
         ];
         $row['grand_total'] = Gst::round2($row['sub_total'] + $row['total_tax']);
 
@@ -121,6 +137,9 @@ class PurchaseModel extends Model
                 'unit_price'     => $l['unitPrice'],
                 'gst_rate'       => $l['gstRate'],
                 'taxable_amount' => $l['taxableAmount'],
+                'cgst'           => $l['cgst'],
+                'sgst'           => $l['sgst'],
+                'igst'           => $l['igst'],
                 'total_tax'      => $l['totalTax'],
                 'line_total'     => $l['lineTotal'],
             ]);
@@ -174,6 +193,9 @@ class PurchaseModel extends Model
                 'unitPrice'     => (float) $l['unit_price'],
                 'gstRate'       => (float) $l['gst_rate'],
                 'taxableAmount' => (float) $l['taxable_amount'],
+                'cgst'          => (float) $l['cgst'],
+                'sgst'          => (float) $l['sgst'],
+                'igst'          => (float) $l['igst'],
                 'totalTax'      => (float) $l['total_tax'],
                 'lineTotal'     => (float) $l['line_total'],
             ];
@@ -193,7 +215,11 @@ class PurchaseModel extends Model
         return [
             'id'             => (int) $row['id'],
             'purchaseNumber' => $row['purchase_number'],
-            'vendorName'     => $row['vendor_name'],
+            // The saved party; null on bills recorded before vendors were picked from parties, or if it was deleted.
+            'clientId'        => $row['client_id'] === null ? null : (int) $row['client_id'],
+            'vendorName'      => $row['vendor_name'],
+            'vendorGstin'     => $row['vendor_gstin'],
+            'vendorStateCode' => $row['vendor_state_code'],
             'purchaseDate'   => $row['purchase_date'],
             // When it was saved (ISO timestamp); the date above has no time.
             'createdAt'      => iso_timestamp($row['created_at'] ?? null),
@@ -201,6 +227,9 @@ class PurchaseModel extends Model
             'lines'          => $lines,
             'totals'         => [
                 'subTotal'   => (float) $row['sub_total'],
+                'totalCgst'  => (float) $row['total_cgst'],
+                'totalSgst'  => (float) $row['total_sgst'],
+                'totalIgst'  => (float) $row['total_igst'],
                 'totalTax'   => (float) $row['total_tax'],
                 'grandTotal' => (float) $row['grand_total'],
             ],

@@ -1,0 +1,106 @@
+<div class="table-scroll wide">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th scope="col">Party</th>
+        <th scope="col">GSTIN/UIN</th>
+        <th scope="col">Vendor state</th>
+        <th scope="col">Doc no.</th>
+        <th scope="col">Doc date</th>
+        <th scope="col" class="num">Qty</th>
+        <th scope="col">Unit</th>
+        <th scope="col">HSN</th>
+        <th scope="col">Particulars</th>
+        <th scope="col" class="num">Bill value</th>
+        <th scope="col" class="num">Taxable value</th>
+        <th scope="col" class="num">Tax rate</th>
+        <th scope="col" class="num">IGST</th>
+        <th scope="col" class="num">CGST</th>
+        <th scope="col" class="num">SGST</th>
+        <th scope="col" class="actions">Action</th>
+      </tr>
+    </thead>
+    <!-- One <tbody> per bill: a row per line; bill-level cells span all its rows. -->
+    @for (p of purchases(); track p.id) {
+      @let rows = rowsOf(p);
+      <tbody>
+        @for (line of rows; track $index; let first = $first) {
+          <tr>
+            @if (first) {
+              <td class="strong party" [rowSpan]="rows.length">{{ p.vendorName }}</td>
+              <td class="muted nowrap" [rowSpan]="rows.length">{{ p.vendorGstin || '—' }}</td>
+              <td class="nowrap" [rowSpan]="rows.length">{{ stateText(p.vendorStateCode) }}</td>
+              <td [rowSpan]="rows.length">
+                <a class="number" [routerLink]="['/purchases', p.id, 'edit']">{{ p.purchaseNumber }}</a>
+                @if (p.note) {
+                  <span class="note">{{ p.note }}</span>
+                }
+              </td>
+              <td class="muted nowrap" [rowSpan]="rows.length">{{ formatDmy(p.purchaseDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
+            }
+            @if (line) {
+              <td class="num">{{ line.quantity }}</td>
+              <td class="muted">{{ line.unit || '—' }}</td>
+              <td class="muted">{{ line.hsnSac || '—' }}</td>
+              <td class="particulars">{{ line.description }}</td>
+            } @else {
+              <td class="num muted">—</td>
+              <td></td>
+              <td></td>
+              <td class="muted">No items</td>
+            }
+            @if (first) {
+              <td class="num strong" [rowSpan]="rows.length">{{ p.totals.grandTotal | inr }}</td>
+            }
+            @if (line) {
+              <td class="num">{{ line.taxableAmount | inr: false }}</td>
+              <td class="num">{{ line.gstRate }}%</td>
+              <td class="num">{{ line.igst | inr: false }}</td>
+              <td class="num">{{ line.cgst | inr: false }}</td>
+              <td class="num">{{ line.sgst | inr: false }}</td>
+            } @else {
+              <td class="num">{{ p.totals.subTotal | inr: false }}</td>
+              <td></td>
+              <td class="num">{{ p.totals.totalIgst | inr: false }}</td>
+              <td class="num">{{ p.totals.totalCgst | inr: false }}</td>
+              <td class="num">{{ p.totals.totalSgst | inr: false }}</td>
+            }
+            @if (first) {
+              <td class="actions" [rowSpan]="rows.length">
+                <div class="actions__buttons">
+                  <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
+                    <app-icon name="pencil" [size]="16" />
+                  </a>
+                  <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="remove.emit(p)">
+                    <app-icon name="trash" [size]="16" />
+                  </button>
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    }
+  </table>
+</div>
+
+<ul class="cards">
+  @for (p of purchases(); track p.id) {
+    <li class="card card--tappable">
+      <div class="card__main">
+        <a class="card__title card-link" [routerLink]="['/purchases', p.id, 'edit']">{{ p.vendorName }}</a>
+        <span class="card__meta">No. {{ p.purchaseNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }}</span>
+        <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
+        <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>
+      </div>
+      <div class="card__actions">
+        <a class="icon-button" [routerLink]="['/purchases', p.id, 'edit']" [attr.aria-label]="'Edit purchase ' + p.purchaseNumber + ' from ' + p.vendorName">
+          <app-icon name="pencil" [size]="16" />
+        </a>
+        <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete purchase ' + p.purchaseNumber + ' from ' + p.vendorName" (click)="remove.emit(p)">
+          <app-icon name="trash" [size]="16" />
+        </button>
+      </div>
+    </li>
+  }
+</ul>

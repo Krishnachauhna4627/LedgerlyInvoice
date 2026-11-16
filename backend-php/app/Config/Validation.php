@@ -375,7 +375,11 @@ class Validation extends BaseConfig
         // Money paid to a vendor for a purchase; lines use the same rules as invoice lines.
         $this->purchase = [
             'purchaseNumber' => self::requiredText('Purchase No.', 40),
-            'vendorName'     => self::requiredText('Vendor', 150),
+            // The vendor is a saved party (clients row); its name, GSTIN and state are copied onto the bill.
+            'clientId' => [
+                'rules'  => ['js_integer', 'greater_than[0]'],
+                'errors' => ['js_integer' => 'Choose a vendor.', 'greater_than' => 'Choose a vendor.'],
+            ],
             'purchaseDate'   => [
                 'rules'  => ['string', 'iso_date'],
                 'errors' => ['string' => 'Purchase date is required.', 'iso_date' => 'Purchase date must be a valid date.'],
@@ -389,7 +393,11 @@ class Validation extends BaseConfig
 
         $this->vendorPayment = [
             'paymentNumber' => self::requiredText('Payment No.', 40),
-            'vendorName'    => self::requiredText('Vendor', 150),
+            // The vendor is a saved party (clients row); its name is copied onto the payment.
+            'clientId' => [
+                'rules'  => ['js_integer', 'greater_than[0]'],
+                'errors' => ['js_integer' => 'Choose a vendor.', 'greater_than' => 'Choose a vendor.'],
+            ],
             'paymentDate'   => [
                 'rules'  => ['string', 'iso_date'],
                 'errors' => ['string' => 'Payment date is required.', 'iso_date' => 'Payment date must be a valid date.'],

@@ -23,19 +23,33 @@
     </div>
   </div>
 
-  <div class="field">
-    <label class="field__label" for="payment-vendor">Vendor *</label>
-    <input id="payment-vendor" class="input" formControlName="vendorName" maxlength="150" autocomplete="off" list="payment-vendors"
-      placeholder="Who you paid" [class.is-invalid]="errorFor('vendorName')" [attr.aria-invalid]="!!errorFor('vendorName')" aria-describedby="payment-vendor-error" />
-    <datalist id="payment-vendors">
-      @for (v of vendors(); track v) {
-        <option [value]="v"></option>
+  <div class="client-pick">
+    <div class="field">
+      <label class="field__label" for="payment-vendor">Vendor *</label>
+      <app-search-picker
+        inputId="payment-vendor"
+        [options]="clientOptions()"
+        [selectedLabel]="selectedClient()?.name ?? ''"
+        placeholder="Search vendor by name or GSTIN…"
+        emptyText="No parties match. Use “New vendor”."
+        [invalid]="!!errorFor('clientId')"
+        describedBy="payment-vendor-error"
+        (picked)="pickClient($event)"
+      />
+      @if (errorFor('clientId'); as message) {
+        <span id="payment-vendor-error" class="field__error">{{ message }}</span>
       }
-    </datalist>
-    @if (errorFor('vendorName'); as message) {
-      <span id="payment-vendor-error" class="field__error">{{ message }}</span>
-    }
+    </div>
+    <button type="button" class="btn btn--outline new-client" (click)="showClientDialog.set(true)">
+      <app-icon name="plus" [size]="16" /> New vendor
+    </button>
   </div>
+  @if (oldVendorName(); as old) {
+    <p class="hint-warn">
+      This payment was recorded for <strong>{{ old }}</strong> before vendors were picked from your parties
+      (or that party was deleted). Choose the vendor to save changes.
+    </p>
+  }
 
   <div class="row">
     <div class="field">
@@ -95,3 +109,9 @@
     </button>
   </div>
 </form>
+
+<app-modal [open]="showClientDialog()" title="Add vendor" (closed)="showClientDialog.set(false)">
+  @if (showClientDialog()) {
+    <app-client-form (saved)="onClientCreated($event)" (cancelled)="showClientDialog.set(false)" />
+  }
+</app-modal>

@@ -1,4 +1,4 @@
-<section aria-label="Totals of the invoices shown">
+<section [attr.aria-label]="'Totals: ' + valueLabel().toLowerCase() + ', taxable value and GST'">
   <ul class="boxes">
     @for (b of boxes(); track b.label; let first = $first) {
       <li class="box">
@@ -7,7 +7,7 @@
           <span class="box__icon"><app-icon [name]="b.icon" [size]="18" /></span>
         </div>
         <span class="box__value">{{ b.value | inr }}</span>
-        @if (first) {
+        @if (first && note()) {
           <span class="box__note">{{ note() }}</span>
         }
       </li>
