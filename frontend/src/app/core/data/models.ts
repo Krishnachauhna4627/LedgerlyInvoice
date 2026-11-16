@@ -222,12 +222,32 @@ export interface InvoiceListItem {
   clientId: number | null;
   clientName: string;
   clientGstin: string | null;
+  placeOfSupplyCode: string | null;
   itemCount: number;
   subTotal: number;
+  totalCgst: number;
+  totalSgst: number;
+  totalIgst: number;
   totalTax: number;
   grandTotal: number;
   // Still to be received: 0 when paid; less than the total when receipts part-paid it (oldest invoices first).
   amountDue: number;
+  // Only on GET /api/invoices (the invoices list), not on the dashboard's recent invoices.
+  lines?: InvoiceListLine[];
+}
+
+// One line of an invoice as shown in the invoices list.
+export interface InvoiceListLine {
+  description: string;
+  hsnSac: string | null;
+  quantity: number;
+  unit: string | null;
+  gstRate: number;
+  taxableAmount: number;
+  cgst: number;
+  sgst: number;
+  igst: number;
+  lineTotal: number;
 }
 
 export interface InvoiceLine {

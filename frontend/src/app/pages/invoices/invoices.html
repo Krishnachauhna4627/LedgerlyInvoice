@@ -19,6 +19,8 @@
 </app-page-header>
 
 <div class="page-body">
+  <app-invoice-totals [invoices]="visible()" />
+
   <div class="toolbar controls">
     <div class="segments" role="group" aria-label="Filter by status">
       @for (f of statusFilters; track f.value) {

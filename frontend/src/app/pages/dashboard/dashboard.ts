@@ -38,10 +38,10 @@ const PERIODS: { value: DashboardPeriod; label: string }[] = [
   { value: 'this_year', label: 'This financial year' },
 ];
 
-// Chart colours (validated as a pair for colour-blind separation and contrast).
-const INDIGO = '#4f46e5';
-const ORANGE = '#d9711f';
-const GREEN = '#2f9e6e';
+// Chart colours come from the theme.
+const INDIGO = 'var(--color-chart-sales)';
+const ORANGE = 'var(--color-chart-purchases)';
+const GREEN = 'var(--color-chart-settled)';
 
 const inr = new InrPipe();
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;

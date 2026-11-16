@@ -7,11 +7,11 @@
 }
 
 :host([data-tone='orange']) {
-  --tone: #d9711f;
+  --tone: var(--color-chart-purchases);
 }
 
 :host([data-tone='green']) {
-  --tone: #2f9e6e;
+  --tone: var(--color-chart-settled);
 }
 
 .tile {
@@ -128,12 +128,12 @@
 
 .tile__change--up {
   background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
-  color: #15803d;
+  color: var(--color-success-strong);
 }
 
 .tile__change--down {
   background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface));
-  color: #b45309;
+  color: var(--color-warning-strong);
 }
 
 // Narrow (phone) tiles: the amount gets the whole row.

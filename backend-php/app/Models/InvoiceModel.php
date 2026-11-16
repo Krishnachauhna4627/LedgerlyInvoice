@@ -67,8 +67,12 @@ class InvoiceModel extends Model
             'clientId'      => $row['client_id'] === null ? null : (int) $row['client_id'],
             'clientName'    => $row['client_name'],
             'clientGstin'   => $row['client_gstin'],
+            'placeOfSupplyCode' => $row['place_of_supply_code'],
             'itemCount'     => (int) ($row['item_count'] ?? 0),
             'subTotal'      => (float) $row['sub_total'],
+            'totalCgst'     => (float) $row['total_cgst'],
+            'totalSgst'     => (float) $row['total_sgst'],
+            'totalIgst'     => (float) $row['total_igst'],
             'totalTax'      => (float) $row['total_tax'],
             'grandTotal'    => (float) $row['grand_total'],
             // What is still to be received on this invoice (see LedgerService::withAmountDue()).

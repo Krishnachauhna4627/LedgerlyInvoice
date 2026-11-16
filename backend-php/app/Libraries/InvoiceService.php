@@ -34,7 +34,7 @@ class InvoiceService
     }
 
     /**
-     * @param array{search?: string, from?: string, to?: string, status?: string, sort: string, limit?: int} $query
+     * @param array{search?: string, from?: string, to?: string, status?: string, sort: string, limit?: int, lines?: bool} $query lines: also add each invoice's lines
      *
      * @return list<array<string, mixed>>
      */
@@ -77,7 +77,44 @@ class InvoiceService
             $builder->limit($query['limit']);
         }
 
-        return array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($builder->get()->getResultArray()));
+        $invoices = array_map(InvoiceModel::toListDto(...), (new LedgerService())->withAmountDue($builder->get()->getResultArray()));
+
+        return ($query['lines'] ?? false) ? $this->withListLines($invoices) : $invoices;
+    }
+
+    /**
+     * Adds each invoice's lines (what was sold, HSN, quantity, taxable value and GST split) for the invoices list.
+     *
+     * @param list<array<string, mixed>> $invoices list DTOs
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withListLines(array $invoices): array
+    {
+        $byInvoice = [];
+        if ($invoices !== []) {
+            $lines = $this->db->table('invoice_items')
+                ->select('invoice_id, description, hsn_sac, quantity, unit, gst_rate, taxable_amount, cgst, sgst, igst, line_total')
+                ->whereIn('invoice_id', array_column($invoices, 'id'))
+                ->orderBy('invoice_id')->orderBy('position')
+                ->get()->getResultArray();
+            foreach ($lines as $l) {
+                $byInvoice[(int) $l['invoice_id']][] = [
+                    'description'   => $l['description'],
+                    'hsnSac'        => $l['hsn_sac'],
+                    'quantity'      => (float) $l['quantity'],
+                    'unit'          => $l['unit'],
+                    'gstRate'       => (float) $l['gst_rate'],
+                    'taxableAmount' => (float) $l['taxable_amount'],
+                    'cgst'          => (float) $l['cgst'],
+                    'sgst'          => (float) $l['sgst'],
+                    'igst'          => (float) $l['igst'],
+                    'lineTotal'     => (float) $l['line_total'],
+                ];
+            }
+        }
+
+        return array_map(static fn (array $inv): array => [...$inv, 'lines' => $byInvoice[$inv['id']] ?? []], $invoices);
     }
 
     /**

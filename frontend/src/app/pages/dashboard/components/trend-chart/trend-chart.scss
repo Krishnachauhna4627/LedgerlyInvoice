@@ -48,12 +48,12 @@
 
 .swatch--sales,
 .bar--sales {
-  background: #4f46e5;
+  background: var(--color-chart-sales);
 }
 
 .swatch--purchases,
 .bar--purchases {
-  background: #d9711f;
+  background: var(--color-chart-purchases);
 }
 
 .plot {

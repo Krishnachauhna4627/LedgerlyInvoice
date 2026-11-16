@@ -14,6 +14,7 @@ import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InvoiceTable, MenuRequest } from './components/invoice-table/invoice-table';
+import { InvoiceTotals } from './components/invoice-totals/invoice-totals';
 import { RowAction, RowMenu } from './components/row-menu/row-menu';
 import { exportInvoicesCsv } from './invoice-csv';
 
@@ -39,7 +40,7 @@ const SORTS: { value: InvoiceSort; label: string }[] = [
 // Period, search and sort are sent to the server; the status filter runs locally so every chip can show its count.
 @Component({
   selector: 'app-invoices-page',
-  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTable, RowMenu, ReceiptForm, ShowMore],
+  imports: [RouterLink, Icon, Modal, PageHeader, InvoiceTotals, InvoiceTable, RowMenu, ReceiptForm, ShowMore],
   templateUrl: './invoices.html',
   styleUrl: './invoices.scss',
 })

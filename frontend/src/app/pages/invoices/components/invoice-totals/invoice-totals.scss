@@ -1,0 +1,95 @@
+@use 'breakpoints' as bp;
+
+// Phones: invoice value full width, then pairs · tablets: 3 + 2 · wide: all five in a row.
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+
+    > * {
+      grid-column: span 2;
+    }
+
+    > :nth-child(n + 4) {
+      grid-column: span 3;
+    }
+
+    > :first-child {
+      grid-column: span 2;
+    }
+  }
+
+  @include bp.up(xl) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    > *,
+    > :first-child,
+    > :nth-child(n + 4) {
+      grid-column: auto;
+    }
+  }
+}
+
+.box {
+  // The value's font scales with the box's width.
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+
+  @include bp.up(sm) {
+    padding: var(--space-4);
+  }
+}
+
+.box__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.box__label {
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.box__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.box__value {
+  overflow-wrap: anywhere;
+  font-size: clamp(var(--text-lg), 11cqi, var(--text-2xl));
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.box__note {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

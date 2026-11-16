@@ -44,7 +44,7 @@ class Invoices extends BaseController
 
     public function index()
     {
-        return $this->json($this->invoices->listInvoices($this->companyId(), $this->listQuery()));
+        return $this->json($this->invoices->listInvoices($this->companyId(), [...$this->listQuery(), 'lines' => true]));
     }
 
     public function count()

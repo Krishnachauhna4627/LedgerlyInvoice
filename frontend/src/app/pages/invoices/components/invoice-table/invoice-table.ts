@@ -1,7 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { InvoiceListItem } from '../../../../core/data/models';
+import { InvoiceListItem, InvoiceListLine } from '../../../../core/data/models';
+import { stateName } from '../../../../core/gst/gst-states';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
@@ -12,7 +13,7 @@ export interface MenuRequest {
   anchor: HTMLElement;
 }
 
-// Wide table on md+; stacked cards on phones.
+// Wide table on md+ (one row per invoice line, like a GST sales register); stacked cards on phones.
 @Component({
   selector: 'app-invoice-table',
   imports: [RouterLink, DatePipe, Icon, StatusBadge, InrPipe, TimePipe],
@@ -33,6 +34,15 @@ export class InvoiceTable {
   protected readonly someSelected = computed(
     () => !this.allSelected() && this.invoices().some((i) => this.selected().has(i.id)),
   );
+
+  protected linesOf(invoice: InvoiceListItem): InvoiceListLine[] {
+    return invoice.lines ?? [];
+  }
+
+  // '03' → '03-Punjab'.
+  protected placeOfSupply(code: string | null): string {
+    return code ? `${code}-${stateName(code)}` : '—';
+  }
 
   protected menu(invoice: InvoiceListItem, event: MouseEvent): void {
     this.openMenu.emit({ invoice, anchor: event.currentTarget as HTMLElement });

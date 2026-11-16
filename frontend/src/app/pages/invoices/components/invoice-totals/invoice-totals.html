@@ -1,0 +1,16 @@
+<section aria-label="Totals of the invoices shown">
+  <ul class="boxes">
+    @for (b of boxes(); track b.label; let first = $first) {
+      <li class="box">
+        <div class="box__head">
+          <span class="box__label">{{ b.label }}</span>
+          <span class="box__icon"><app-icon [name]="b.icon" [size]="18" /></span>
+        </div>
+        <span class="box__value">{{ b.value | inr }}</span>
+        @if (first) {
+          <span class="box__note">{{ note() }}</span>
+        }
+      </li>
+    }
+  </ul>
+</section>

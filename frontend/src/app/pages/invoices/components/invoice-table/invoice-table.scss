@@ -15,13 +15,40 @@
     padding-right: 0;
   }
 
+  // Pinned to the right edge so the row menu stays reachable while the wide table scrolls.
   .actions {
+    position: sticky;
+    right: 0;
     width: 52px;
     text-align: right;
+    background: var(--color-surface);
+    box-shadow: -1px 0 0 var(--color-border);
   }
 
-  tr.is-selected {
+  th.actions {
+    background: var(--color-bg);
+  }
+
+  tbody.is-selected {
     background: color-mix(in srgb, var(--color-primary-soft) 70%, transparent);
+  }
+
+  // Lines of one invoice sit together; a stronger rule separates invoices.
+  tbody + tbody {
+    border-top: 2px solid var(--color-border);
+  }
+
+  td {
+    vertical-align: top;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .party,
+  .particulars {
+    min-width: 140px;
   }
 }
 

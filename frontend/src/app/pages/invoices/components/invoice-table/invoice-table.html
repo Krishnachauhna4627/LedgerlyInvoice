@@ -11,52 +11,100 @@
             (change)="toggleAll.emit(!allSelected())"
           />
         </th>
-        <th scope="col">Invoice ID</th>
-        <th scope="col">Customer</th>
+        <th scope="col">Party</th>
+        <th scope="col">GSTIN/UIN</th>
+        <th scope="col">Place of supply</th>
+        <th scope="col">Doc no.</th>
+        <th scope="col">Doc date</th>
+        <th scope="col" class="num">Qty</th>
+        <th scope="col">Unit</th>
+        <th scope="col">HSN</th>
+        <th scope="col">Particulars</th>
+        <th scope="col" class="num">Invoice value</th>
+        <th scope="col" class="num">Taxable value</th>
+        <th scope="col" class="num">Tax rate</th>
+        <th scope="col" class="num">IGST</th>
+        <th scope="col" class="num">CGST</th>
+        <th scope="col" class="num">SGST</th>
         <th scope="col" class="num">Amount due</th>
         <th scope="col">Status</th>
-        <th scope="col">Product</th>
-        <th scope="col">Date</th>
-        <th scope="col"><span class="sr-only">Actions</span></th>
+        <th scope="col" class="actions">Action</th>
       </tr>
     </thead>
-    <tbody>
-      @for (inv of invoices(); track inv.id) {
-        <tr [class.is-selected]="selected().has(inv.id)">
-          <td class="check">
-            <input
-              type="checkbox"
-              [attr.aria-label]="'Select ' + inv.invoiceNumber"
-              [checked]="selected().has(inv.id)"
-              (change)="toggle.emit(inv.id)"
-            />
-          </td>
-          <td><a class="number" [routerLink]="['/invoices', inv.id]">#{{ inv.invoiceNumber }}</a></td>
-          <td class="strong">{{ inv.clientName }}</td>
-          <td class="num strong">
-            {{ inv.amountDue | inr }}
-            @if (inv.amountDue > 0 && inv.amountDue < inv.grandTotal) {
-              <span class="of-total">of {{ inv.grandTotal | inr }}</span>
+    <!-- One <tbody> per invoice: a row per line; invoice-level cells span all its rows. -->
+    @for (inv of invoices(); track inv.id) {
+      @let lines = linesOf(inv);
+      @let span = lines.length || 1;
+      <tbody [class.is-selected]="selected().has(inv.id)">
+        @for (line of lines.length ? lines : [null]; track $index; let first = $first) {
+          <tr>
+            @if (first) {
+              <td class="check" [rowSpan]="span">
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Select ' + inv.invoiceNumber"
+                  [checked]="selected().has(inv.id)"
+                  (change)="toggle.emit(inv.id)"
+                />
+              </td>
+              <td class="strong party" [rowSpan]="span">{{ inv.clientName }}</td>
+              <td class="muted nowrap" [rowSpan]="span">{{ inv.clientGstin || '—' }}</td>
+              <td class="nowrap" [rowSpan]="span">{{ placeOfSupply(inv.placeOfSupplyCode) }}</td>
+              <td class="nowrap" [rowSpan]="span"><a class="number" [routerLink]="['/invoices', inv.id]">{{ inv.invoiceNumber }}</a></td>
+              <td class="muted nowrap" [rowSpan]="span">{{ inv.invoiceDate | date: 'dd-MM-y' }}<span class="time">{{ inv.createdAt | time }}</span></td>
             }
-          </td>
-          <td><app-status-badge [status]="inv.displayStatus" /></td>
-          <td class="muted">{{ inv.itemCount }} {{ inv.itemCount === 1 ? 'product/service' : 'products/services' }}</td>
-          <td class="muted">{{ inv.invoiceDate | date: 'd MMM y' }}<span class="time">{{ inv.createdAt | time }}</span></td>
-          <td class="actions">
-            <button
-              type="button"
-              class="icon-button"
-              aria-haspopup="menu"
-              [attr.aria-expanded]="menuFor() === inv.id"
-              [attr.aria-label]="'Actions for ' + inv.invoiceNumber"
-              (click)="menu(inv, $event)"
-            >
-              <app-icon name="more-horizontal" [size]="18" />
-            </button>
-          </td>
-        </tr>
-      }
-    </tbody>
+            @if (line) {
+              <td class="num">{{ line.quantity }}</td>
+              <td class="muted">{{ line.unit || '—' }}</td>
+              <td class="muted">{{ line.hsnSac || '—' }}</td>
+              <td class="particulars">{{ line.description }}</td>
+            } @else {
+              <td class="num muted">—</td>
+              <td></td>
+              <td></td>
+              <td class="muted">No items</td>
+            }
+            @if (first) {
+              <td class="num strong" [rowSpan]="span">{{ inv.grandTotal | inr }}</td>
+            }
+            @if (line) {
+              <td class="num">{{ line.taxableAmount | inr: false }}</td>
+              <td class="num">{{ line.gstRate }}%</td>
+              <td class="num">{{ line.igst | inr: false }}</td>
+              <td class="num">{{ line.cgst | inr: false }}</td>
+              <td class="num">{{ line.sgst | inr: false }}</td>
+            } @else {
+              <td class="num">{{ inv.subTotal | inr: false }}</td>
+              <td></td>
+              <td class="num">{{ inv.totalIgst | inr: false }}</td>
+              <td class="num">{{ inv.totalCgst | inr: false }}</td>
+              <td class="num">{{ inv.totalSgst | inr: false }}</td>
+            }
+            @if (first) {
+              <td class="num strong" [rowSpan]="span">
+                {{ inv.amountDue | inr }}
+                @if (inv.amountDue > 0 && inv.amountDue < inv.grandTotal) {
+                  <span class="of-total">of {{ inv.grandTotal | inr }}</span>
+                }
+              </td>
+              <td [rowSpan]="span"><app-status-badge [status]="inv.displayStatus" /></td>
+              <td class="actions" [rowSpan]="span">
+                <button
+                  type="button"
+                  class="icon-button"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="menuFor() === inv.id"
+                  [attr.aria-label]="'Actions for ' + inv.invoiceNumber"
+                  (click)="menu(inv, $event)"
+                >
+                  <app-icon name="more-horizontal" [size]="18" />
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    }
   </table>
 </div>
 
