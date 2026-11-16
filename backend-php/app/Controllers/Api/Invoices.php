@@ -17,6 +17,7 @@ class Invoices extends BaseController
         'invoiceDate'       => [],
         'dueDate'           => [],
         'placeOfSupplyCode' => [],
+        'transportDetails'  => ['trim', 'empty_to_null'],
         'reverseCharge'     => ['default:false'],
         'template'          => ['default:"classic"'],
         'status'            => ['default:"unpaid"'],

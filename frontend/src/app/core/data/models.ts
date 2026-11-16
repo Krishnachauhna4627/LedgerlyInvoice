@@ -296,6 +296,8 @@ export interface Invoice extends InvoiceListItem {
   template: InvoiceTemplate;
   reverseCharge: boolean;
   placeOfSupplyCode: string;
+  // Optional vehicle no. / transporter; printed on the invoice when set.
+  transportDetails: string | null;
   isInterState: boolean;
   seller: Omit<Company, 'id' | 'bankAccounts'>;
   client: { name: string; address: string | null; stateCode: string; gstin: string | null };
@@ -317,6 +319,7 @@ export interface InvoiceInput {
   invoiceDate: string;
   dueDate: string | null;
   placeOfSupplyCode: string | null;
+  transportDetails: string | null;
   reverseCharge: boolean;
   template: InvoiceTemplate;
   status: InvoiceStatus;

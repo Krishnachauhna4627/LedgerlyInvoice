@@ -296,6 +296,7 @@ class InvoiceService
             'template'             => $input['template'],
             'reverse_charge'       => $input['reverseCharge'] ? 1 : 0,
             'place_of_supply_code' => $placeOfSupplyCode,
+            'transport_details'    => $input['transportDetails'] ?? null,
             'is_inter_state'       => $calc['isInterState'] ? 1 : 0,
             'seller_name'          => $seller['name'],
             'seller_address'       => $seller['address'],

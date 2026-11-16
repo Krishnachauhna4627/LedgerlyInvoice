@@ -118,6 +118,7 @@ export class InvoiceEditor {
       invoiceDate: [todayIso(), Validators.required],
       dueDate: [addDays(todayIso(), DUE_IN_DAYS)],
       placeOfSupplyCode: [''],
+      transportDetails: ['', Validators.maxLength(200)],
       template: this.fb.control<InvoiceTemplate>('classic'),
       reverseCharge: [false],
       lines: this.fb.array([this.lineGroup()]),
@@ -244,6 +245,8 @@ export class InvoiceEditor {
         invoiceDate,
         dueDate: isDuplicate ? addDays(invoiceDate, DUE_IN_DAYS) : (invoice.dueDate ?? ''),
         placeOfSupplyCode: invoice.placeOfSupplyCode,
+        // A duplicate is a new delivery: its vehicle / transport starts empty.
+        transportDetails: isDuplicate ? '' : (invoice.transportDetails ?? ''),
         template: invoice.template,
         reverseCharge: invoice.reverseCharge,
       },
@@ -332,6 +335,7 @@ export class InvoiceEditor {
       invoiceDate: v.invoiceDate,
       dueDate: v.dueDate || null,
       placeOfSupplyCode: v.placeOfSupplyCode || null,
+      transportDetails: v.transportDetails.trim() || null,
       reverseCharge: v.reverseCharge,
       template: v.template,
       status,
@@ -386,6 +390,7 @@ export class InvoiceEditor {
       invoiceDate: todayIso(),
       dueDate: addDays(todayIso(), DUE_IN_DAYS),
       placeOfSupplyCode: '',
+      transportDetails: '',
       template,
       reverseCharge: false,
     });

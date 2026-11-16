@@ -158,10 +158,18 @@ class InvoicePdfWriter {
       ['Due date', formatInvoiceDate(inv.dueDate)],
       ['Place of supply', stateLabel(inv.placeOfSupplyCode)],
       ['Reverse charge', inv.reverseCharge ? 'Yes' : 'No'],
+      ...(inv.transportDetails ? ([['Vehicle / transport', inv.transportDetails]] as [string, string][]) : []),
     ];
 
+    // Values sit right of their label and wrap onto more lines when long (e.g. vehicle / transport details).
+    const metaRows = meta.map(([key, value]) => {
+      doc.setFont(FONT, 'normal');
+      doc.setFontSize(9);
+      const valueWidth = inner - doc.getTextWidth(key) - 4;
+      return { key, lines: this.wrap(value, valueWidth, 9, 'bold') };
+    });
     const leftHeight = lineHeight(8) + 1 + billed.length * lineHeight(9.5);
-    const rightHeight = meta.length * lineHeight(9.5) * 1.15;
+    const rightHeight = metaRows.reduce((h, row) => h + row.lines.length, 0) * lineHeight(9.5) * 1.15;
     const height = Math.max(leftHeight, rightHeight) + pad * 2;
     this.ensureSpace(height);
 
@@ -191,12 +199,15 @@ class InvoicePdfWriter {
 
     // Invoice details
     y = this.y + pad;
-    for (const [key, value] of meta) {
+    for (const { key, lines } of metaRows) {
       y += lineHeight(9.5) * 1.15;
       this.font(9, 'normal', this.c.muted);
       doc.text(key, rightX + pad, y - 1.2);
       this.font(9, 'bold', this.c.text);
-      doc.text(value, rightX + boxWidth - pad, y - 1.2, { align: 'right' });
+      lines.forEach((line, i) => {
+        if (i) y += lineHeight(9.5) * 1.15;
+        doc.text(line, rightX + boxWidth - pad, y - 1.2, { align: 'right' });
+      });
     }
 
     this.y += height + GAP;

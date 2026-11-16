@@ -75,6 +75,10 @@
       <dd>{{ stateLabel(inv.placeOfSupplyCode) }}</dd>
       <dt>Reverse charge</dt>
       <dd>{{ inv.reverseCharge ? 'Yes' : 'No' }}</dd>
+      @if (inv.transportDetails) {
+        <dt>Vehicle / transport</dt>
+        <dd>{{ inv.transportDetails }}</dd>
+      }
     </dl>
   </section>
 

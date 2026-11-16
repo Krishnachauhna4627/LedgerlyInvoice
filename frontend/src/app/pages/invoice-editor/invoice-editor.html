@@ -135,6 +135,18 @@
                 }
               </select>
             </div>
+            <div class="field">
+              <label class="field__label" for="inv-transport">Vehicle / transport details</label>
+              <input id="inv-transport" class="input" formControlName="transportDetails" maxlength="200" autocomplete="off"
+                placeholder="Optional — e.g. PB10AB1234, ABC Transport"
+                [class.is-invalid]="errorFor('transportDetails')" [attr.aria-invalid]="!!errorFor('transportDetails')"
+                aria-describedby="inv-transport-hint" />
+              @if (errorFor('transportDetails'); as message) {
+                <span id="inv-transport-hint" class="field__error">{{ message }}</span>
+              } @else {
+                <span id="inv-transport-hint" class="hint">Printed on the invoice when filled in.</span>
+              }
+            </div>
             <label class="check">
               <input type="checkbox" formControlName="reverseCharge" />
               <span>Reverse charge applicable</span>

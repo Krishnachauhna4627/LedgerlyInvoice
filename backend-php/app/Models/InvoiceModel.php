@@ -94,6 +94,8 @@ class InvoiceModel extends Model
             'template'          => $row['template'],
             'reverseCharge'     => (bool) $row['reverse_charge'],
             'placeOfSupplyCode' => $row['place_of_supply_code'],
+            // Optional vehicle no. / transporter, printed on the invoice when set.
+            'transportDetails'  => $row['transport_details'] ?? null,
             'isInterState'      => (bool) $row['is_inter_state'],
             'seller'            => [
                 'name'      => $row['seller_name'],

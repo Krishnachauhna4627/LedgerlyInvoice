@@ -341,6 +341,7 @@ class Validation extends BaseConfig
                 'errors' => ['iso_date' => 'Due date must be a valid date.'],
             ],
             'placeOfSupplyCode' => self::stateCode(true),
+            'transportDetails'  => self::optionalText('Vehicle / transport details', 200),
             'reverseCharge'     => ['rules' => ['boolean']],
             'template' => self::oneOf(self::INVOICE_TEMPLATES),
             'status'   => self::oneOf(self::INVOICE_STATUSES),
