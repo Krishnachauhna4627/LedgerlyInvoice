@@ -34,11 +34,11 @@ export class AppShell {
 
   protected readonly nav: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard', icon: 'layout' },
-    { label: 'Invoices', path: '/invoices', icon: 'file-text' },
+    { label: 'Sale Invoice', path: '/invoices', icon: 'file-text' },
     { label: 'Receipts', path: '/receipts', icon: 'rupee' },
     { label: 'Purchases', path: '/purchases', icon: 'receipt' },
     { label: 'Payments', path: '/payments', icon: 'send' },
-    { label: 'Customer Detail/Ledgers', path: '/clients', icon: 'users' },
+    { label: 'Ledgers/Edit party details', path: '/clients', icon: 'users' },
     { label: 'Products/Services', path: '/items', icon: 'box' },
     { label: 'Reports', path: '/reports', icon: 'bar-chart' },
     { label: 'Business Details', path: '/settings', icon: 'settings' },
