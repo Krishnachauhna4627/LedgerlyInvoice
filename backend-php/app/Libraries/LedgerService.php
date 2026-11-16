@@ -22,6 +22,19 @@ class LedgerService
         - COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = clients.id), 0)";
 
     /**
+     * A party's total debits and credits across sales and purchases, as column expressions on the clients table.
+     * Debit (they owe us more): sales invoices except drafts + payments we made to them as a vendor.
+     * Credit (we owe them more): receipts from them + purchase bills from them as a vendor.
+     * Closing balance = opening balance + debit − credit: Dr (positive) = receivable, Cr (negative) = payable.
+     * Purchases and payments count only when linked to the party (client_id), i.e. recorded with the vendor picked.
+     */
+    public const PARTY_DEBIT_SQL = "COALESCE((SELECT SUM(i.grand_total) FROM invoices i WHERE i.client_id = clients.id AND i.status <> 'draft'), 0)
+        + COALESCE((SELECT SUM(vp.amount) FROM vendor_payments vp WHERE vp.client_id = clients.id), 0)";
+
+    public const PARTY_CREDIT_SQL = 'COALESCE((SELECT SUM(r.amount) FROM receipts r WHERE r.client_id = clients.id), 0)
+        + COALESCE((SELECT SUM(p.grand_total) FROM purchases p WHERE p.client_id = clients.id), 0)';
+
+    /**
      * Per customer: receipt money left over after the opening balance and the paid invoices, and the
      * oldest unpaid invoice (the one that leftover partly pays — see settleInvoices()).
      */

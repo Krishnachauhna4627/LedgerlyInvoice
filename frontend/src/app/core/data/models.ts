@@ -47,11 +47,17 @@ export interface Client {
   email: string | null;
   // Owed before using the app: positive = due (Dr), negative = advance (Cr).
   openingBalance: number;
-  // Opening balance + sales − receipts (calculated by the server); same sign rule.
+  // Opening balance + sales − receipts (calculated by the server); same sign rule. Customer side only.
   balance: number;
+  // The whole party, sales and purchases (calculated by the server):
+  // debit = sales invoices + payments made to them; credit = receipts from them + purchases from them.
+  debit: number;
+  credit: number;
+  // Opening balance + debit − credit: positive = Dr (receivable), negative = Cr (payable).
+  closingBalance: number;
 }
 
-export type ClientInput = Omit<Client, 'id' | 'balance'>;
+export type ClientInput = Omit<Client, 'id' | 'balance' | 'debit' | 'credit' | 'closingBalance'>;
 
 export type ReceiptMode = 'cash' | 'bank';
 

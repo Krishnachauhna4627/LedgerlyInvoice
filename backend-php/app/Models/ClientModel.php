@@ -14,11 +14,15 @@ class ClientModel extends Model
     protected $allowedFields = ['company_id', 'name', 'address', 'state_code', 'gstin', 'phone', 'email', 'opening_balance'];
 
     /**
-     * clients.* plus the current balance (see LedgerService::BALANCE_SQL); toDto() needs both.
+     * clients.* plus the current customer balance (see LedgerService::BALANCE_SQL) and the party's total
+     * debit / credit (PARTY_DEBIT_SQL / PARTY_CREDIT_SQL); toDto() needs them all.
      */
     public function withBalance(): self
     {
-        return $this->select('clients.*')->select(LedgerService::BALANCE_SQL . ' AS balance', false);
+        return $this->select('clients.*')
+            ->select(LedgerService::BALANCE_SQL . ' AS balance', false)
+            ->select('(' . LedgerService::PARTY_DEBIT_SQL . ') AS debit', false)
+            ->select('(' . LedgerService::PARTY_CREDIT_SQL . ') AS credit', false);
     }
 
     /**
@@ -61,6 +65,10 @@ class ClientModel extends Model
             'email'          => $row['email'],
             'openingBalance' => (float) $row['opening_balance'],
             'balance'        => Gst::round2((float) $row['balance']),
+            // The whole party (sales and purchases): see LedgerService::PARTY_DEBIT_SQL.
+            'debit'          => Gst::round2((float) ($row['debit'] ?? 0)),
+            'credit'         => Gst::round2((float) ($row['credit'] ?? 0)),
+            'closingBalance' => Gst::round2((float) $row['opening_balance'] + (float) ($row['debit'] ?? 0) - (float) ($row['credit'] ?? 0)),
         ];
     }
 

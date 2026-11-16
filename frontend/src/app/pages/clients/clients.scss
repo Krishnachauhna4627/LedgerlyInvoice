@@ -10,6 +10,16 @@
   color: var(--color-text-muted);
 }
 
+// Receivable / payable totals of the parties shown.
+.closing-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0 0 0 auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .empty-icon {
   display: grid;
   place-items: center;
@@ -21,8 +31,8 @@
   color: var(--color-primary);
 }
 
-// The table fits the panel (no sideways scrolling): columns share the width, text wraps,
-// and the edit/delete column is always visible. Below lg the cards are shown instead.
+// Table from lg up (cards below). Columns size to their content; if the amounts don't fit, the table scrolls
+// inside the panel and the Action column stays pinned on the right.
 .desktop {
   display: none;
 
@@ -32,28 +42,30 @@
 }
 
 .fit {
-  table-layout: fixed;
-
-  th,
   td {
-    white-space: normal;
-    overflow-wrap: anywhere;
     vertical-align: top;
   }
 
-  th:nth-child(1) { width: 18%; }
-  th:nth-child(2) { width: 15%; }
-  th:nth-child(3) { width: 19%; }
-  th:nth-child(4) { width: 12%; }
-  th:nth-child(5) { width: 14%; }
+  td:first-child {
+    min-width: 180px;
+    max-width: 260px;
+    white-space: normal;
+  }
+
+  .contact {
+    white-space: nowrap;
+  }
 
   .num {
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-// Long addresses show two lines; the full text is in the cell's tooltip.
+// Under the name: long addresses show two lines; the full text is in the tooltip.
 .address {
+  font-size: var(--text-xs);
+  white-space: normal;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -87,9 +99,17 @@
 }
 
 .fit .row-actions {
-  width: 144px;
+  position: sticky;
+  right: 0;
+  width: 1%;
   white-space: nowrap;
   text-align: right;
+  background: var(--color-surface);
+  box-shadow: -1px 0 0 var(--color-border);
+}
+
+.fit th.row-actions {
+  background: var(--color-bg);
 }
 
 .cards {

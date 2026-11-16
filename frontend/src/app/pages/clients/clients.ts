@@ -12,10 +12,11 @@ import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { BalancePipe } from '../../shared/pipes/balance.pipe';
+import { InrPipe } from '../../shared/pipes/inr.pipe';
 
 @Component({
   selector: 'app-clients-page',
-  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, InrPipe, RouterLink, ShowMore],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
 })
@@ -44,6 +45,17 @@ export class Clients {
   });
 
   protected readonly page = paged(this.filtered);
+
+  // Totals of the closing balances shown: Dr balances are receivable, Cr balances payable.
+  protected readonly closingTotals = computed(() => {
+    let receivable = 0;
+    let payable = 0;
+    for (const c of this.filtered()) {
+      if (c.closingBalance > 0) receivable += c.closingBalance;
+      else payable -= c.closingBalance;
+    }
+    return { receivable, payable };
+  });
 
   constructor() {
     // A new search starts again from the first page.
