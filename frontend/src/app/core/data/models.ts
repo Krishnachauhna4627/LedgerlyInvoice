@@ -184,9 +184,14 @@ export interface Item {
   gstRate: number;
   // Quantity in hand when starting out, in the item's unit.
   openingStock: number;
+  // Only on the products list (GET /api/items): quantity purchased, sold on issued invoices, and
+  // opening + in − out — the same figures as the item's stock ledger.
+  stockIn?: number;
+  stockOut?: number;
+  closingStock?: number;
 }
 
-export type ItemInput = Omit<Item, 'id'>;
+export type ItemInput = Omit<Item, 'id' | 'stockIn' | 'stockOut' | 'closingStock'>;
 
 // Stock ledger of one product: purchases add stock, sales on issued invoices take it away.
 export interface StockLedgerEntry {

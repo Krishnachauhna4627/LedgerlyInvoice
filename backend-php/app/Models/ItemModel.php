@@ -34,7 +34,25 @@ class ItemModel extends Model
      */
     public function listFor(int $companyId): array
     {
-        return array_map(self::toDto(...), $this->where('company_id', $companyId)->orderBy('name')->findAll());
+        // Same rules as stockLedger(): purchases add stock, sales on issued (non-draft) invoices take it away.
+        $rows = $this->select('items.*')
+            ->select('COALESCE((SELECT SUM(l.quantity) FROM purchase_items l JOIN purchases p ON p.id = l.purchase_id
+                WHERE l.item_id = items.id AND p.company_id = items.company_id), 0) AS stock_in', false)
+            ->select("COALESCE((SELECT SUM(l.quantity) FROM invoice_items l JOIN invoices i ON i.id = l.invoice_id
+                WHERE l.item_id = items.id AND i.company_id = items.company_id AND i.status <> 'draft'), 0) AS stock_out", false)
+            ->where('company_id', $companyId)->orderBy('name')->findAll();
+
+        return array_map(static function (array $row): array {
+            $in  = round((float) $row['stock_in'], 3);
+            $out = round((float) $row['stock_out'], 3);
+
+            return [
+                ...self::toDto($row),
+                'stockIn'      => $in,
+                'stockOut'     => $out,
+                'closingStock' => round((float) $row['opening_stock'] + $in - $out, 3),
+            ];
+        }, $rows);
     }
 
     /**

@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ItemService } from '../../core/data/item.service';
 import { Item } from '../../core/data/models';
+import { downloadCsv } from '../../core/ui/csv';
+import { todayIso } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -65,6 +67,26 @@ export class Items {
         this.loading.set(false);
       },
     });
+  }
+
+  // The list shown (after the search) with its stock columns, as a CSV that opens in Excel.
+  protected exportExcel(): void {
+    const qty = (n: number | undefined) => Number((n ?? 0).toFixed(3));
+    downloadCsv(
+      `products-services-${todayIso()}.csv`,
+      ['Name', 'HSN/SAC', 'Unit', 'Rate (₹)', 'GST %', 'Op. qty', 'Qty in', 'Qty out', 'Cl. qty'],
+      this.filtered().map((i) => [
+        i.name,
+        i.hsnSac,
+        i.unit,
+        i.unitPrice.toFixed(2),
+        i.gstRate,
+        qty(i.openingStock),
+        qty(i.stockIn),
+        qty(i.stockOut),
+        qty(i.closingStock),
+      ]),
+    );
   }
 
   protected openForm(item: Item | null): void {

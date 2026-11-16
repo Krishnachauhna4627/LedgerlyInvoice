@@ -1,4 +1,8 @@
 <app-page-header title="Products/Services" subtitle="With HSN/SAC and GST rate, used to fill invoice lines.">
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!filtered().length" (click)="exportExcel()"
+    title="Download the list with stock quantities (opens in Excel)">
+    <app-icon name="download" [size]="16" /> Download Excel
+  </button>
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
     <app-icon name="plus" [size]="16" /> Add product/service
   </button>
@@ -45,8 +49,11 @@
                 <th scope="col">Unit</th>
                 <th scope="col" class="num">Rate (₹)</th>
                 <th scope="col" class="num">GST %</th>
-                <th scope="col" class="num">Opening stock</th>
-                <th scope="col"><span class="sr-only">Actions</span></th>
+                <th scope="col" class="num">Op. qty</th>
+                <th scope="col" class="num">Qty in</th>
+                <th scope="col" class="num">Qty out</th>
+                <th scope="col" class="num">Cl. qty</th>
+                <th scope="col" class="row-actions">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -57,8 +64,16 @@
                   <td [class.muted]="!item.unit">{{ item.unit || '—' }}</td>
                   <td class="num">{{ item.unitPrice | inr: false }}</td>
                   <td class="num">{{ item.gstRate }}%</td>
-                  <td class="num" [class.muted]="!item.openingStock">{{ item.openingStock ? (item.openingStock | number: '1.0-3') + (item.unit ? ' ' + item.unit : '') : '—' }}</td>
+                  <td class="num">{{ item.openingStock | number: '1.2-3' }}</td>
+                  <td class="num">{{ item.stockIn ?? 0 | number: '1.2-3' }}</td>
+                  <td class="num">{{ item.stockOut ?? 0 | number: '1.2-3' }}</td>
+                  <td class="num strong" [class.amount--due]="(item.closingStock ?? 0) < 0" [title]="(item.closingStock ?? 0) < 0 ? 'More sold than in stock' : ''">
+                    {{ item.closingStock ?? 0 | number: '1.2-3' }}
+                  </td>
                   <td class="row-actions">
+                    <a class="icon-button" [routerLink]="['/items', item.id]" [attr.aria-label]="'View stock ledger of ' + item.name" title="View stock ledger">
+                      <app-icon name="eye" [size]="16" />
+                    </a>
                     <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + item.name" (click)="openForm(item)">
                       <app-icon name="pencil" [size]="16" />
                     </button>
@@ -77,9 +92,16 @@
             <li class="card card--tappable">
               <div class="card__main">
                 <a class="card__title card-link" [routerLink]="['/items', item.id]">{{ item.name }}</a>
-                <span class="card__meta">HSN/SAC: {{ item.hsnSac || '—' }} · {{ item.unitPrice | inr }}{{ item.unit ? ' / ' + item.unit : '' }} · GST {{ item.gstRate }}%{{ item.openingStock ? ' · Opening stock ' + (item.openingStock | number: '1.0-3') + (item.unit ? ' ' + item.unit : '') : '' }}</span>
+                <span class="card__meta">HSN/SAC: {{ item.hsnSac || '—' }} · {{ item.unitPrice | inr }}{{ item.unit ? ' / ' + item.unit : '' }} · GST {{ item.gstRate }}%</span>
+                <span class="card__meta">
+                  Op. {{ item.openingStock | number: '1.0-3' }} · In {{ item.stockIn ?? 0 | number: '1.0-3' }} · Out {{ item.stockOut ?? 0 | number: '1.0-3' }} ·
+                  <strong [class.amount--due]="(item.closingStock ?? 0) < 0">Cl. {{ item.closingStock ?? 0 | number: '1.0-3' }}{{ item.unit ? ' ' + item.unit : '' }}</strong>
+                </span>
               </div>
               <div class="card__actions">
+                <a class="icon-button" [routerLink]="['/items', item.id]" [attr.aria-label]="'View stock ledger of ' + item.name" title="View stock ledger">
+                  <app-icon name="eye" [size]="16" />
+                </a>
                 <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + item.name" (click)="openForm(item)">
                   <app-icon name="pencil" [size]="16" />
                 </button>
