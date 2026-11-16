@@ -6,6 +6,9 @@
       @for (p of periods; track p.value) {
         <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
       }
+      @if (hasCustomRange) {
+        <option value="custom" [selected]="period() === 'custom'">Custom range</option>
+      }
     </select>
     <app-icon name="chevron-down" [size]="14" />
   </label>

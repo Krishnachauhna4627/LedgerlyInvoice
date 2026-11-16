@@ -6,7 +6,7 @@ import { toApiError } from '../../core/api/api-error';
 import { DisplayStatus, InvoiceListItem, InvoiceSort } from '../../core/data/models';
 import { round2 } from '../../core/gst/gst';
 import { InvoiceService } from '../../core/invoices/invoice.service';
-import { PERIODS, Period, periodRange } from '../../core/ui/dates';
+import { PERIODS, Period, formatDmy, periodRange } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -49,15 +49,23 @@ export class Invoices {
   private readonly invoiceService = inject(InvoiceService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
-  // Links (e.g. the dashboard tiles) can open the list pre-filtered: /invoices?period=this_month&status=overdue
+  // Links can open the list pre-filtered: /invoices?period=this_month&status=overdue (dashboard tiles), or a
+  // custom date range /invoices?from=2026-11-01&to=2026-11-30 (the Sales box on Reports).
   private readonly urlFilters = inject(ActivatedRoute).snapshot.queryParamMap;
 
   protected readonly periods = PERIODS;
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly sorts = SORTS;
 
-  protected readonly period = signal<Period>(
-    PERIODS.find((p) => p.value === this.urlFilters.get('period'))?.value ?? 'all',
+  // A date range from the link; shown as a "Custom range" period until another period is picked.
+  private readonly customRange = (() => {
+    const valid = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+    const range = { from: valid(this.urlFilters.get('from')), to: valid(this.urlFilters.get('to')) };
+    return range.from || range.to ? range : null;
+  })();
+  protected readonly hasCustomRange = !!this.customRange;
+  protected readonly period = signal<Period | 'custom'>(
+    this.customRange ? 'custom' : (PERIODS.find((p) => p.value === this.urlFilters.get('period'))?.value ?? 'all'),
   );
   protected readonly status = signal<StatusFilter>(
     STATUS_FILTERS.find((s) => s.value === this.urlFilters.get('status'))?.value ?? 'all',
@@ -85,7 +93,7 @@ export class Invoices {
   protected readonly receiptFor = signal<InvoiceListItem | null>(null);
 
   private readonly query = computed(() => ({
-    ...periodRange(this.period()),
+    ...(this.period() === 'custom' ? this.customRange! : periodRange(this.period() as Period)),
     search: this.search(),
     sort: this.sort(),
     tick: this.reloadTick(),
@@ -129,7 +137,11 @@ export class Invoices {
   protected readonly hasFilters = computed(
     () => this.period() !== 'all' || this.status() !== 'all' || this.search() !== '',
   );
-  protected readonly periodLabel = computed(() => PERIODS.find((p) => p.value === this.period())?.label ?? '');
+  protected readonly periodLabel = computed(() =>
+    this.period() === 'custom'
+      ? `${this.customRange?.from ? formatDmy(this.customRange.from) : 'start'} – ${this.customRange?.to ? formatDmy(this.customRange.to) : 'today'}`
+      : (PERIODS.find((p) => p.value === this.period())?.label ?? ''),
+  );
   protected readonly statusLabel = computed(() => STATUS_FILTERS.find((s) => s.value === this.status())?.label ?? '');
 
   constructor() {

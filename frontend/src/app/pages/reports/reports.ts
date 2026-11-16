@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Params, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, of, switchMap, tap } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
@@ -21,7 +22,7 @@ const MONTH = new Intl.DateTimeFormat('en-IN', { month: 'short', year: 'numeric'
 // Sales and purchases for a date range side by side (drafts are not sales), with GST-ready CSV exports.
 @Component({
   selector: 'app-reports-page',
-  imports: [PageHeader, Icon, InrPipe],
+  imports: [PageHeader, Icon, InrPipe, RouterLink],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
@@ -38,21 +39,22 @@ export class Reports {
   protected readonly report = signal<{ sales: SalesReport; purchases: PurchaseReport } | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly exporting = signal<'summary' | 'items' | 'purchases' | null>(null);
+  protected readonly exporting = signal<'summary' | 'items' | 'purchases' | 'purchaseSummary' | null>(null);
 
   private readonly range = computed<DateRange>(() => ({ from: this.from() || undefined, to: this.to() || undefined }));
   protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
 
-  // Sales vs purchases at a glance; GST collected on sales minus GST paid on purchases.
-  protected readonly overview = computed(() => {
+  // Sales and purchases at a glance (each opens its list for the same dates); GST collected on sales minus GST paid on purchases.
+  protected readonly overview = computed<{ label: string; value: number; note: string; main: boolean; link?: string; query?: Params }[]>(() => {
     const r = this.report();
     if (!r) return [];
     const s = r.sales.totals;
     const p = r.purchases.totals;
+    // Empty from/to = no limit on that side, same as on this page.
+    const dates = { from: this.from(), to: this.to() };
     return [
-      { label: 'Sales', value: s.total, note: `${s.count} invoice${s.count === 1 ? '' : 's'}`, main: true },
-      { label: 'Purchases', value: p.total, note: `${p.count} bill${p.count === 1 ? '' : 's'}`, main: true },
-      { label: 'Sales − purchases', value: round2(s.total - p.total), note: 'Including GST', main: false },
+      { label: 'Sales', value: s.total, note: `${s.count} invoice${s.count === 1 ? '' : 's'}`, main: true, link: '/invoices', query: dates },
+      { label: 'Purchases', value: p.total, note: `${p.count} bill${p.count === 1 ? '' : 's'}`, main: true, link: '/purchases', query: dates },
       { label: 'GST on sales', value: s.tax, note: 'Output tax', main: false },
       { label: 'GST on purchases', value: p.tax, note: 'Input tax', main: false },
       { label: 'Net GST', value: round2(s.tax - p.tax), note: 'Sales GST − purchase GST', main: false },
@@ -150,10 +152,10 @@ export class Reports {
     });
   }
 
-  // One row per item bought, from the purchase bills in the range.
-  protected exportPurchases(): void {
+  // From the purchase bills in the range: one row per bill ('purchaseSummary') or per item bought ('purchases').
+  protected exportPurchases(kind: 'purchases' | 'purchaseSummary' = 'purchases'): void {
     if (this.exporting()) return;
-    this.exporting.set('purchases');
+    this.exporting.set(kind);
     this.purchaseService.list(this.range()).subscribe({
       next: (purchases) => {
         this.exporting.set(null);
@@ -161,7 +163,8 @@ export class Reports {
           this.toast.error('No purchases in the selected date range.');
           return;
         }
-        this.writePurchases(purchases);
+        if (kind === 'purchaseSummary') this.writePurchaseSummary(purchases);
+        else this.writePurchases(purchases);
       },
       error: (err: unknown) => {
         this.exporting.set(null);
@@ -181,6 +184,20 @@ export class Reports {
           l.unitPrice, l.gstRate, l.taxableAmount, l.totalTax, l.lineTotal, index === 0 ? p.totals.grandTotal : '', index === 0 ? p.note : '',
         ]),
       ),
+    );
+  }
+
+  // One row per bill, like the sales invoice summary.
+  private writePurchaseSummary(purchases: Purchase[]): void {
+    downloadCsv(
+      `purchase-invoice-summary${this.fileSuffix()}.csv`,
+      ['Purchase No.', 'Purchase Date', 'Vendor Name', 'Vendor GSTIN', 'Vendor State', 'Item Count', 'Taxable Value',
+        'CGST', 'SGST', 'IGST', 'Total Tax', 'Grand Total', 'Note'],
+      [...purchases].reverse().map((p) => [
+        p.purchaseNumber, p.purchaseDate, p.vendorName, p.vendorGstin, p.vendorStateCode ? stateLabel(p.vendorStateCode) : '',
+        p.lines.length, p.totals.subTotal, p.totals.totalCgst, p.totals.totalSgst, p.totals.totalIgst, p.totals.totalTax,
+        p.totals.grandTotal, p.note,
+      ]),
     );
   }
 

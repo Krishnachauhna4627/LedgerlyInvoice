@@ -26,6 +26,58 @@
   }
 }
 
+// Overview: Sales and Purchases on top (half each), the three GST tiles below. Phones: Net GST takes the full row.
+.tiles--overview {
+  @include bp.up(md) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+
+    > .tile {
+      grid-column: span 2;
+    }
+
+    > .tile--total {
+      grid-column: span 3;
+    }
+  }
+
+  > .tile:last-child {
+    @include bp.down(md) {
+      grid-column: span 2;
+    }
+  }
+}
+
+// Sales / Purchases tiles open their list: the whole tile is the link.
+.tile:has(.tile__link) {
+  padding: 0;
+  transition: border-color var(--transition), box-shadow var(--transition);
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.tile__link {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .tile__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+}
+
 .tiles--sales {
   @include bp.up(xl) {
     grid-template-columns: repeat(6, minmax(0, 1fr));

@@ -8,6 +8,9 @@
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="exportPurchases()">
     <app-icon name="download" [size]="16" /> {{ exporting() === 'purchases' ? 'Exporting…' : 'Purchases: item details' }}
   </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!!exporting() || rangeInvalid()" (click)="exportPurchases('purchaseSummary')">
+    <app-icon name="download" [size]="16" /> {{ exporting() === 'purchaseSummary' ? 'Exporting…' : 'Purchases: invoice summary' }}
+  </button>
 </app-page-header>
 
 <div class="page-body">
@@ -54,9 +57,17 @@
       <ul class="tiles tiles--overview">
         @for (tile of overview(); track tile.label) {
           <li class="tile" [class.tile--total]="tile.main">
-            <span class="tile__label">{{ tile.label }}</span>
-            <span class="tile__value" [class.negative]="tile.value < 0">{{ tile.value | inr }}</span>
-            <span class="tile__note">{{ tile.note }}</span>
+            @if (tile.link) {
+              <a class="tile__link" [routerLink]="tile.link" [queryParams]="tile.query" [attr.aria-label]="'Open ' + tile.label.toLowerCase() + ' for these dates'">
+                <span class="tile__label">{{ tile.label }} <app-icon name="arrow-right" [size]="14" /></span>
+                <span class="tile__value" [class.negative]="tile.value < 0">{{ tile.value | inr }}</span>
+                <span class="tile__note">{{ tile.note }}</span>
+              </a>
+            } @else {
+              <span class="tile__label">{{ tile.label }}</span>
+              <span class="tile__value" [class.negative]="tile.value < 0">{{ tile.value | inr }}</span>
+              <span class="tile__note">{{ tile.note }}</span>
+            }
           </li>
         }
       </ul>

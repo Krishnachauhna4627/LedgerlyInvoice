@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { Purchase } from '../../core/data/models';
 import { PurchaseService } from '../../core/data/purchase.service';
@@ -33,9 +33,11 @@ export class Purchases {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
 
-  // Filters; the period starts as the current financial year.
-  protected readonly from = signal(financialYear().from);
-  protected readonly to = signal(financialYear().to);
+  // Filters; the period starts as the current financial year, or the ?from= / ?to= dates of the link that
+  // opened the page (the Purchases box on Reports; an empty value means no limit).
+  private readonly urlFilters = inject(ActivatedRoute).snapshot.queryParamMap;
+  protected readonly from = signal(this.urlDate('from') ?? financialYear().from);
+  protected readonly to = signal(this.urlDate('to') ?? financialYear().to);
   protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
 
   protected readonly deleting = signal<Purchase | null>(null);
@@ -53,6 +55,12 @@ export class Purchases {
 
   constructor() {
     this.load();
+  }
+
+  private urlDate(key: 'from' | 'to'): string | null {
+    if (!this.urlFilters.has(key)) return null;
+    const value = this.urlFilters.get(key) ?? '';
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
   }
 
   protected load(): void {
