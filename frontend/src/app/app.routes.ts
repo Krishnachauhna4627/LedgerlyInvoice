@@ -74,7 +74,7 @@ export const routes: Routes = [
       },
       {
         path: 'clients',
-        title: page('Customers'),
+        title: page('Ledgers/Party Detail'),
         loadComponent: () => import('./pages/clients/clients').then((m) => m.Clients),
       },
       {
