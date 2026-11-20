@@ -1,10 +1,5 @@
 @use 'breakpoints' as bp;
 
-.period select {
-  min-height: 36px;
-  width: auto;
-}
-
 // Tiles, the bar chart and the two summary donuts.
 // Phones: 2 columns · tablets/laptops: 6 (tiles in threes) · wide: 5 named areas like
 //   sales     receivable  received  people  items

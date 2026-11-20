@@ -95,7 +95,7 @@
   <div class="field">
     <label class="field__label" for="payment-reference">Short narration</label>
     <input id="payment-reference" class="input" formControlName="reference" maxlength="100" autocomplete="off"
-      placeholder="Optional — bill no., cheque no., UPI ref…"
+      placeholder="Optional — invoice no., cheque no., UPI ref…"
       [class.is-invalid]="errorFor('reference')" [attr.aria-invalid]="!!errorFor('reference')" aria-describedby="payment-reference-error" />
     @if (errorFor('reference'); as message) {
       <span id="payment-reference-error" class="field__error">{{ message }}</span>

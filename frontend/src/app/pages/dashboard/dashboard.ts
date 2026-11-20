@@ -35,7 +35,9 @@ const PERIODS: { value: DashboardPeriod; label: string }[] = [
   { value: 'this_month', label: 'This month' },
   { value: 'last_month', label: 'Last month' },
   { value: 'this_quarter', label: 'This quarter' },
+  { value: 'last_6_months', label: 'Last 6 months' },
   { value: 'this_year', label: 'This financial year' },
+  { value: 'custom', label: 'Custom' },
 ];
 
 // Chart colours come from the theme.
@@ -49,7 +51,9 @@ const PERIOD_WORD: Record<DashboardPeriod, string> = {
   this_month: 'this month',
   last_month: 'last month',
   this_quarter: 'this quarter',
+  last_6_months: 'last 6 months',
   this_year: 'this year',
+  custom: 'in period',
 };
 
 // First page after login: the period's numbers and charts, recent invoices and a setup checklist.
@@ -66,6 +70,10 @@ export class Dashboard {
 
   protected readonly periods = PERIODS;
   protected readonly period = signal<DashboardPeriod>('this_month');
+  // The period's dates: filled in from the chosen period; editing either one switches to a custom period.
+  protected readonly from = signal('');
+  protected readonly to = signal('');
+  protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
 
   protected readonly subtitle = computed(() => {
     const first = this.user()?.name.split(/\s+/)[0];
@@ -98,7 +106,7 @@ export class Dashboard {
         icon: 'clock', tone: 'indigo', link: '/receipts', series: series('received'), ...flow(s.received),
       },
       {
-        key: 'purchases', label: `Purchase ${word}`, value: inr.transform(s.purchases.amount), note: plural(s.purchases.count, 'bill'),
+        key: 'purchases', label: `Purchase ${word}`, value: inr.transform(s.purchases.amount), note: plural(s.purchases.count, 'purchase invoice'),
         icon: 'shopping-bag', tone: 'orange', link: '/purchases', series: series('purchases'), ...flow(s.purchases),
       },
       {
@@ -159,12 +167,22 @@ export class Dashboard {
     this.load();
   }
 
+  protected setDate(name: 'from' | 'to', value: string): void {
+    this[name].set(value);
+    this.period.set('custom');
+    this.load();
+  }
+
   protected load(): void {
+    // A custom period loads once both dates are set and in order.
+    if (this.period() === 'custom' && (!this.from() || !this.to() || this.rangeInvalid())) return;
     this.loading.set(true);
     this.error.set(null);
-    forkJoin({ summary: this.reports.dashboard(this.period()), company: this.company.get() }).subscribe({
+    forkJoin({ summary: this.reports.dashboard(this.period(), { from: this.from(), to: this.to() }), company: this.company.get() }).subscribe({
       next: ({ summary, company }) => {
         this.summary.set(summary);
+        this.from.set(summary.period.from);
+        this.to.set(summary.period.to);
         this.sellerReady.set(!!company.stateCode);
         this.loading.set(false);
       },

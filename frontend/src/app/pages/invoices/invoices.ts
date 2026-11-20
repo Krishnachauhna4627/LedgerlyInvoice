@@ -57,16 +57,33 @@ export class Invoices {
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly sorts = SORTS;
 
-  // A date range from the link; shown as a "Custom range" period until another period is picked.
-  private readonly customRange = (() => {
-    const valid = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
-    const range = { from: valid(this.urlFilters.get('from')), to: valid(this.urlFilters.get('to')) };
-    return range.from || range.to ? range : null;
+  // From / To boxes: filled in from the chosen period; editing either switches to a custom period. A date range in
+  // the link starts as a custom period.
+  private readonly linkRange = (() => {
+    const valid = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '');
+    return { from: valid(this.urlFilters.get('from')), to: valid(this.urlFilters.get('to')) };
   })();
-  protected readonly hasCustomRange = !!this.customRange;
   protected readonly period = signal<Period | 'custom'>(
-    this.customRange ? 'custom' : (PERIODS.find((p) => p.value === this.urlFilters.get('period'))?.value ?? 'all'),
+    this.linkRange.from || this.linkRange.to
+      ? 'custom'
+      : (PERIODS.find((p) => p.value === this.urlFilters.get('period'))?.value ?? 'all'),
   );
+  protected readonly from = signal(this.period() === 'custom' ? this.linkRange.from : (periodRange(this.period() as Period).from ?? ''));
+  protected readonly to = signal(this.period() === 'custom' ? this.linkRange.to : (periodRange(this.period() as Period).to ?? ''));
+  protected readonly rangeInvalid = computed(() => !!this.from() && !!this.to() && this.from() > this.to());
+
+  protected changePeriod(value: Period | 'custom'): void {
+    this.period.set(value);
+    if (value === 'custom') return;
+    const range = periodRange(value);
+    this.from.set(range.from ?? '');
+    this.to.set(range.to ?? '');
+  }
+
+  protected setDate(name: 'from' | 'to', value: string): void {
+    this[name].set(value);
+    this.period.set('custom');
+  }
   protected readonly status = signal<StatusFilter>(
     STATUS_FILTERS.find((s) => s.value === this.urlFilters.get('status'))?.value ?? 'all',
   );
@@ -93,7 +110,9 @@ export class Invoices {
   protected readonly receiptFor = signal<InvoiceListItem | null>(null);
 
   private readonly query = computed(() => ({
-    ...(this.period() === 'custom' ? this.customRange! : periodRange(this.period() as Period)),
+    ...(this.period() === 'custom'
+      ? { ...(this.from() && { from: this.from() }), ...(this.to() && !this.rangeInvalid() && { to: this.to() }) }
+      : periodRange(this.period() as Period)),
     search: this.search(),
     sort: this.sort(),
     tick: this.reloadTick(),
@@ -139,7 +158,7 @@ export class Invoices {
   );
   protected readonly periodLabel = computed(() =>
     this.period() === 'custom'
-      ? `${this.customRange?.from ? formatDmy(this.customRange.from) : 'start'} – ${this.customRange?.to ? formatDmy(this.customRange.to) : 'today'}`
+      ? `${this.from() ? formatDmy(this.from()) : 'start'} – ${this.to() ? formatDmy(this.to()) : 'today'}`
       : (PERIODS.find((p) => p.value === this.period())?.label ?? ''),
   );
   protected readonly statusLabel = computed(() => STATUS_FILTERS.find((s) => s.value === this.status())?.label ?? '');
@@ -180,7 +199,7 @@ export class Invoices {
   }
 
   protected clearFilters(): void {
-    this.period.set('all');
+    this.changePeriod('all');
     this.status.set('all');
     this.searchInput.set('');
   }

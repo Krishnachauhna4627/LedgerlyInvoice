@@ -50,7 +50,7 @@ export class Purchases {
   });
   protected readonly totalsNote = computed(() => {
     const n = this.purchases().length;
-    return `${n} bill${n === 1 ? '' : 's'}`;
+    return `${n} purchase invoice${n === 1 ? '' : 's'}`;
   });
 
   constructor() {
@@ -110,7 +110,7 @@ export class Purchases {
     downloadCsv(
       `purchases${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
       ['Party', 'GSTIN/UIN', 'Vendor state', 'Doc no.', 'Doc date', 'Qty', 'Unit', 'HSN', 'Particulars',
-        'Bill value', 'Taxable value', 'Tax rate (%)', 'IGST', 'CGST', 'SGST', 'Note'],
+        'Invoice value', 'Taxable value', 'Tax rate (%)', 'IGST', 'CGST', 'SGST', 'Note'],
       this.purchases().flatMap((p) => {
         // No GST on this bill (a side without a GSTIN): the tax columns stay empty.
         const tax = (n: number) => (p.totals.totalTax ? money(n) : '');

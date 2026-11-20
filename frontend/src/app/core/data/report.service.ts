@@ -19,8 +19,10 @@ const rangeParams = ({ from, to }: DateRange) => {
 export class ReportService {
   private readonly http = inject(HttpClient);
 
-  dashboard(period: DashboardPeriod = 'this_month'): Observable<DashboardSummary> {
-    return this.http.get<DashboardSummary>('/api/reports/dashboard', { params: { period } });
+  // A custom period needs both dates.
+  dashboard(period: DashboardPeriod = 'this_month', range: DateRange = {}): Observable<DashboardSummary> {
+    const params = period === 'custom' ? rangeParams(range).set('period', period) : new HttpParams().set('period', period);
+    return this.http.get<DashboardSummary>('/api/reports/dashboard', { params });
   }
 
   sales(range: DateRange): Observable<SalesReport> {

@@ -1,7 +1,6 @@
 @use 'breakpoints' as bp;
 
 // Native <select> dressed as a button (period + sort).
-.period,
 .sort {
   position: relative;
   display: inline-flex;

@@ -57,7 +57,7 @@ export class Reports {
     const dates = { from: this.from(), to: this.to() };
     return [
       { label: 'Sales', value: s.total, note: `${s.count} invoice${s.count === 1 ? '' : 's'}`, main: true, link: '/invoices', query: dates },
-      { label: 'Purchases', value: p.total, note: `${p.count} bill${p.count === 1 ? '' : 's'}`, main: true, link: '/purchases', query: dates },
+      { label: 'Purchases', value: p.total, note: `${p.count} purchase invoice${p.count === 1 ? '' : 's'}`, main: true, link: '/purchases', query: dates },
       // No GST on anything in the period (no GSTIN on one side): GST isn't mentioned.
       ...(s.tax || p.tax
         ? [
@@ -190,7 +190,7 @@ export class Reports {
     downloadCsv(
       `purchase-item-details${this.fileSuffix()}.csv`,
       ['Purchase No.', 'Purchase Date', 'Vendor', 'Item No.', 'Description', 'HSN/SAC', 'Quantity', 'Unit', 'Rate',
-        'GST Rate (%)', 'Taxable Value', 'GST', 'Line Total', 'Bill Total', 'Note'],
+        'GST Rate (%)', 'Taxable Value', 'GST', 'Line Total', 'Invoice Total', 'Note'],
       [...purchases].reverse().flatMap((p) =>
         p.lines.map((l, index) => [
           p.purchaseNumber, p.purchaseDate, p.vendorName, index + 1, l.description, l.hsnSac, l.quantity, l.unit,

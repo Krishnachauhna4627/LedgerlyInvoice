@@ -1,12 +1,27 @@
 <app-page-header title="Dashboard" [subtitle]="subtitle()">
-  <label class="period">
-    <span class="sr-only">Period</span>
-    <select [value]="period()" (change)="changePeriod($any($event.target).value)">
-      @for (p of periods; track p.value) {
-        <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
-      }
-    </select>
-  </label>
+  <div class="period-bar">
+    <label class="period-field">
+      <span class="period-field__label">Period</span>
+      <select class="input" [value]="period()" (change)="changePeriod($any($event.target).value)">
+        @for (p of periods; track p.value) {
+          <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
+        }
+      </select>
+    </label>
+    <label class="period-field">
+      <span class="period-field__label">From</span>
+      <input class="input" type="date" [value]="from()" (change)="setDate('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="dash-range-error" />
+    </label>
+    <label class="period-field">
+      <span class="period-field__label">To</span>
+      <input class="input" type="date" [value]="to()" (change)="setDate('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="dash-range-error" />
+    </label>
+    @if (rangeInvalid()) {
+      <span id="dash-range-error" class="field__error period-error">"From" must be on or before "To".</span>
+    }
+  </div>
   <a class="btn btn--primary btn--sm" routerLink="/invoices/new"><app-icon name="plus" [size]="16" /> Create Invoice</a>
 </app-page-header>
 

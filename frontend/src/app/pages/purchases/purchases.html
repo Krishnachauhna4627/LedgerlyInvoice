@@ -1,4 +1,4 @@
-<app-page-header title="Purchases" subtitle="Bills from vendors with the items you bought. Payments are recorded separately.">
+<app-page-header title="Purchases" subtitle="Purchase invoices from vendors with the items you bought. Payments are recorded separately.">
   <button type="button" class="btn btn--outline btn--sm" [disabled]="purchases().length === 0" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export (CSV)
   </button>
@@ -38,7 +38,7 @@
     } @else if (purchases().length === 0) {
       <div class="empty-state">
         <p class="empty-state__title">No purchases in this period</p>
-        <p>Record a bill from a vendor and the items you bought.</p>
+        <p>Record a purchase invoice from a vendor and the items you bought.</p>
         <a class="btn btn--primary btn--sm" routerLink="/purchases/new"><app-icon name="plus" [size]="16" /> Record Purchase</a>
       </div>
     } @else {

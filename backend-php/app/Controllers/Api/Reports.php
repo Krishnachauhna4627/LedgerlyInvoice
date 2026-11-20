@@ -19,7 +19,8 @@ class Reports extends BaseController
         . ' SUM(total_igst) AS igst, SUM(total_tax) AS tax, SUM(grand_total) AS total';
 
     /**
-     * Dashboard for ?period= (this_month — the default — last_month, this_quarter, this_year = financial year):
+     * Dashboard for ?period= (this_month — the default — last_month, this_quarter, last_6_months, this_year = financial
+     * year, or custom with ?from & ?to):
      * money in and out over the period, receivable/payable balances at its end, each with the same figure for the
      * previous period (for the % change), plus month-by-month trend for the charts and sparklines.
      */
@@ -31,7 +32,13 @@ class Reports extends BaseController
         if (! is_string($period) || ! in_array($period, self::DASHBOARD_PERIODS, true)) {
             throw new HttpError(404, 'Not found.');
         }
-        ['from' => $from, 'to' => $to, 'prevFrom' => $prevFrom, 'prevTo' => $prevTo, 'months' => $months] = self::dashboardPeriod($period, today());
+        // Custom period: ?from and ?to (both 'YYYY-MM-DD').
+        $range = $period === 'custom' ? $this->range() : [];
+        if ($period === 'custom' && (! isset($range['from'], $range['to']) || $range['from'] > $range['to'])) {
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['from' => 'Choose a "From" date on or before the "To" date.']);
+        }
+        ['from' => $from, 'to' => $to, 'prevFrom' => $prevFrom, 'prevTo' => $prevTo, 'months' => $months]
+            = self::dashboardPeriod($period, today(), $range['from'] ?? null, $range['to'] ?? null);
 
         $flows = function (string $f, string $t) use ($companyId): array {
             $sales     = $this->issuedInvoices($companyId, ['from' => $f, 'to' => $t])->select('COUNT(*) AS count, SUM(grand_total) AS amount', false)->get()->getRowArray();
@@ -76,20 +83,38 @@ class Reports extends BaseController
         ]);
     }
 
-    private const DASHBOARD_PERIODS = ['this_month', 'last_month', 'this_quarter', 'this_year'];
+    private const DASHBOARD_PERIODS = ['this_month', 'last_month', 'this_quarter', 'last_6_months', 'this_year', 'custom'];
 
     /**
      * The period's dates, and the previous period of the same kind cut to the same length (so month-to-date is
      * compared with the same days of last month). months = how many months the trend charts show.
+     * 'custom' uses $customFrom – $customTo and compares with the same number of days just before it.
      *
      * @return array{from: string, to: string, prevFrom: string, prevTo: string, months: int}
      */
-    public static function dashboardPeriod(string $period, string $today): array
+    public static function dashboardPeriod(string $period, string $today, ?string $customFrom = null, ?string $customTo = null): array
     {
+        if ($period === 'custom' && $customFrom !== null && $customTo !== null) {
+            $days    = (int) ((strtotime($customTo) - strtotime($customFrom)) / 86400) + 1;
+            $prevTo  = date('Y-m-d', strtotime($customFrom . ' -1 day'));
+            [$fy, $fm] = array_map('intval', explode('-', $customFrom));
+            [$ty, $tm] = array_map('intval', explode('-', $customTo));
+
+            return [
+                'from'     => $customFrom,
+                'to'       => $customTo,
+                'prevFrom' => date('Y-m-d', strtotime($prevTo . ' -' . ($days - 1) . ' days')),
+                'prevTo'   => $prevTo,
+                // The trend charts show the months the period covers (at least 6, at most 24).
+                'months'   => min(24, max(6, ($ty * 12 + $tm) - ($fy * 12 + $fm) + 1)),
+            ];
+        }
         [$y, $m] = array_map('intval', explode('-', $today));
         [$from, $to, $length] = match ($period) {
             'last_month'   => [self::monthStart($y, $m - 1), self::monthEnd($y, $m - 1), 1],
             'this_quarter' => [self::monthStart($y, $m - ($m - 1) % 3), $today, 3],
+            // This month and the 5 before it.
+            'last_6_months' => [self::monthStart($y, $m - 5), $today, 6],
             // Indian financial year: 1 April – 31 March.
             'this_year'    => [($m >= 4 ? $y : $y - 1) . '-04-01', $today, 12],
             default        => [self::monthStart($y, $m), $today, 1],

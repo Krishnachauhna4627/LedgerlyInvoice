@@ -348,7 +348,8 @@ export interface InvoiceQuery {
   limit?: number;
 }
 
-export type DashboardPeriod = 'this_month' | 'last_month' | 'this_quarter' | 'this_year';
+// 'custom' = the dates the user picked (from / to).
+export type DashboardPeriod = 'this_month' | 'last_month' | 'this_quarter' | 'last_6_months' | 'this_year' | 'custom';
 
 // A dashboard figure for the period, with the same figure for the previous period (for the % change).
 export interface DashboardStat {

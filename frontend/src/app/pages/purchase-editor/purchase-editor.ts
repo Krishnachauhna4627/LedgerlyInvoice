@@ -102,7 +102,7 @@ export class PurchaseEditor {
 
   // GST whenever the business has a GSTIN (same rule as the server).
   protected readonly gstApplies = computed(() => gstApplies(this.companyGstin()));
-  protected readonly noGstNote = computed(() => (this.gstApplies() ? '' : 'Your business has no GSTIN — no GST on this bill.'));
+  protected readonly noGstNote = computed(() => (this.gstApplies() ? '' : 'Your business has no GSTIN — no GST on this purchase invoice.'));
 
   // Live preview; the server recalculates on save. IGST when the vendor is in another state than the
   // business, CGST + SGST otherwise (same rule as PurchaseModel::savePurchase()).

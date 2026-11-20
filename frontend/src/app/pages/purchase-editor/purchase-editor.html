@@ -1,4 +1,4 @@
-<app-page-header [title]="title" subtitle="A bill from a vendor and the items you bought. Record what you paid on Payments.">
+<app-page-header [title]="title" subtitle="A purchase invoice from a vendor and the items you bought. Record what you paid on Payments.">
   <a class="btn btn--outline btn--sm" routerLink="/purchases">Cancel</a>
 </app-page-header>
 
@@ -56,7 +56,7 @@
 
           @if (oldVendorName(); as old) {
             <p class="hint-warn">
-              This bill was recorded for <strong>{{ old }}</strong> before vendors were picked from your parties
+              This purchase invoice was recorded for <strong>{{ old }}</strong> before vendors were picked from your parties
               (or that party was deleted). Choose the vendor to save changes.
             </p>
           }
@@ -95,7 +95,7 @@
             <div class="field span-all">
               <label class="field__label" for="pp-note">Note</label>
               <textarea id="pp-note" class="input" formControlName="note" rows="2" maxlength="500"
-                placeholder="Optional — vendor's bill no., remarks…"
+                placeholder="Optional — vendor's invoice no., remarks…"
                 [class.is-invalid]="errorFor('note')" [attr.aria-invalid]="!!errorFor('note')" aria-describedby="pp-note-error"></textarea>
               @if (errorFor('note'); as message) {
                 <span id="pp-note-error" class="field__error">{{ message }}</span>
@@ -127,7 +127,7 @@
                 <div><dt>SGST</dt><dd>{{ calculation().totalSgst | inr }}</dd></div>
               }
             }
-            <div class="totals__grand"><dt>Bill total</dt><dd>{{ calculation().grandTotal | inr }}</dd></div>
+            <div class="totals__grand"><dt>Invoice total</dt><dd>{{ calculation().grandTotal | inr }}</dd></div>
           </dl>
           @if (noGstNote(); as note) {
             <p class="no-gst">{{ note }}</p>

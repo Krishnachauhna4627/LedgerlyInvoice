@@ -440,3 +440,50 @@ select.input {
     white-space: pre-line;
   }
 }
+
+// Period picker in a page header (dashboard, sale invoices): Period select + From + To dates.
+.period-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+
+  // Tablets and up: the three boxes stay together on one row.
+  @include bp.up(md) {
+    flex-wrap: nowrap;
+  }
+}
+
+.period-field {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 140px;
+
+  @include bp.up(md) {
+    flex: 0 0 150px;
+  }
+
+  // Same height as the small header buttons beside them (.btn--sm), so they line up.
+  .input {
+    height: 36px;
+    min-height: 36px;
+    width: 100%;
+    padding: 0 var(--space-3);
+    font-size: var(--text-sm);
+
+    @include bp.touch {
+      height: 44px;
+      min-height: 44px;
+    }
+  }
+}
+
+.period-field__label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.period-error {
+  flex-basis: 100%;
+}

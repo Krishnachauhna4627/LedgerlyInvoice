@@ -1,17 +1,28 @@
 <app-page-header title="Sale Invoices">
-  <label class="period">
-    <app-icon name="calendar" [size]="16" />
-    <span class="sr-only">Period</span>
-    <select (change)="period.set($any($event.target).value)">
-      @for (p of periods; track p.value) {
-        <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
-      }
-      @if (hasCustomRange) {
-        <option value="custom" [selected]="period() === 'custom'">Custom range</option>
-      }
-    </select>
-    <app-icon name="chevron-down" [size]="14" />
-  </label>
+  <div class="period-bar">
+    <label class="period-field">
+      <span class="period-field__label">Period</span>
+      <select class="input" (change)="changePeriod($any($event.target).value)">
+        @for (p of periods; track p.value) {
+          <option [value]="p.value" [selected]="p.value === period()">{{ p.label }}</option>
+        }
+        <option value="custom" [selected]="period() === 'custom'">Custom</option>
+      </select>
+    </label>
+    <label class="period-field">
+      <span class="period-field__label">From</span>
+      <input class="input" type="date" [value]="from()" (change)="setDate('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="inv-range-error" />
+    </label>
+    <label class="period-field">
+      <span class="period-field__label">To</span>
+      <input class="input" type="date" [value]="to()" (change)="setDate('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="inv-range-error" />
+    </label>
+    @if (rangeInvalid()) {
+      <span id="inv-range-error" class="field__error period-error">"From" must be on or before "To".</span>
+    }
+  </div>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!visible().length" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export as .CSV
   </button>
