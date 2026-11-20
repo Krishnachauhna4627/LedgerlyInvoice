@@ -1,35 +1,35 @@
-<app-page-header title="Ledgers/Party Detail" subtitle="People and businesses you bill. Pick them when creating an invoice.">
+<app-page-header title="Ledgers/Party Detail" subtitle="Your customers and vendors. Pick them on invoices, purchases, receipts and payments.">
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!filtered().length" (click)="exportExcel()"
     title="Download the list with receivable and payable balances (opens in Excel)">
     <app-icon name="download" [size]="16" /> Download Excel
   </button>
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
-    <app-icon name="plus" [size]="16" /> Add customer
+    <app-icon name="plus" [size]="16" /> Add party
   </button>
 </app-page-header>
 
 <div class="page-body">
   @if (loading()) {
-    <div class="panel empty-state"><p>Loading customers…</p></div>
+    <div class="panel empty-state"><p>Loading parties…</p></div>
   } @else if (loadError()) {
     <div class="panel empty-state">
-      <p class="empty-state__title">Couldn't load customers</p>
+      <p class="empty-state__title">Couldn't load parties</p>
       <p>{{ loadError() }}</p>
       <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
   } @else if (clients().length === 0) {
     <div class="panel empty-state">
       <span class="empty-icon"><app-icon name="users" [size]="26" /></span>
-      <p class="empty-state__title">No customers yet</p>
-      <p>Add the customers you bill once, then pick them on every invoice.</p>
+      <p class="empty-state__title">No parties yet</p>
+      <p>Add your customers and vendors once, then pick them on every invoice.</p>
       <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
-        <app-icon name="plus" [size]="16" /> Add your first customer
+        <app-icon name="plus" [size]="16" /> Add your first party
       </button>
     </div>
   } @else {
     <div class="toolbar">
       <label class="search-box">
-        <span class="sr-only">Search customers</span>
+        <span class="sr-only">Search parties</span>
         <app-icon name="search" [size]="16" />
         <input class="input" type="search" placeholder="Search by name, GSTIN, phone or email" [value]="search()" (input)="search.set($any($event.target).value)" />
       </label>
@@ -42,7 +42,7 @@
 
     <div class="panel">
       @if (filtered().length === 0) {
-        <div class="empty-state"><p>No customers match "{{ search() }}".</p></div>
+        <div class="empty-state"><p>No parties match "{{ search() }}".</p></div>
       } @else {
         <div class="desktop table-scroll">
           <table class="data-table fit">
@@ -90,13 +90,13 @@
                     {{ client.closingBalance | balance: false }}
                   </td>
                   <td class="row-actions">
-                    <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View customer ledger">
+                    <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View party ledger">
                       <app-icon name="eye" [size]="16" />
                     </a>
-                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
+                    <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit party detail" (click)="openForm(client)">
                       <app-icon name="pencil" [size]="16" />
                     </button>
-                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete customer" (click)="deleting.set(client)">
+                    <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete party" (click)="deleting.set(client)">
                       <app-icon name="trash" [size]="16" />
                     </button>
                   </td>
@@ -130,13 +130,13 @@
                 }
               </div>
               <div class="card__actions">
-                <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View customer ledger">
+                <a class="icon-button" [routerLink]="['/clients', client.id]" [attr.aria-label]="'View ledger of ' + client.name" title="View party ledger">
                   <app-icon name="eye" [size]="16" />
                 </a>
-                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit customer detail" (click)="openForm(client)">
+                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + client.name" title="Edit party detail" (click)="openForm(client)">
                   <app-icon name="pencil" [size]="16" />
                 </button>
-                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete customer" (click)="deleting.set(client)">
+                <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Delete ' + client.name" title="Delete party" (click)="deleting.set(client)">
                   <app-icon name="trash" [size]="16" />
                 </button>
               </div>
@@ -149,22 +149,22 @@
   }
 </div>
 
-<app-modal [open]="formOpen()" [title]="editing() ? 'Edit customer' : 'Add customer'" (closed)="formOpen.set(false)">
+<app-modal [open]="formOpen()" [title]="editing() ? 'Edit party' : 'Add party'" (closed)="formOpen.set(false)">
   @if (formOpen()) {
     <app-client-form [client]="editing()" (saved)="onSaved($event)" (cancelled)="formOpen.set(false)" />
   }
 </app-modal>
 
-<app-modal [open]="!!deleting()" title="Delete customer?" size="sm" (closed)="deleting.set(null)">
+<app-modal [open]="!!deleting()" title="Delete party?" size="sm" (closed)="deleting.set(null)">
   @if (deleting(); as client) {
     <p class="confirm-text">
-      <strong>{{ client.name }}</strong> will be removed from your saved customers. Invoices already issued to them keep
-      their own copy of the customer's details.
+      <strong>{{ client.name }}</strong> will be removed from your saved parties. Invoices already issued to them keep
+      their own copy of the party's details.
     </p>
     <div class="confirm-actions">
       <button type="button" class="btn btn--outline" (click)="deleting.set(null)">Cancel</button>
       <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDelete()">
-        {{ deleteBusy() ? 'Deleting…' : 'Delete customer' }}
+        {{ deleteBusy() ? 'Deleting…' : 'Delete party' }}
       </button>
     </div>
   }

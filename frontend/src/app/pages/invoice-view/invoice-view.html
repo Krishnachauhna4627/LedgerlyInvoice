@@ -5,7 +5,7 @@
     <a class="btn btn--outline btn--sm" [routerLink]="['/invoices', inv.id, 'edit']"><app-icon name="pencil" [size]="16" /> Edit</a>
     <a class="btn btn--outline btn--sm" routerLink="/invoices/new" [queryParams]="{ from: inv.id }"><app-icon name="copy" [size]="16" /> Duplicate</a>
     @if (inv.clientId) {
-      <a class="btn btn--outline btn--sm" [routerLink]="['/clients', inv.clientId]"><app-icon name="receipt" [size]="16" /> Customer ledger</a>
+      <a class="btn btn--outline btn--sm" [routerLink]="['/clients', inv.clientId]"><app-icon name="receipt" [size]="16" /> Party ledger</a>
       @if (inv.status === 'unpaid') {
         <button type="button" class="btn btn--outline btn--sm" (click)="receiptOpen.set(true)">
           <app-icon name="rupee" [size]="16" /> Record Receipt

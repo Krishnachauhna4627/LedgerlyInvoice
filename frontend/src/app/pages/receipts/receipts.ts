@@ -203,7 +203,7 @@ export class Receipts {
   protected exportCsv(): void {
     downloadCsv(
       `receipts${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Receipt No.', 'Date', 'Time', 'Customer', 'Mode', 'Narration', 'Amount'],
+      ['Receipt No.', 'Date', 'Time', 'Party', 'Mode', 'Narration', 'Amount'],
       this.receipts().map((r) => [r.receiptNumber, formatDmy(r.receiptDate), formatTime(r.createdAt), r.clientName, this.modeText(r), r.reference, r.amount]),
     );
   }

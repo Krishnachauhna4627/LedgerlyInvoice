@@ -143,7 +143,7 @@ export class Dashboard {
     if (!s) return [];
     return [
       { label: 'Add your seller details', hint: 'Business address, state and GSTIN.', link: '/settings', done: this.sellerReady(), icon: 'building' },
-      { label: 'Add a customer', hint: 'Save who you bill, with their GSTIN.', link: '/clients', done: s.clientCount > 0, icon: 'users' },
+      { label: 'Add a party', hint: 'Save who you bill, with their GSTIN.', link: '/clients', done: s.clientCount > 0, icon: 'users' },
       { label: 'Add a product/service', hint: 'With HSN/SAC and GST rate.', link: '/items', done: s.itemCount > 0, icon: 'box' },
       { label: 'Create your first invoice', hint: 'Bill a customer in seconds.', link: '/invoices/new', done: s.recentInvoices.length > 0, icon: 'file-text' },
     ];

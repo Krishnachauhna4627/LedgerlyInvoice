@@ -10,7 +10,7 @@ import { BALANCE_SQL, getLedger, settleInvoices } from '../receipts/ledger.js';
 
 const clientSchema = z
   .object({
-    name: requiredText('Customer name', 150),
+    name: requiredText('Party name', 150),
     address: optionalText('Address', 1000),
     stateCode,
     gstin,
@@ -50,7 +50,7 @@ export const clientsWithBalance = () => db('clients').select('clients.*', db.raw
 export async function findClient(companyId, id) {
   const row = await clientsWithBalance().where({ 'clients.id': id, company_id: companyId }).first();
   if (!row) {
-    throw new HttpError(404, 'Customer not found.');
+    throw new HttpError(404, 'Party not found.');
   }
   return row;
 }
@@ -106,7 +106,7 @@ clientsRouter.put('/:id', validate(clientSchema), async (req, res) => {
 clientsRouter.delete('/:id', async (req, res) => {
   const { id } = await findClient(req.user.companyId, idParam.parse(req.params.id));
   if (await db('receipts').where({ client_id: id }).first('id')) {
-    throw new HttpError(409, 'This customer has receipts. Delete their receipts first.');
+    throw new HttpError(409, 'This party has receipts. Delete their receipts first.');
   }
   await db('clients').where({ id }).delete();
   res.status(204).end();

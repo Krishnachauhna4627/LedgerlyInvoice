@@ -60,7 +60,7 @@ export class ItemLedger {
     if (!l) return;
     downloadCsv(
       `stock-ledger-${l.item.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
-      ['Date', 'Time', 'Type', 'Vch/Bill No', 'Vendor/Customer', 'Rate', 'In', 'Out', 'Balance'],
+      ['Date', 'Time', 'Type', 'Vch/Bill No', 'Party', 'Rate', 'In', 'Out', 'Balance'],
       [
         ...this.newestFirst().map((e) => [
           formatDmy(e.date),

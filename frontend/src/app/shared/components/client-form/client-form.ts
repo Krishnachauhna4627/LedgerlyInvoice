@@ -11,7 +11,7 @@ import { ToastService } from '../../../core/ui/toast.service';
 type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email' | 'openingAmount';
 
 const MESSAGES: Record<Field, Record<string, string>> = {
-  name: { required: 'Customer name is required.', maxlength: 'Customer name is too long.' },
+  name: { required: 'Party name is required.', maxlength: 'Party name is too long.' },
   address: { maxlength: 'Address is too long.' },
   stateCode: { required: 'Choose a state.' },
   gstin: { pattern: 'Enter a valid 15-character GSTIN.', stateMismatch: 'GSTIN must start with the selected state code.' },
@@ -118,7 +118,7 @@ export class ClientForm implements OnInit {
     this.error.set(null);
     (existing ? this.clients.update(existing.id, input) : this.clients.create(input)).subscribe({
       next: (client) => {
-        this.toast.success(existing ? 'Customer updated' : 'Customer added');
+        this.toast.success(existing ? 'Party updated' : 'Party added');
         this.saved.emit(client);
       },
       error: (err: unknown) => {

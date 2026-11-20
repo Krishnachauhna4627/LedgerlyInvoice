@@ -87,7 +87,7 @@ class Clients extends BaseController
     {
         $row = $this->clients->findOwned($this->companyId(), $this->id($id));
         if (db_connect()->table('receipts')->where('client_id', $row['id'])->countAllResults() > 0) {
-            throw new HttpError(409, 'This customer has receipts. Delete their receipts first.');
+            throw new HttpError(409, 'This party has receipts. Delete their receipts first.');
         }
         $this->clients->delete($row['id']);
 

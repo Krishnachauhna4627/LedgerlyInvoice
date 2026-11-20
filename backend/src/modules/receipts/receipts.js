@@ -11,7 +11,7 @@ import { settleInvoices } from './ledger.js';
 export const RECEIPT_MODES = ['cash', 'bank'];
 
 const receiptSchema = z.object({
-  clientId: z.coerce.number({ error: 'Choose a customer.' }).int().positive('Choose a customer.'),
+  clientId: z.coerce.number({ error: 'Choose a party.' }).int().positive('Choose a party.'),
   receiptDate: isoDate('Receipt date'),
   mode: z.enum(RECEIPT_MODES, { error: 'Choose cash or bank.' }),
   amount: z.coerce
@@ -57,7 +57,7 @@ async function findReceipt(companyId, id) {
 // The receipt's customer must be one of this company's saved customers.
 async function ownedClientId(companyId, clientId) {
   const client = await findClient(companyId, clientId).catch(() => {
-    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved customer.' });
+    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved party.' });
   });
   return client.id;
 }

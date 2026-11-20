@@ -189,7 +189,7 @@ async function buildInvoice(companyId, input) {
     );
   }
   const client = await findClient(companyId, input.clientId).catch(() => {
-    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved customer.' });
+    throw new HttpError(400, 'Please fix the highlighted fields.', { clientId: 'Choose a saved party.' });
   });
 
   const placeOfSupplyCode = input.placeOfSupplyCode ?? client.state_code;

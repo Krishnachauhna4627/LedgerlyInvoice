@@ -264,7 +264,7 @@ class Validation extends BaseConfig
 
         // GSTIN must start with the state code: checked in the Clients controller.
         $this->client = [
-            'name'      => self::requiredText('Customer name', 150),
+            'name'      => self::requiredText('Party name', 150),
             'address'   => self::optionalText('Address', 1000),
             'stateCode' => self::stateCode(false),
             'gstin'     => self::GSTIN,
@@ -284,7 +284,7 @@ class Validation extends BaseConfig
         $this->receipt = [
             'clientId' => [
                 'rules'  => ['js_integer', 'greater_than[0]'],
-                'errors' => ['js_integer' => 'Choose a customer.', 'greater_than' => 'Choose a customer.'],
+                'errors' => ['js_integer' => 'Choose a party.', 'greater_than' => 'Choose a party.'],
             ],
             'receiptDate' => [
                 'rules'  => ['string', 'iso_date'],
@@ -332,7 +332,7 @@ class Validation extends BaseConfig
         $this->invoice = [
             'clientId' => [
                 'rules'  => ['js_integer', 'greater_than[0]'],
-                'errors' => ['js_integer' => 'Choose a customer.', 'greater_than' => 'Choose a customer.'],
+                'errors' => ['js_integer' => 'Choose a party.', 'greater_than' => 'Choose a party.'],
             ],
             'invoiceNumber' => self::requiredText('Invoice number', 40),
             'invoiceDate'   => [

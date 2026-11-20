@@ -1,5 +1,5 @@
-<app-page-header class="no-print" [title]="ledger()?.client?.name ?? 'Customer ledger'" subtitle="Account ledger: sales, receipts and balance, date-wise.">
-  <a class="btn btn--outline btn--sm" routerLink="/clients"><app-icon name="arrow-left" [size]="16" /> Customers</a>
+<app-page-header class="no-print" [title]="ledger()?.client?.name ?? 'Party ledger'" subtitle="Account ledger: sales, receipts and balance, date-wise.">
+  <a class="btn btn--outline btn--sm" routerLink="/clients"><app-icon name="arrow-left" [size]="16" /> Ledgers</a>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Excel (CSV)
   </button>
@@ -40,7 +40,7 @@
     <div class="panel empty-state">
       <p class="empty-state__title">Couldn't load the ledger</p>
       <p>{{ loadError() }}</p>
-      <a class="btn btn--outline btn--sm" routerLink="/clients">Back to customers</a>
+      <a class="btn btn--outline btn--sm" routerLink="/clients">Back to ledgers</a>
     </div>
   } @else if (ledger(); as l) {
     <ul class="summary-tiles no-print">

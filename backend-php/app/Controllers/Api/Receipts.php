@@ -124,7 +124,7 @@ class Receipts extends BaseController
         try {
             return (int) model(ClientModel::class)->findOwned($this->companyId(), $clientId)['id'];
         } catch (HttpError) {
-            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved customer.']);
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved party.']);
         }
     }
 

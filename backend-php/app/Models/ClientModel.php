@@ -34,7 +34,7 @@ class ClientModel extends Model
     {
         $row = $this->withBalance()->where('company_id', $companyId)->find($id);
         if (! $row) {
-            throw new HttpError(404, 'Customer not found.');
+            throw new HttpError(404, 'Party not found.');
         }
 
         return $row;

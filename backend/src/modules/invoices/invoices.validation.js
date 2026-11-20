@@ -20,7 +20,7 @@ const lineSchema = z.object({
 
 export const invoiceSchema = z
   .object({
-    clientId: z.coerce.number({ error: 'Choose a customer.' }).int().positive('Choose a customer.'),
+    clientId: z.coerce.number({ error: 'Choose a party.' }).int().positive('Choose a party.'),
     invoiceNumber: requiredText('Invoice number', 40),
     invoiceDate: isoDate('Invoice date'),
     dueDate: isoDate('Due date').nullish().transform((value) => value || null),

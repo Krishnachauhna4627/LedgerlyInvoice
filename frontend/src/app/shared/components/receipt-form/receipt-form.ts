@@ -16,7 +16,7 @@ type Field = 'receiptNumber' | 'clientId' | 'receiptDate' | 'mode' | 'bankAccoun
 
 const MESSAGES: Record<Field, Record<string, string>> = {
   receiptNumber: { required: 'Receipt No. is required.', maxlength: 'Receipt No. is too long.' },
-  clientId: { required: 'Choose a customer.' },
+  clientId: { required: 'Choose a party.' },
   receiptDate: { required: 'Receipt date is required.' },
   mode: { required: 'Choose cash or bank.' },
   bankAccountId: {},

@@ -4,7 +4,7 @@
   }
 
   <div class="field">
-    <label class="field__label" for="client-name">Customer name *</label>
+    <label class="field__label" for="client-name">Party name *</label>
     <input id="client-name" class="input" formControlName="name" autocomplete="organization"
       [class.is-invalid]="errorFor('name')" [attr.aria-invalid]="!!errorFor('name')" aria-describedby="client-name-error" />
     @if (errorFor('name'); as message) {
@@ -89,8 +89,8 @@
     <div class="field">
       <label class="field__label" for="client-opening-type">Opening balance is</label>
       <select id="client-opening-type" class="input" formControlName="openingType">
-        <option value="due">Due — customer owes you (Dr)</option>
-        <option value="advance">Advance — customer paid you (Cr)</option>
+        <option value="due">Dr</option>
+        <option value="advance">Cr</option>
       </select>
     </div>
   </div>
@@ -98,7 +98,7 @@
   <div class="actions">
     <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
     <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-      {{ submitting() ? 'Saving…' : client() ? 'Save changes' : 'Add customer' }}
+      {{ submitting() ? 'Saving…' : client() ? 'Save changes' : 'Add party' }}
     </button>
   </div>
 </form>

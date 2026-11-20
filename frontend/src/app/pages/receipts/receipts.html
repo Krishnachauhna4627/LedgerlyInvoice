@@ -1,4 +1,4 @@
-<app-page-header title="Receipts" subtitle="Money received from customers. Each receipt lowers the customer's balance.">
+<app-page-header title="Receipts" subtitle="Money received from parties. Each receipt lowers the party's balance.">
   @if (ledgerClientId) {
     <button type="button" class="btn btn--outline btn--sm" (click)="backToLedger()">
       <app-icon name="arrow-left" [size]="16" /> Back to ledger
@@ -25,9 +25,9 @@
         [attr.aria-invalid]="rangeInvalid()" aria-describedby="pay-range-error" />
     </div>
     <div class="field">
-      <label class="field__label" for="pay-client">Customer</label>
+      <label class="field__label" for="pay-client">Party</label>
       <select id="pay-client" class="input" (change)="setFilter('clientId', $any($event.target).value)">
-        <option value="">All customers</option>
+        <option value="">All parties</option>
         @for (c of clients(); track c.id) {
           <option [value]="c.id" [selected]="c.id === clientId()">{{ c.name }}</option>
         }
@@ -77,7 +77,7 @@
     } @else if (receipts().length === 0) {
       <div class="empty-state">
         <p class="empty-state__title">No receipts in this period</p>
-        <p>Record money received from a customer to update their balance.</p>
+        <p>Record money received from a party to update their balance.</p>
       </div>
     } @else {
       <div class="table-scroll desktop">
@@ -86,7 +86,7 @@
             <tr>
               <th scope="col">Receipt No.</th>
               <th scope="col">Date</th>
-              <th scope="col">Customer</th>
+              <th scope="col">Party</th>
               <th scope="col">Mode</th>
               <th scope="col">Narration</th>
               <th scope="col" class="num">Amount</th>

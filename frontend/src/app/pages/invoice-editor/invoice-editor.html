@@ -1,4 +1,4 @@
-<app-page-header [title]="title()" subtitle="Fill in the customer, invoice details and products/services. Totals update as you type.">
+<app-page-header [title]="title()" subtitle="Fill in the party, invoice details and products/services. Totals update as you type.">
   <a class="btn btn--outline btn--sm" [routerLink]="cancelLink">Cancel</a>
 </app-page-header>
 
@@ -38,25 +38,25 @@
 
         <!-- Customer details -->
         <section aria-labelledby="customer-title">
-          <h2 id="customer-title" class="section-title">Customer details</h2>
+          <h2 id="customer-title" class="section-title">Party details</h2>
 
           @if (clients().length === 0) {
             <div class="empty-clients">
-              <p>You haven't saved any customers yet. Add your first customer to bill them.</p>
+              <p>You haven't saved any parties yet. Add your first party to bill them.</p>
               <button type="button" class="btn btn--primary btn--sm" (click)="showClientDialog.set(true)">
-                <app-icon name="plus" [size]="16" /> New customer
+                <app-icon name="plus" [size]="16" /> New party
               </button>
             </div>
           } @else {
             <div class="client-pick">
               <div class="field">
-                <label class="field__label" for="client-picker">Customer</label>
+                <label class="field__label" for="client-picker">Party</label>
                 <app-search-picker
                   inputId="client-picker"
                   [options]="clientOptions()"
                   [selectedLabel]="selectedClient()?.name ?? ''"
-                  placeholder="Search customer by name or GSTIN…"
-                  emptyText="No customers match. Use “New customer”."
+                  placeholder="Search party by name or GSTIN…"
+                  emptyText="No parties match. Use “New party”."
                   [invalid]="!!errorFor('clientId')"
                   describedBy="client-error"
                   (picked)="pickClient($event)"
@@ -66,14 +66,14 @@
                 }
               </div>
               <button type="button" class="btn btn--outline new-client" (click)="showClientDialog.set(true)">
-                <app-icon name="plus" [size]="16" /> New customer
+                <app-icon name="plus" [size]="16" /> New party
               </button>
             </div>
           }
 
           @if (orphanClient(); as old) {
             <p class="hint-warn">
-              This invoice was billed to <strong>{{ old.name }}</strong>, who has since been deleted. Choose a saved customer to save changes.
+              This invoice was billed to <strong>{{ old.name }}</strong>, who has since been deleted. Choose a saved party to save changes.
             </p>
           }
 
@@ -118,7 +118,7 @@
             <div class="field">
               <label class="field__label" for="inv-pos">Place of supply</label>
               <select id="inv-pos" class="input" formControlName="placeOfSupplyCode" aria-describedby="inv-pos-hint">
-                <option value="">Same as customer's state</option>
+                <option value="">Same as party's state</option>
                 @for (state of states; track state.code) {
                   <option [value]="state.code">{{ state.code }} — {{ state.name }}</option>
                 }
@@ -190,7 +190,7 @@
   }
 </div>
 
-<app-modal [open]="showClientDialog()" title="Add customer" (closed)="showClientDialog.set(false)">
+<app-modal [open]="showClientDialog()" title="Add party" (closed)="showClientDialog.set(false)">
   @if (showClientDialog()) {
     <app-client-form (saved)="onClientCreated($event)" (cancelled)="showClientDialog.set(false)" />
   }

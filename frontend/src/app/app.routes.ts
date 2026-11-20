@@ -82,7 +82,7 @@ export const routes: Routes = [
       },
       {
         path: 'clients/:id',
-        title: page('Customer ledger'),
+        title: page('Party ledger'),
         loadComponent: () => import('./pages/client-ledger/client-ledger').then((m) => m.ClientLedger),
       },
       {

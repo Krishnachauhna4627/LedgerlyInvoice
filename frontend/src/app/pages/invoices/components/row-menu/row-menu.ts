@@ -49,7 +49,7 @@ export class RowMenu {
     // Paid / unpaid follows the customer's receipts, so payments are recorded rather than ticked.
     if (inv.clientId) {
       if (inv.status === 'unpaid') list.push({ action: 'receipt', label: 'Record Receipt', icon: 'rupee' });
-      list.push({ action: 'ledger', label: 'Customer ledger', icon: 'receipt' });
+      list.push({ action: 'ledger', label: 'Party ledger', icon: 'receipt' });
     }
     list.push({ action: 'delete', label: 'Delete', icon: 'trash', danger: true });
     return list;

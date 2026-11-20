@@ -272,7 +272,7 @@ class InvoiceService
         try {
             $client = model(ClientModel::class)->findOwned($companyId, (int) $input['clientId']);
         } catch (HttpError) {
-            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved customer.']);
+            throw new HttpError(400, 'Please fix the highlighted fields.', ['clientId' => 'Choose a saved party.']);
         }
 
         $placeOfSupplyCode = $input['placeOfSupplyCode'] ?? $client['state_code'];

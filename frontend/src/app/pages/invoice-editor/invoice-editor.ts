@@ -55,7 +55,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 const FIELD_REQUIRED: Record<string, string> = {
-  clientId: 'Choose a customer.',
+  clientId: 'Choose a party.',
   invoiceNumber: 'Invoice number is required.',
   invoiceDate: 'Invoice date is required.',
   description: 'Choose a product/service for this line.',

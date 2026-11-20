@@ -30,7 +30,7 @@
                 <th scope="col">User</th>
                 <th scope="col">Contact</th>
                 <th scope="col">Company</th>
-                <th scope="col" class="num">Customers</th>
+                <th scope="col" class="num">Parties</th>
                 <th scope="col" class="num">Products/Services</th>
                 <th scope="col" class="num">Invoices</th>
                 <th scope="col" class="num">Billed</th>
@@ -87,7 +87,7 @@
                 <span class="card__meta">&#64;{{ u.username }} · {{ u.email || 'No email' }}</span>
                 <span class="card__meta">{{ u.company.name }}</span>
                 <span class="card__meta">
-                  {{ u.stats.invoices }} invoices · {{ u.stats.clients }} customers · {{ u.stats.billedTotal | inr }}
+                  {{ u.stats.invoices }} invoices · {{ u.stats.clients }} parties · {{ u.stats.billedTotal | inr }}
                 </span>
               </a>
               @if (u.id !== me()?.id) {
