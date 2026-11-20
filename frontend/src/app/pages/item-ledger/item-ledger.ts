@@ -2,8 +2,12 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
+import { CompanyService } from '../../core/data/company.service';
 import { ItemService } from '../../core/data/item.service';
-import { StockLedger, StockLedgerEntry } from '../../core/data/models';
+import { Company, StockLedger, StockLedgerEntry } from '../../core/data/models';
+import { createStockLedgerPdf } from '../../core/ledger/stock-ledger-pdf';
+import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
+import { ToastService } from '../../core/ui/toast.service';
 import { downloadCsv } from '../../core/ui/csv';
 import { formatDmy, formatTime } from '../../core/ui/dates';
 import { Icon } from '../../shared/components/icon/icon';
@@ -21,18 +25,63 @@ import { TimePipe } from '../../shared/pipes/time.pipe';
 export class ItemLedger {
   private readonly items = inject(ItemService);
   private readonly itemId = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
+  private readonly toast = inject(ToastService);
+  protected readonly company = signal<Company | null>(null);
+  protected readonly pdfBusy = signal(false);
 
   protected readonly ledger = signal<StockLedger | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly formatDmy = formatDmy;
   protected readonly unit = computed(() => this.ledger()?.item.unit ?? '');
-  // The server returns entries oldest first (that's how the running balance is worked out);
-  // they are shown latest first. Each entry keeps its own balance.
-  protected readonly newestFirst = computed(() => [...(this.ledger()?.entries ?? [])].reverse());
+  // Like a ledger: opening stock on top, then entries oldest first (as the server returns them), so the
+  // running balance reads downwards.
+  protected readonly entries = computed(() => this.ledger()?.entries ?? []);
 
   constructor() {
+    inject(CompanyService)
+      .get()
+      .subscribe({ next: (company) => this.company.set(company) });
     this.load();
+  }
+
+  protected print(): void {
+    window.print();
+  }
+
+  // A real PDF of the stock ledger in a new tab (works on phones, where printing often doesn't).
+  protected async openPdf(): Promise<void> {
+    const ledger = this.ledger();
+    if (!ledger || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      await openPdfInNewTab(() => createStockLedgerPdf(ledger, this.company()), `Stock-ledger-${ledger.item.name}`);
+    } catch (err) {
+      console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  // Sends the PDF via the phone's share sheet (WhatsApp, email…), or downloads it on desktop.
+  protected async sharePdf(): Promise<void> {
+    const ledger = this.ledger();
+    if (!ledger || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      const result = await sharePdf(
+        () => createStockLedgerPdf(ledger, this.company()),
+        `Stock-ledger-${ledger.item.name}`,
+        `Stock ledger – ${ledger.item.name}`,
+      );
+      if (result === 'downloaded') this.toast.success('PDF downloaded. Attach it to your email or chat to send it.');
+    } catch (err) {
+      console.error('Share PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
   }
 
   protected load(): void {
@@ -62,7 +111,8 @@ export class ItemLedger {
       `stock-ledger-${l.item.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
       ['Date', 'Time', 'Type', 'Vch/Bill No', 'Party', 'Rate', 'In', 'Out', 'Balance'],
       [
-        ...this.newestFirst().map((e) => [
+        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
+        ...this.entries().map((e) => [
           formatDmy(e.date),
           formatTime(e.createdAt),
           e.type === 'purchase' ? 'Purchase' : 'Sale',
@@ -73,7 +123,6 @@ export class ItemLedger {
           e.quantityOut || '',
           e.balance,
         ]),
-        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
         ['', '', 'Total', '', '', '', l.totals.purchased, l.totals.sold, ''],
         ['', '', 'In stock', '', '', '', '', '', l.totals.closingStock],
       ],
