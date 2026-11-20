@@ -78,14 +78,16 @@
   }
 }
 
-.tiles--sales {
+.tiles--sales,
+.tiles--purchases {
   @include bp.up(xl) {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
 // Six tiles fill three rows on phones, so the total doesn't need a full row.
-.tiles--sales .tile--total {
+.tiles--sales .tile--total,
+.tiles--purchases .tile--total {
   grid-column: auto;
 }
 

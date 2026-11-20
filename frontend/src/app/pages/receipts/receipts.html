@@ -1,4 +1,9 @@
 <app-page-header title="Receipts" subtitle="Money received from customers. Each receipt lowers the customer's balance.">
+  @if (ledgerClientId) {
+    <button type="button" class="btn btn--outline btn--sm" (click)="backToLedger()">
+      <app-icon name="arrow-left" [size]="16" /> Back to ledger
+    </button>
+  }
   <button type="button" class="btn btn--outline btn--sm" [disabled]="receipts().length === 0" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export (CSV)
   </button>
@@ -146,6 +151,21 @@
 <app-modal [open]="formOpen()" [title]="editing() ? 'Edit Receipt' : 'Record Receipt'" (closed)="formOpen.set(false)">
   @if (formOpen()) {
     <app-receipt-form [receipt]="editing()" (saved)="onSaved()" (cancelled)="formOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!viewing()" title="Receipt" (closed)="viewing.set(null)">
+  @if (viewing(); as r) {
+    <app-receipt-view
+      [receipt]="r"
+      [company]="company()"
+      [printing]="printingId() === r.id"
+      (print)="print(r)"
+      (edit)="editViewed()"
+      [showBack]="!!ledgerClientId"
+      (back)="backToLedger()"
+      (closed)="viewing.set(null)"
+    />
   }
 </app-modal>
 

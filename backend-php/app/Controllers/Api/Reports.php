@@ -240,13 +240,14 @@ class Reports extends BaseController
     }
 
     /**
-     * Purchase bills for a date range: totals, month-by-month and HSN/SAC summary (GST is one amount on purchases).
+     * Purchase bills for a date range: totals, month-by-month and HSN/SAC summary, with the CGST/SGST/IGST split like sales.
      */
     public function purchases()
     {
         $range     = $this->range();
         $companyId = $this->companyId();
-        $sums      = 'COUNT(*) AS count, SUM(sub_total) AS subTotal, SUM(total_tax) AS tax, SUM(grand_total) AS total';
+        $sums      = 'COUNT(*) AS count, SUM(sub_total) AS subTotal, SUM(total_cgst) AS cgst, SUM(total_sgst) AS sgst,'
+            . ' SUM(total_igst) AS igst, SUM(total_tax) AS tax, SUM(grand_total) AS total';
 
         $totals  = $this->purchasesIn($companyId, $range)->select($sums, false)->get()->getRowArray();
         $byMonth = $this->purchasesIn($companyId, $range)
@@ -258,7 +259,8 @@ class Reports extends BaseController
         $byHsn = $this->purchasesIn($companyId, $range)
             ->join('purchase_items', 'purchase_items.purchase_id = purchases.id')
             ->select('purchase_items.hsn_sac AS hsnSac, purchase_items.gst_rate AS gstRate')
-            ->select('SUM(purchase_items.taxable_amount) AS taxable, SUM(purchase_items.total_tax) AS tax', false)
+            ->select('SUM(purchase_items.taxable_amount) AS taxable, SUM(purchase_items.cgst) AS cgst, SUM(purchase_items.sgst) AS sgst,'
+                . ' SUM(purchase_items.igst) AS igst, SUM(purchase_items.total_tax) AS tax', false)
             ->groupBy(['purchase_items.hsn_sac', 'purchase_items.gst_rate'])
             ->orderBy('purchase_items.hsn_sac')
             ->get()->getResultArray();

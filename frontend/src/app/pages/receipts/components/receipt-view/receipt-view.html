@@ -1,0 +1,35 @@
+@let r = receipt();
+<article class="receipt" [attr.aria-label]="'Receipt ' + r.receiptNumber">
+  @if (company(); as c) {
+    <header class="biz">
+      <strong>{{ c.name }}</strong>
+      @if (address()) {
+        <span>{{ address() }}</span>
+      }
+    </header>
+  }
+
+  <dl class="facts">
+    <div><dt>Receipt No.</dt><dd class="strong">{{ r.receiptNumber || '—' }}</dd></div>
+    <div><dt>Date</dt><dd>{{ formatDmy(r.receiptDate) }}<span class="time">{{ r.createdAt | time }}</span></dd></div>
+    <div class="wide"><dt>Received with thanks from</dt><dd class="strong">{{ r.clientName }}</dd></div>
+    <div class="wide"><dt>The sum of</dt><dd>{{ words() }}</dd></div>
+    <div class="wide"><dt>By</dt><dd>{{ account() }}</dd></div>
+    @if (r.reference) {
+      <div class="wide"><dt>Narration</dt><dd>{{ r.reference }}</dd></div>
+    }
+  </dl>
+
+  <p class="amount">{{ r.amount | inr }}</p>
+</article>
+
+<div class="actions">
+  @if (showBack()) {
+    <button type="button" class="btn btn--outline back" (click)="back.emit()"><app-icon name="arrow-left" [size]="16" /> Back to ledger</button>
+  }
+  <button type="button" class="btn btn--outline" (click)="closed.emit()">Close</button>
+  <button type="button" class="btn btn--outline" (click)="edit.emit()"><app-icon name="pencil" [size]="16" /> Edit</button>
+  <button type="button" class="btn btn--primary" [disabled]="printing()" (click)="print.emit()">
+    <app-icon name="printer" [size]="16" /> {{ printing() ? 'Making PDF…' : 'Print' }}
+  </button>
+</div>

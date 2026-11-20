@@ -69,10 +69,13 @@ export class Reports {
     ];
   });
 
-  protected readonly salesTiles = computed(() => {
-    const t = this.report()?.sales.totals;
+  protected readonly salesTiles = computed(() => this.totalTiles(this.report()?.sales.totals));
+  // Same six boxes for purchases.
+  protected readonly purchaseTiles = computed(() => this.totalTiles(this.report()?.purchases.totals));
+
+  private totalTiles(t: { subTotal: number; cgst: number; sgst: number; igst: number; tax: number; total: number } | undefined) {
     if (!t) return [];
-    // No GST on any sale in the period: just the total.
+    // No GST on any bill in the period: just the total.
     if (!t.tax) return [{ label: 'Grand total', value: t.total }];
     return [
       { label: 'Taxable value', value: t.subTotal },
@@ -82,7 +85,7 @@ export class Reports {
       { label: 'Total tax', value: t.tax },
       { label: 'Grand total', value: t.total },
     ];
-  });
+  }
 
   // One row per month that has sales or purchases.
   protected readonly byMonth = computed(() => {

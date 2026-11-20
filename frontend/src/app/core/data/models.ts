@@ -396,10 +396,13 @@ export interface SalesReport {
   byHsn: { hsnSac: string | null; gstRate: number; taxable: number; cgst: number; sgst: number; igst: number; tax: number }[];
 }
 
-// Purchase bills for a date range; GST on purchases is one amount (no CGST/SGST/IGST split).
+// Purchase bills for a date range, with the same CGST/SGST/IGST split as sales.
 export interface PurchaseTotals {
   count: number;
   subTotal: number;
+  cgst: number;
+  sgst: number;
+  igst: number;
   tax: number;
   total: number;
 }
@@ -407,7 +410,7 @@ export interface PurchaseTotals {
 export interface PurchaseReport {
   totals: PurchaseTotals;
   byMonth: (PurchaseTotals & { month: string })[];
-  byHsn: { hsnSac: string | null; gstRate: number; taxable: number; tax: number }[];
+  byHsn: { hsnSac: string | null; gstRate: number; taxable: number; cgst: number; sgst: number; igst: number; tax: number }[];
 }
 
 export interface SalesExportRow {

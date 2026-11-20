@@ -159,20 +159,12 @@
         <div class="panel empty-state"><p>No purchases in this period.</p></div>
       } @else {
         <ul class="tiles tiles--purchases">
-          @if (r.purchases.totals.tax) {
-            <li class="tile">
-              <span class="tile__label">Taxable value</span>
-              <span class="tile__value">{{ r.purchases.totals.subTotal | inr }}</span>
-            </li>
-            <li class="tile">
-              <span class="tile__label">GST</span>
-              <span class="tile__value">{{ r.purchases.totals.tax | inr }}</span>
+          @for (tile of purchaseTiles(); track tile.label) {
+            <li class="tile" [class.tile--total]="tile.label === 'Grand total'">
+              <span class="tile__label">{{ tile.label }}</span>
+              <span class="tile__value">{{ tile.value | inr }}</span>
             </li>
           }
-          <li class="tile tile--total">
-            <span class="tile__label">Grand total</span>
-            <span class="tile__value">{{ r.purchases.totals.total | inr }}</span>
-          </li>
         </ul>
 
         <section class="panel">
@@ -185,7 +177,10 @@
                   @if (r.purchases.totals.tax) {
                     <th scope="col" class="num">GST %</th>
                     <th scope="col" class="num">Taxable value</th>
-                    <th scope="col" class="num">GST</th>
+                    <th scope="col" class="num">CGST</th>
+                    <th scope="col" class="num">SGST</th>
+                    <th scope="col" class="num">IGST</th>
+                    <th scope="col" class="num">Total tax</th>
                   } @else {
                     <th scope="col" class="num">Value</th>
                   }
@@ -198,6 +193,9 @@
                     @if (r.purchases.totals.tax) {
                       <td class="num">{{ h.gstRate }}%</td>
                       <td class="num">{{ h.taxable | inr }}</td>
+                      <td class="num">{{ h.cgst | inr }}</td>
+                      <td class="num">{{ h.sgst | inr }}</td>
+                      <td class="num">{{ h.igst | inr }}</td>
                       <td class="num strong">{{ h.tax | inr }}</td>
                     } @else {
                       <td class="num strong">{{ h.taxable | inr }}</td>

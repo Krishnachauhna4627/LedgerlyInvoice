@@ -1,5 +1,6 @@
+import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { CompanyService } from '../../core/data/company.service';
@@ -18,6 +19,7 @@ import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ReceiptForm } from '../../shared/components/receipt-form/receipt-form';
 import { ShowMore } from '../../shared/components/show-more/show-more';
+import { ReceiptView } from './components/receipt-view/receipt-view';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 import { TimePipe } from '../../shared/pipes/time.pipe';
 
@@ -26,13 +28,22 @@ export const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Ba
 // /receipts — every receipt from customers, with filters and cash / bank totals.
 @Component({
   selector: 'app-receipts-page',
-  imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, TimePipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, ReceiptForm, ReceiptView, InrPipe, TimePipe, RouterLink, ShowMore],
   templateUrl: './receipts.html',
   styleUrl: './receipts.scss',
 })
 export class Receipts {
   private readonly receiptService = inject(ReceiptService);
   private readonly toast = inject(ToastService);
+  // ?open=<receipt id>&client=<id>&date=<YYYY-MM-DD> (from a customer ledger): show that receipt (read-only) straight away.
+  private readonly urlParams = inject(ActivatedRoute).snapshot.queryParamMap;
+  private openId: number | null = Number(this.urlParams.get('open')) || null;
+  // Customer whose ledger we came from (?open + ?client), for the "Back to ledger" buttons; null otherwise.
+  protected readonly ledgerClientId = this.openId ? Number(this.urlParams.get('client')) || null : null;
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  // Whether there is an in-app page to go back to (false when this URL was opened directly).
+  private readonly hasPrevious = !!this.router.currentNavigation()?.previousNavigation;
 
   protected readonly receipts = signal<Receipt[]>([]);
   protected readonly page = paged(this.receipts);
@@ -54,7 +65,9 @@ export class Receipts {
   protected readonly deleteBusy = signal(false);
   // Receipt whose printable PDF is being made.
   protected readonly printingId = signal<number | null>(null);
-  private readonly company = signal<Company | null>(null);
+  // Receipt shown read-only in the view modal (opened from a customer ledger).
+  protected readonly viewing = signal<Receipt | null>(null);
+  protected readonly company = signal<Company | null>(null);
 
   protected readonly modeLabel = MODE_LABEL;
 
@@ -81,6 +94,14 @@ export class Receipts {
     inject(CompanyService)
       .get()
       .subscribe({ next: (company) => this.company.set(company) });
+    // Opening one receipt: list that customer's receipts for the financial year it falls in, so it is in the list.
+    const client = Number(this.urlParams.get('client'));
+    const date = this.urlParams.get('date');
+    if (this.openId && client) this.clientId.set(client);
+    if (this.openId && date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      this.from.set(financialYear(date).from);
+      this.to.set(financialYear(date).to);
+    }
     this.load();
   }
 
@@ -99,6 +120,7 @@ export class Receipts {
         next: (receipts) => {
           this.receipts.set(receipts);
           this.loading.set(false);
+          this.openFromUrl(receipts);
         },
         error: (err: unknown) => {
           this.loadError.set(toApiError(err).message);
@@ -113,6 +135,28 @@ export class Receipts {
     else this[name].set(value);
     this.page.reset();
     this.load();
+  }
+
+  // Once, after the first load: show the receipt asked for in the URL.
+  private openFromUrl(receipts: Receipt[]): void {
+    if (this.openId === null) return;
+    const receipt = receipts.find((r) => r.id === this.openId);
+    this.openId = null;
+    if (receipt) this.viewing.set(receipt);
+    else this.toast.error('That receipt was not found.');
+  }
+
+  // Back to the ledger exactly as it was (period, scroll); straight to it when the link was opened directly.
+  protected backToLedger(): void {
+    if (this.hasPrevious) this.location.back();
+    else this.router.navigate(['/clients', this.ledgerClientId]);
+  }
+
+  // View modal → Edit: swap to the edit form for the same receipt.
+  protected editViewed(): void {
+    const receipt = this.viewing();
+    this.viewing.set(null);
+    if (receipt) this.openForm(receipt);
   }
 
   protected openForm(receipt: Receipt | null): void {
