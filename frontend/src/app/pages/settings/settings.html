@@ -1,7 +1,23 @@
-<app-page-header title="Business Details" subtitle="Printed on every new invoice." />
+<app-page-header class="no-print" title="Business Details"
+  [subtitle]="tab() === 'cash-bank' ? 'Cash in hand and bank balances, date-wise.' : 'Printed on every new invoice.'" />
 
 <div class="page-body">
-  @if (loading()) {
+  <div class="tabs no-print" role="tablist" aria-label="Business details sections">
+    <button type="button" class="tab" role="tab" id="tab-details" aria-controls="panel-details"
+      [class.tab--active]="tab() === 'details'" [attr.aria-selected]="tab() === 'details'" (click)="setTab('details')">
+      <app-icon name="building" [size]="16" /> Business Details
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-cash-bank" aria-controls="panel-cash-bank"
+      [class.tab--active]="tab() === 'cash-bank'" [attr.aria-selected]="tab() === 'cash-bank'" (click)="setTab('cash-bank')">
+      <app-icon name="wallet" [size]="16" /> Cash &amp; Bank
+    </button>
+  </div>
+
+  @if (tab() === 'cash-bank') {
+    <div id="panel-cash-bank" role="tabpanel" aria-labelledby="tab-cash-bank">
+      <app-cash-bank (editOpenings)="setTab('details')" />
+    </div>
+  } @else if (loading()) {
     <div class="panel empty-state"><p>Loading business details…</p></div>
   } @else if (loadError()) {
     <div class="panel empty-state">
@@ -10,7 +26,7 @@
       <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
     </div>
   } @else {
-    <form class="panel panel__body form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <form id="panel-details" role="tabpanel" aria-labelledby="tab-details" class="panel panel__body form" [formGroup]="form" (ngSubmit)="save()" novalidate>
       @if (missingState()) {
         <div class="notice" role="note">
           <app-icon name="alert-circle" [size]="18" />
@@ -110,7 +126,7 @@
                   </button>
                 </span>
               </div>
-              <div class="form-grid" style="--cols: 3">
+              <div class="form-grid" style="--cols: 4">
                 <div class="field">
                   <label class="field__label" [for]="'bank-name-' + i">Bank name</label>
                   <input [id]="'bank-name-' + i" class="input" formControlName="bankName" autocomplete="off"
@@ -138,6 +154,12 @@
                     <span [id]="'bank-ifsc-error-' + i" class="field__error">{{ message }}</span>
                   }
                 </div>
+                <div class="field">
+                  <label class="field__label" [for]="'bank-opening-' + i">Opening balance (₹)</label>
+                  <input [id]="'bank-opening-' + i" class="input" type="number" step="0.01" formControlName="openingBalance" autocomplete="off"
+                    inputmode="decimal" [attr.aria-describedby]="'bank-opening-hint-' + i" />
+                  <span [id]="'bank-opening-hint-' + i" class="hint">Balance before using the app. Minus if overdrawn.</span>
+                </div>
               </div>
             </div>
           } @empty {
@@ -154,6 +176,18 @@
                 The primary account is printed on invoices.
               }
             </span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Cash in Hand</h2>
+        <div class="form-grid" style="--cols: 4">
+          <div class="field">
+            <label class="field__label" for="cash-opening">Opening cash balance (₹)</label>
+            <input id="cash-opening" class="input" type="number" step="0.01" formControlName="cashOpeningBalance" autocomplete="off"
+              inputmode="decimal" aria-describedby="cash-opening-hint" />
+            <span id="cash-opening-hint" class="hint">Cash you had before using the app. The cash book starts from here.</span>
           </div>
         </div>
       </section>

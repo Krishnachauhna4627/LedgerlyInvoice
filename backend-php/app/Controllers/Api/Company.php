@@ -21,12 +21,14 @@ class Company extends BaseController
         'phone'     => ['indian_phone', 'empty_to_null'],
         'email'     => ['trim', 'lower', 'empty_to_null'],
         'terms'     => self::OPTIONAL_TEXT,
+        'cashOpeningBalance' => ['default:0', 'nullable_number'],
         'bankAccounts'   => ['default:[]'],
         'bankAccounts.*' => [
             'id'        => ['nullable_number'],
             'bankName'  => self::OPTIONAL_TEXT,
             'accountNo' => self::OPTIONAL_TEXT,
             'ifsc'      => ['trim', 'upper', 'empty_to_null'],
+            'openingBalance' => ['default:0', 'nullable_number'],
         ],
     ];
 
@@ -53,8 +55,9 @@ class Company extends BaseController
                 'bank_name'  => $a['bankName'],
                 'account_no' => $a['accountNo'],
                 'ifsc'       => $a['ifsc'],
+                'opening_balance' => (float) ($a['openingBalance'] ?? 0),
             ], $b['bankAccounts']),
-            static fn (array $a): bool => $a['bank_name'] !== null || $a['account_no'] !== null || $a['ifsc'] !== null,
+            static fn (array $a): bool => $a['bank_name'] !== null || $a['account_no'] !== null || $a['ifsc'] !== null || $a['opening_balance'] != 0,
         ));
         $primary = ['bank_name' => $accounts[0]['bank_name'] ?? null, 'account_no' => $accounts[0]['account_no'] ?? null, 'ifsc' => $accounts[0]['ifsc'] ?? null];
 
@@ -68,6 +71,7 @@ class Company extends BaseController
             'phone'      => $b['phone'],
             'email'      => $b['email'],
             'terms'      => $b['terms'],
+            'cash_opening_balance' => (float) ($b['cashOpeningBalance'] ?? 0),
         ] + $primary);
         model(BankAccountModel::class)->syncForCompany($this->companyId(), $accounts);
         $db->transComplete();

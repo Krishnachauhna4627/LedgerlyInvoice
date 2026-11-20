@@ -4,6 +4,8 @@ import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { Client } from '../../core/data/models';
 import { stateLabel } from '../../core/gst/gst-states';
+import { downloadCsv } from '../../core/ui/csv';
+import { todayIso } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { ClientForm } from '../../shared/components/client-form/client-form';
@@ -79,6 +81,37 @@ export class Clients {
         this.loading.set(false);
       },
     });
+  }
+
+  // Download the list shown (search applied) for Excel, with each party's receivable / payable and the totals.
+  protected exportExcel(): void {
+    const money = (n: number) => Math.abs(n).toFixed(2);
+    const side = (n: number) => (n > 0 ? 'Dr' : n < 0 ? 'Cr' : '');
+    const { receivable, payable } = this.closingTotals();
+    downloadCsv(
+      `ledgers-party-detail-${todayIso()}.csv`,
+      ['Name', 'Address', 'GSTIN', 'Phone', 'Email', 'State', 'Opening bal.', 'Dr/Cr', 'Debit', 'Credit', 'Closing bal.', 'Dr/Cr',
+        'Receivable (Dr)', 'Payable (Cr)'],
+      [
+        ...this.filtered().map((c) => [
+          c.name,
+          c.address,
+          c.gstin,
+          c.phone,
+          c.email,
+          stateLabel(c.stateCode),
+          money(c.openingBalance),
+          side(c.openingBalance),
+          c.debit.toFixed(2),
+          c.credit.toFixed(2),
+          money(c.closingBalance),
+          side(c.closingBalance),
+          c.closingBalance > 0 ? c.closingBalance.toFixed(2) : '',
+          c.closingBalance < 0 ? money(c.closingBalance) : '',
+        ]),
+        ['Total', '', '', '', '', '', '', '', '', '', '', '', receivable.toFixed(2), payable.toFixed(2)],
+      ],
+    );
   }
 
   protected openForm(client: Client | null): void {

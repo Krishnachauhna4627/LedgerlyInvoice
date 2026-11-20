@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AbstractControl, FormArray, FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { toApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth.service';
@@ -10,11 +11,14 @@ import { MOBILE_PATTERN, toMobileDigits } from '../../core/ui/phone';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
 import { PageHeader } from '../../shared/components/page-header/page-header';
+import { CashBank } from './components/cash-bank/cash-bank';
 import { SIGNATURE_TYPES, signatureDataUrl } from './signature-image';
 
 type Field = 'name' | 'address' | 'stateCode' | 'gstin' | 'phone' | 'email' | 'terms';
 type BankField = 'bankName' | 'accountNo' | 'ifsc';
-type BankAccountGroup = FormGroup<Record<BankField, FormControl<string>> & { id: FormControl<number | null> }>;
+type BankAccountGroup = FormGroup<
+  Record<BankField, FormControl<string>> & { id: FormControl<number | null>; openingBalance: FormControl<number | null> }
+>;
 
 // Same limit as the backend.
 const MAX_BANK_ACCOUNTS = 10;
@@ -50,7 +54,7 @@ function ifscValidator(control: AbstractControl): ValidationErrors | null {
 // Seller details printed on every new invoice.
 @Component({
   selector: 'app-settings-page',
-  imports: [ReactiveFormsModule, PageHeader, Icon],
+  imports: [ReactiveFormsModule, PageHeader, Icon, CashBank],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
 })
@@ -58,6 +62,19 @@ export class Settings {
   private readonly companyService = inject(CompanyService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+
+  // Tabs: the business details form, or the cash & bank books (?tab=cash-bank).
+  protected readonly tab = signal<'details' | 'cash-bank'>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('tab') === 'cash-bank' ? 'cash-bank' : 'details',
+  );
+
+  protected setTab(tab: 'details' | 'cash-bank'): void {
+    if (tab === this.tab()) return;
+    this.tab.set(tab);
+    // In the URL, so a reload or the back button from a receipt opens the same tab.
+    this.router.navigate([], { queryParams: tab === 'cash-bank' ? { tab } : {}, replaceUrl: true });
+  }
 
   protected readonly states = GST_STATES;
   private readonly fb = inject(NonNullableFormBuilder);
@@ -69,6 +86,8 @@ export class Settings {
     phone: ['', Validators.pattern(MOBILE_PATTERN)],
     email: ['', [Validators.email, Validators.maxLength(254)]],
     terms: ['', Validators.maxLength(4000)],
+    // Cash in hand before using the app: where the cash book starts.
+    cashOpeningBalance: this.fb.control<number | null>(0),
     // The first account is the primary one, printed on invoices.
     bankAccounts: this.fb.array<BankAccountGroup>([]),
   });
@@ -213,9 +232,16 @@ export class Settings {
       phone: v.phone || null,
       email: blank(v.email)?.toLowerCase() ?? null,
       terms: blank(v.terms),
+      cashOpeningBalance: Number(v.cashOpeningBalance) || 0,
       bankAccounts: v.bankAccounts
-        .map((a) => ({ id: a.id, bankName: blank(a.bankName), accountNo: blank(a.accountNo), ifsc: blank(a.ifsc)?.toUpperCase() ?? null }))
-        .filter((a) => a.bankName || a.accountNo || a.ifsc),
+        .map((a) => ({
+          id: a.id,
+          bankName: blank(a.bankName),
+          accountNo: blank(a.accountNo),
+          ifsc: blank(a.ifsc)?.toUpperCase() ?? null,
+          openingBalance: Number(a.openingBalance) || 0,
+        }))
+        .filter((a) => a.bankName || a.accountNo || a.ifsc || a.openingBalance),
     };
     this.saving.set(true);
     this.error.set(null);
@@ -252,6 +278,7 @@ export class Settings {
       phone: c.phone ?? '',
       email: c.email ?? '',
       terms: c.terms ?? '',
+      cashOpeningBalance: c.cashOpeningBalance ?? 0,
     });
     this.bankAccounts.clear();
     // Start with one empty account so the fields are ready to fill in.
@@ -268,6 +295,7 @@ export class Settings {
       bankName: [account?.bankName ?? '', Validators.maxLength(100)],
       accountNo: [account?.accountNo ?? '', Validators.maxLength(34)],
       ifsc: [account?.ifsc ?? '', ifscValidator],
+      openingBalance: this.fb.control<number | null>(account?.openingBalance ?? 0),
     });
   }
 }

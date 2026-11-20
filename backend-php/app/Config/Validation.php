@@ -246,6 +246,9 @@ class Validation extends BaseConfig
             'bankAccounts.*.bankName'  => self::optionalText('Bank name', 100),
             'bankAccounts.*.accountNo' => self::optionalText('Account number', 34),
             'bankAccounts.*.ifsc'      => self::optionalText('IFSC code', 11),
+            // Cash book / bank book opening balances (money there before using the app).
+            'cashOpeningBalance'             => self::openingAmount('Cash opening balance'),
+            'bankAccounts.*.openingBalance'  => self::openingAmount('Opening balance'),
         ];
 
         $this->signature = [
@@ -459,6 +462,26 @@ class Validation extends BaseConfig
                 'string'     => "{$label} is required.",
                 'required'   => "{$label} is required.",
                 'max_length' => "{$label} is too long.",
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    /**
+     * An optional ₹ amount that may be negative (e.g. an overdrawn bank account), like a customer's opening balance.
+     *
+     * @return array<string, mixed>
+     */
+    private static function openingAmount(string $label): array
+    {
+        return [
+            'rules'  => ['permit_empty', 'js_number', 'greater_than_equal_to[-9999999999]', 'less_than_equal_to[9999999999]'],
+            'errors' => [
+                'js_number'             => "{$label} must be a number.",
+                'greater_than_equal_to' => "{$label} is too large.",
+                'less_than_equal_to'    => "{$label} is too large.",
             ],
         ];
     }

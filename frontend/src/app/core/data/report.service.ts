@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DashboardPeriod, DashboardSummary, PurchaseReport, SalesExportRow, SalesReport } from './models';
+import { CashBankLedger, CashBankSummaryRow, DashboardPeriod, DashboardSummary, PurchaseReport, SalesExportRow, SalesReport } from './models';
 
 export interface DateRange {
   from?: string;
@@ -29,6 +29,16 @@ export class ReportService {
 
   purchases(range: DateRange): Observable<PurchaseReport> {
     return this.http.get<PurchaseReport>('/api/reports/purchases', { params: rangeParams(range) });
+  }
+
+  // Cash and each bank account for the period: opening, in, out, closing.
+  cashBank(range: DateRange): Observable<CashBankSummaryRow[]> {
+    return this.http.get<CashBankSummaryRow[]>('/api/reports/cash-bank', { params: rangeParams(range) });
+  }
+
+  // Cash book / one bank book with a running balance.
+  cashBankLedger(key: string, range: DateRange): Observable<CashBankLedger> {
+    return this.http.get<CashBankLedger>(`/api/reports/cash-bank/${encodeURIComponent(key)}`, { params: rangeParams(range) });
   }
 
   salesExport(range: DateRange): Observable<SalesExportRow[]> {

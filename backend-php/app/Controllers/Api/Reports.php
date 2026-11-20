@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Exceptions\HttpError;
+use App\Libraries\CashBankService;
 use App\Libraries\Gst;
 use App\Libraries\InvoiceService;
 use CodeIgniter\Database\BaseBuilder;
@@ -270,6 +271,29 @@ class Reports extends BaseController
             'byMonth' => array_map(self::toNumbers(...), $byMonth),
             'byHsn'   => array_map(self::toNumbers(...), $byHsn),
         ]);
+    }
+
+    /**
+     * Cash and every bank account for a date range: opening balance, money in, money out and closing balance.
+     */
+    public function cashBank()
+    {
+        $range = $this->range();
+
+        return $this->json((new CashBankService())->summary($this->companyId(), $range['from'] ?? null, $range['to'] ?? null));
+    }
+
+    /**
+     * Cash book or one bank book ('cash', 'bank-<id>', 'bank') for a date range, with a running balance.
+     */
+    public function cashBankLedger(string $key)
+    {
+        if (preg_match('/^(cash|bank|bank-\d+)$/', $key) !== 1) {
+            throw new HttpError(404, 'Account not found.');
+        }
+        $range = $this->range();
+
+        return $this->json((new CashBankService())->ledger($this->companyId(), $key, $range['from'] ?? null, $range['to'] ?? null));
     }
 
     /**

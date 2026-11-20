@@ -89,6 +89,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
         $routes->get('sales', 'Reports::sales');
         $routes->get('sales/export', 'Reports::salesExport');
         $routes->get('purchases', 'Reports::purchases');
+        $routes->get('cash-bank', 'Reports::cashBank');
+        $routes->get('cash-bank/(:segment)', 'Reports::cashBankLedger/$1');
     });
 
     $routes->group('admin', ['filter' => ['auth', 'admin']], static function (RouteCollection $routes) {

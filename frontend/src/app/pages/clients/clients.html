@@ -1,4 +1,8 @@
 <app-page-header title="Ledgers/Party Detail" subtitle="People and businesses you bill. Pick them when creating an invoice.">
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!filtered().length" (click)="exportExcel()"
+    title="Download the list with receivable and payable balances (opens in Excel)">
+    <app-icon name="download" [size]="16" /> Download Excel
+  </button>
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
     <app-icon name="plus" [size]="16" /> Add customer
   </button>

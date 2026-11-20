@@ -1,0 +1,86 @@
+<div class="toolbar-actions no-print">
+  <button type="button" class="btn btn--outline btn--sm" title="Set opening balances on the Business Details tab" (click)="editOpenings.emit()">
+    <app-icon name="settings" [size]="16" /> Opening balances
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="exportCsv()">
+    <app-icon name="download" [size]="16" /> Excel (CSV)
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="print()">
+    <app-icon name="printer" [size]="16" /> Print
+  </button>
+</div>
+
+<div class="body">
+  <div class="panel panel__body filter-bar no-print">
+    <div class="field">
+      <label class="field__label" for="cb-from">From</label>
+      <input id="cb-from" class="input" type="date" [value]="from()" (change)="setDate('from', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="cb-range-error" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="cb-to">To</label>
+      <input id="cb-to" class="input" type="date" [value]="to()" (change)="setDate('to', $any($event.target).value)"
+        [attr.aria-invalid]="rangeInvalid()" aria-describedby="cb-range-error" />
+    </div>
+    @if (rangeInvalid()) {
+      <span id="cb-range-error" class="field__error span-all">"From" must be on or before "To".</span>
+    }
+  </div>
+
+  @if (loadError()) {
+    <div class="panel empty-state">
+      <p class="empty-state__title">Couldn't load cash & bank</p>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="load()">Try again</button>
+    </div>
+  } @else if (loading() && !accounts().length) {
+    <div class="panel empty-state"><p>Loading cash & bank…</p></div>
+  } @else {
+    <section class="panel no-print" aria-labelledby="cb-summary">
+      <h2 id="cb-summary" class="panel-title">Balances for the period</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Account</th>
+              <th scope="col" class="num">Opening</th>
+              <th scope="col" class="num">In</th>
+              <th scope="col" class="num">Out</th>
+              <th scope="col" class="num">Closing</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of accounts(); track a.key) {
+              <tr class="account-row" [class.account-row--active]="a.key === selected()">
+                <td>
+                  <button type="button" class="account-btn" [attr.aria-pressed]="a.key === selected()" (click)="select(a.key)">
+                    <app-icon [name]="a.type === 'cash' ? 'wallet' : 'building'" [size]="16" />
+                    {{ label(a) }}
+                  </button>
+                </td>
+                <td class="num">{{ a.periodOpening | balance }}</td>
+                <td class="num amount--in">{{ a.in | inr }}</td>
+                <td class="num amount--out">{{ a.out | inr }}</td>
+                <td class="num strong">{{ a.closing | balance }}</td>
+              </tr>
+            }
+            <tr class="total-row">
+              <td>Total cash & bank</td>
+              <td class="num">{{ totals().periodOpening | balance }}</td>
+              <td class="num">{{ totals().in | inr }}</td>
+              <td class="num">{{ totals().out | inr }}</td>
+              <td class="num">{{ totals().closing | balance }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Pick an account to see its book below. In = receipts from customers; Out = payments to vendors.</p>
+    </section>
+
+    @if (ledger(); as l) {
+      <div [class.is-loading]="loading()">
+        <app-cash-bank-document [ledger]="l" [company]="company()" />
+      </div>
+    }
+  }
+</div>

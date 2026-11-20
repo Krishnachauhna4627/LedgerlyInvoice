@@ -1,0 +1,79 @@
+.panel-title {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.hint {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+// The whole account name is the button that shows its book (44px tall for touch).
+.account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.account-row--active td {
+  background: var(--color-primary-soft);
+}
+
+.account-row--active .account-btn {
+  color: var(--color-text);
+}
+
+.amount--in {
+  color: var(--color-success);
+}
+
+.amount--out {
+  color: var(--color-warning);
+}
+
+.total-row td {
+  font-weight: 700;
+}
+
+.is-loading {
+  opacity: 0.6;
+}
+
+:host {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

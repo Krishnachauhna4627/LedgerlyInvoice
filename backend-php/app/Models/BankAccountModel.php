@@ -13,7 +13,7 @@ class BankAccountModel extends Model
 
     protected $table         = 'company_bank_accounts';
     protected $returnType    = 'array';
-    protected $allowedFields = ['company_id', 'bank_name', 'account_no', 'ifsc', 'position'];
+    protected $allowedFields = ['company_id', 'bank_name', 'account_no', 'ifsc', 'opening_balance', 'position'];
 
     /**
      * @return list<array<string, mixed>>
@@ -31,7 +31,7 @@ class BankAccountModel extends Model
      * company's accounts update it, so receipts keep pointing at it; others are added; accounts
      * left out are removed (their receipts keep mode "bank" without an account). Call inside a transaction.
      *
-     * @param list<array{id: ?int, bank_name: ?string, account_no: ?string, ifsc: ?string}> $accounts
+     * @param list<array{id: ?int, bank_name: ?string, account_no: ?string, ifsc: ?string, opening_balance: float}> $accounts
      */
     public function syncForCompany(int $companyId, array $accounts): void
     {
@@ -42,7 +42,13 @@ class BankAccountModel extends Model
         $kept = [];
         foreach ($accounts as $position => $account) {
             $id  = $account['id'];
-            $row = ['bank_name' => $account['bank_name'], 'account_no' => $account['account_no'], 'ifsc' => $account['ifsc'], 'position' => $position];
+            $row = [
+                'bank_name'       => $account['bank_name'],
+                'account_no'      => $account['account_no'],
+                'ifsc'            => $account['ifsc'],
+                'opening_balance' => $account['opening_balance'],
+                'position'        => $position,
+            ];
             if ($id !== null && in_array($id, $existing, true) && ! in_array($id, $kept, true)) {
                 $this->update($id, $row);
                 $kept[] = $id;
@@ -76,6 +82,8 @@ class BankAccountModel extends Model
             'bankName'  => $row['bank_name'],
             'accountNo' => $row['account_no'],
             'ifsc'      => $row['ifsc'],
+            // Money in the account before using the app (cash & bank book).
+            'openingBalance' => (float) ($row['opening_balance'] ?? 0),
         ];
     }
 }

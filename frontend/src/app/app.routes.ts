@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
 
 const page = (title: string) => `${title} — Gogna`;
@@ -72,6 +73,8 @@ export const routes: Routes = [
         title: page('Payments'),
         loadComponent: () => import('./pages/payments/payments').then((m) => m.Payments),
       },
+      // Cash & Bank is a tab of Business Details now; keep old links working.
+      { path: 'cash-bank', redirectTo: () => inject(Router).parseUrl('/settings?tab=cash-bank') },
       {
         path: 'clients',
         title: page('Ledgers/Party Detail'),

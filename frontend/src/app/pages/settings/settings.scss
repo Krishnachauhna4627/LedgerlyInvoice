@@ -152,3 +152,46 @@
     }
   }
 }
+
+// Business Details / Cash & Bank tabs.
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
+.tab--active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .page-body {
+    padding: 0;
+  }
+}

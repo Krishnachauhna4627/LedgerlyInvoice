@@ -13,6 +13,8 @@ export interface Company {
   accountNo: string | null;
   ifsc: string | null;
   terms: string | null;
+  // Cash in hand before using the app: where the cash book starts.
+  cashOpeningBalance: number;
   // Data URL of the uploaded signature image; saved separately from the other details.
   signature: string | null;
   // Every bank account of the business, primary first.
@@ -24,6 +26,8 @@ export interface BankAccount {
   bankName: string | null;
   accountNo: string | null;
   ifsc: string | null;
+  // Money in the account before using the app: where its bank book starts (negative = overdrawn).
+  openingBalance: number;
 }
 
 // id of an existing account (so receipts stay linked to it), null for a new one.
@@ -411,6 +415,51 @@ export interface PurchaseReport {
   totals: PurchaseTotals;
   byMonth: (PurchaseTotals & { month: string })[];
   byHsn: { hsnSac: string | null; gstRate: number; taxable: number; cgst: number; sgst: number; igst: number; tax: number }[];
+}
+
+// Cash & bank book. Accounts: 'cash', 'bank-<id>' per bank account, 'bank' for bank entries saved without an
+// account when the business has none. Receipts are money in (debit), payments to vendors money out (credit).
+export interface CashBankAccount {
+  key: string;
+  type: 'cash' | 'bank';
+  bankAccountId: number | null;
+  bankName: string | null;
+  accountNo: string | null;
+  // As entered in Business Details (before using the app).
+  openingBalance: number;
+}
+
+// One account for a period: balance at the start, money in and out, balance at the end.
+export interface CashBankSummaryRow extends CashBankAccount {
+  periodOpening: number;
+  in: number;
+  out: number;
+  closing: number;
+}
+
+export interface CashBankEntry {
+  type: 'receipt' | 'payment';
+  id: number;
+  date: string;
+  createdAt?: string | null;
+  number: string | null;
+  // The customer (receipt) or vendor (payment); clientId when it is a saved party.
+  clientId: number | null;
+  party: string | null;
+  reference: string | null;
+  debit: number;
+  credit: number;
+  // Running balance after this entry.
+  balance: number;
+}
+
+export interface CashBankLedger {
+  account: CashBankAccount;
+  from: string | null;
+  to: string | null;
+  openingBalance: number;
+  entries: CashBankEntry[];
+  totals: { in: number; out: number; closingBalance: number };
 }
 
 export interface SalesExportRow {

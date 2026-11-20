@@ -12,10 +12,10 @@ class CompanyModel extends Model
     protected $table         = 'companies';
     protected $returnType    = 'array';
     protected $allowedFields = [
-        'name', 'address', 'state_code', 'gstin', 'phone', 'email', 'bank_name', 'account_no', 'ifsc', 'terms', 'signature',
+        'name', 'address', 'state_code', 'gstin', 'phone', 'email', 'bank_name', 'account_no', 'ifsc', 'cash_opening_balance', 'terms', 'signature',
     ];
 
-    private const COLUMNS = 'id, name, address, state_code, gstin, phone, email, bank_name, account_no, ifsc, terms, signature';
+    private const COLUMNS = 'id, name, address, state_code, gstin, phone, email, bank_name, account_no, ifsc, cash_opening_balance, terms, signature';
 
     /**
      * @return array<string, mixed>|null
@@ -55,6 +55,8 @@ class CompanyModel extends Model
             'bankName'  => $row['bank_name'],
             'accountNo' => $row['account_no'],
             'ifsc'      => $row['ifsc'],
+            // Cash in hand before using the app (cash & bank book).
+            'cashOpeningBalance' => (float) ($row['cash_opening_balance'] ?? 0),
             'terms'     => $row['terms'],
             'signature' => $row['signature'],
         ];

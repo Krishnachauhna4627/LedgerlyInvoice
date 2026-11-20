@@ -1,0 +1,67 @@
+@let l = ledger();
+<article class="ledger" [attr.aria-label]="title() + ': ' + accountLabel()">
+  <header class="ledger__head">
+    <h2>{{ company()?.name }}</h2>
+    @if (address()) {
+      <p>{{ address() }}</p>
+    }
+  </header>
+  <p class="ledger__title">{{ title() }}</p>
+  <div class="ledger__meta">
+    <span>Account : <strong>{{ accountLabel() }}</strong></span>
+    <span>{{ period() }}</span>
+  </div>
+  <div class="ledger__meta ledger__meta--end">
+    <span>Opening Bal. = Rs. {{ l.openingBalance | balance: false }}</span>
+  </div>
+
+  <div class="table-scroll">
+    <table class="ledger__table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Vch No</th>
+          <th>Account</th>
+          <th class="num">Debit (In)</th>
+          <th class="num">Credit (Out)</th>
+          <th class="num">Balance (Rs.)</th>
+          <th>Short Narration</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of l.entries; track e.type + e.id) {
+          <tr>
+            <td class="nowrap">{{ formatDmy(e.date) }}<span class="time">{{ e.createdAt | time }}</span></td>
+            <td>{{ type(e) }}</td>
+            <td class="nowrap">
+              @if (e.type === 'receipt' && e.clientId) {
+                <!-- Opens the receipt on the Receipts page, with a way back here. -->
+                <a routerLink="/receipts" [queryParams]="{ open: e.id, client: e.clientId, date: e.date }">{{ e.number || 'View' }}</a>
+              } @else {
+                {{ e.number }}
+              }
+            </td>
+            <td>{{ e.party }}</td>
+            <td class="num">{{ e.debit ? (e.debit | inr: false) : '' }}</td>
+            <td class="num">{{ e.credit ? (e.credit | inr: false) : '' }}</td>
+            <td class="num nowrap">{{ e.balance | balance: false }}</td>
+            <td>{{ e.reference }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty">No money in or out of this account in this period.</td>
+          </tr>
+        }
+        <tr class="ledger__total">
+          <td colspan="4" class="num">Total</td>
+          <td class="num">{{ l.totals.in | inr: false }}</td>
+          <td class="num">{{ l.totals.out | inr: false }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="ledger__closing">Closing Bal. = Rs. {{ l.totals.closingBalance | balance: false }}</p>
+</article>
