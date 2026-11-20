@@ -1,0 +1,46 @@
+<div class="charts">
+  <section class="card chart">
+    <div class="card__head">
+      <h4>Sales vs purchases</h4>
+      <span class="legend">
+        <span><i class="sw sw--sales"></i>Sales</span>
+        <span><i class="sw sw--purchases"></i>Purchases</span>
+      </span>
+    </div>
+    <div class="plot">
+      <div class="axis">
+        @for (t of ticks; track t) {
+          <span>{{ t }}</span>
+        }
+      </div>
+      <div class="bars">
+        @for (m of trend; track m.month) {
+          <div class="month">
+            <span class="b b--sales" [style.height.%]="m.salesPct"></span>
+            <span class="b b--purchases" [style.height.%]="m.purchasesPct"></span>
+          </div>
+        }
+      </div>
+      <div class="labels">
+        @for (m of trend; track m.month) {
+          <span>{{ m.month }}</span>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="card donut">
+    <h4>Receivable summary</h4>
+    <svg class="donut__ring" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" [attr.r]="r" class="donut__track" />
+      <circle cx="50" cy="50" [attr.r]="r" class="donut__arc donut__arc--received"
+        [attr.stroke-dasharray]="donut.received.dash" [attr.stroke-dashoffset]="donut.received.offset" />
+      <circle cx="50" cy="50" [attr.r]="r" class="donut__arc donut__arc--receivable"
+        [attr.stroke-dasharray]="donut.receivable.dash" [attr.stroke-dashoffset]="donut.receivable.offset" />
+    </svg>
+    <ul class="donut__legend">
+      <li><i class="sw sw--settled"></i>Received <small>{{ donut.receivedPct }}%</small></li>
+      <li><i class="sw sw--sales"></i>Receivable <small>{{ donut.receivablePct }}%</small></li>
+    </ul>
+  </section>
+</div>

@@ -1,0 +1,23 @@
+<div class="tiles">
+  @for (t of tiles; track t.label) {
+    <div class="tile" [attr.data-tone]="t.tone">
+      <div class="tile__head">
+        <span>{{ t.label }}</span>
+        <span class="tile__icon"><app-icon [name]="t.icon" [size]="11" /></span>
+      </div>
+      <div class="tile__row">
+        <span class="tile__value">{{ t.value }}</span>
+        <svg class="tile__spark" viewBox="0 0 64 28" preserveAspectRatio="none">
+          <path class="tile__spark-area" [attr.d]="t.spark.area" />
+          <path class="tile__spark-line" [attr.d]="t.spark.line" vector-effect="non-scaling-stroke" />
+        </svg>
+      </div>
+      <div class="tile__row">
+        <small>{{ t.note }}</small>
+        <span class="tile__change" [class.tile__change--up]="t.up" [class.tile__change--down]="!t.up">
+          {{ t.up ? '▲' : '▼' }} {{ t.change }}
+        </span>
+      </div>
+    </div>
+  }
+</div>

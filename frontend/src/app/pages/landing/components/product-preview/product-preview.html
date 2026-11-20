@@ -1,37 +1,70 @@
-<div class="window" role="img" aria-label="Preview of the Gogna invoice editor showing a GST tax invoice">
+<div class="window" role="img" aria-label="Preview of the Gogna dashboard showing sales, receivables, a sales vs purchases chart and recent invoices">
   <div class="bar" aria-hidden="true">
     <span class="dot dot--red"></span>
     <span class="dot dot--yellow"></span>
     <span class="dot dot--green"></span>
   </div>
 
-  <div aria-hidden="true">
-    <div class="app-head">
-      <div class="app-brand">
-        <app-logo-mark [size]="28" />
+  <div class="app" aria-hidden="true">
+    <aside class="side">
+      <div class="side__brand">
+        <app-logo-mark [size]="22" />
         <strong>Gogna</strong>
       </div>
-      <div class="app-biz">
-        <div class="biz-text">
-          <span>Business Name</span>
-          <small>GSTIN: 03ABCDE1234F1Z5</small>
-        </div>
-        <span class="avatar"><app-icon name="user" [size]="14" /></span>
-      </div>
-    </div>
-
-    <div class="tabs">
-      @for (tab of tabs; track tab.label) {
-        <span class="tab" [class.tab--active]="$first">
-          <app-icon [name]="tab.icon" [size]="12" />
-          {{ tab.label }}
+      <nav class="side__nav">
+        @for (item of nav; track item.label) {
+          <span class="side__link" [class.side__link--active]="$first">
+            <app-icon [name]="item.icon" [size]="12" />
+            {{ item.label }}
+          </span>
+        }
+      </nav>
+      <div class="side__account">
+        <span class="avatar">RK</span>
+        <span class="side__who">
+          <strong>Rahul Kumar</strong>
+          <small>Business Name</small>
         </span>
-      }
-    </div>
+      </div>
+    </aside>
 
-    <div class="panes">
-      <app-invoice-form-preview />
-      <app-invoice-doc-preview />
-    </div>
+    <main class="main">
+      <header class="head">
+        <div>
+          <h3>Dashboard</h3>
+          <p>Welcome back, Rahul</p>
+        </div>
+        <div class="head__actions">
+          <span class="select">This month <app-icon name="chevron-down" [size]="10" /></span>
+          <span class="btn-mini"><app-icon name="plus" [size]="10" /> Create Invoice</span>
+        </div>
+      </header>
+
+      <app-preview-tiles />
+      <app-preview-charts />
+
+      <section class="card recent">
+        <div class="card__head">
+          <h4>Recent invoices</h4>
+          <span class="view-all">View all <app-icon name="arrow-right" [size]="10" /></span>
+        </div>
+        <table>
+          <thead>
+            <tr><th class="hide-xs">Invoice ID</th><th>Customer</th><th class="num">Amount due</th><th>Status</th><th class="hide-sm">Date</th></tr>
+          </thead>
+          <tbody>
+            @for (inv of invoices; track inv.number) {
+              <tr>
+                <td class="hide-xs">#{{ inv.number }}</td>
+                <td class="strong">{{ inv.client }}</td>
+                <td class="num strong">{{ inv.amount }}</td>
+                <td><app-status-badge [status]="inv.status" /></td>
+                <td class="muted hide-sm">{{ inv.date }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </main>
   </div>
 </div>

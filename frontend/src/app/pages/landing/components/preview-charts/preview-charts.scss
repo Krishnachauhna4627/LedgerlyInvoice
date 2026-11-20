@@ -1,0 +1,79 @@
+@use 'breakpoints' as bp;
+
+:host { display: block; min-width: 0; }
+
+.card {
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1); }
+
+.charts {
+  display: grid;
+  gap: var(--space-2);
+  @include bp.up(sm) { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+}
+
+h4 { font-size: var(--text-2xs); font-weight: 700; }
+
+.legend, .labels { display: flex; gap: var(--space-2); color: var(--color-text-muted); }
+
+.sw {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 3px;
+  border-radius: 2px;
+}
+
+.sw--sales, .b--sales { background: var(--color-chart-sales); }
+.sw--purchases, .b--purchases { background: var(--color-chart-purchases); }
+.sw--settled { background: var(--color-chart-settled); }
+
+.plot {
+  display: grid;
+  grid-template: 84px auto / auto minmax(0, 1fr);
+  column-gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.bars { display: flex; border-bottom: 1px solid var(--color-text-muted); }
+
+.month {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
+.b { width: 28%; max-width: 12px; border-radius: 2px 2px 0 0; }
+.labels { grid-column: 2; gap: 0; span { flex: 1; text-align: center; } }
+
+// Phones: just the bar chart, to keep the mockup short.
+.donut {
+  display: none;
+  justify-items: center;
+  gap: var(--space-2);
+  h4 { justify-self: start; }
+  @include bp.up(sm) { display: grid; }
+}
+.donut__ring { width: 72px; height: 72px; transform: rotate(-90deg); }
+.donut__track, .donut__arc { fill: none; stroke-width: 18; }
+.donut__track { stroke: var(--color-bg); }
+.donut__arc--received { stroke: var(--color-chart-settled); }
+.donut__arc--receivable { stroke: var(--color-chart-sales); }
+.donut__legend { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; small { color: var(--color-text-muted); } }
+

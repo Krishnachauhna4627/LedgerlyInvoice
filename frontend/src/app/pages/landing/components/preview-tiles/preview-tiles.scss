@@ -1,0 +1,57 @@
+@use 'breakpoints' as bp;
+
+:host { display: block; min-width: 0; }
+
+.tile__head, .tile__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.tiles {
+  display: grid;
+  gap: var(--space-2);
+  @include bp.up(sm) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.tile {
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  --tone: var(--color-chart-sales);
+  display: grid;
+  gap: 2px;
+  &[data-tone='orange'] { --tone: var(--color-chart-purchases); }
+  &[data-tone='green'] { --tone: var(--color-chart-settled); }
+  small { color: var(--color-text-muted); }
+}
+
+.tile__head { font-weight: 500; }
+
+.tile__icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--tone) 14%, var(--color-surface));
+  color: var(--tone);
+}
+
+.tile__value { font-size: var(--text-sm); font-weight: 700; white-space: nowrap; }
+.tile__spark { width: 40px; height: 18px; overflow: visible; }
+.tile__spark-area { fill: color-mix(in srgb, var(--tone) 16%, transparent); }
+.tile__spark-line { fill: none; stroke: var(--tone); stroke-width: 1.5; }
+
+.tile__change {
+  padding: 0 var(--space-1);
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tile__change--up { background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); color: var(--color-success-strong); }
+.tile__change--down { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning-strong); }

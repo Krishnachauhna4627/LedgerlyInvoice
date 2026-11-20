@@ -1,23 +1,19 @@
 import { Component } from '@angular/core';
 import { Icon } from '../../../../shared/components/icon/icon';
-import { IconName } from '../../../../shared/components/icon/icons';
 import { LogoMark } from '../../../../shared/components/logo-mark/logo-mark';
-import { InvoiceDocPreview } from '../invoice-doc-preview/invoice-doc-preview';
-import { InvoiceFormPreview } from '../invoice-form-preview/invoice-form-preview';
+import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
+import { PreviewCharts } from '../preview-charts/preview-charts';
+import { PreviewTiles } from '../preview-tiles/preview-tiles';
+import { PREVIEW_INVOICES, PREVIEW_NAV } from './preview-data';
 
+// Static miniature of the logged-in dashboard (sidebar + overview), shown in the landing hero.
 @Component({
   selector: 'app-product-preview',
-  imports: [Icon, LogoMark, InvoiceFormPreview, InvoiceDocPreview],
+  imports: [Icon, LogoMark, StatusBadge, PreviewCharts, PreviewTiles],
   templateUrl: './product-preview.html',
   styleUrl: './product-preview.scss',
 })
 export class ProductPreview {
-  protected readonly tabs: { label: string; icon: IconName }[] = [
-    { label: 'Invoice', icon: 'file-text' },
-    { label: 'Customers', icon: 'users' },
-    { label: 'Products/Services', icon: 'box' },
-    { label: 'Records', icon: 'receipt' },
-    { label: 'Sales Report', icon: 'bar-chart' },
-    { label: 'Seller Details', icon: 'building' },
-  ];
+  protected readonly nav = PREVIEW_NAV;
+  protected readonly invoices = PREVIEW_INVOICES;
 }
