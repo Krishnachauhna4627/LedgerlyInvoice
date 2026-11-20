@@ -63,12 +63,12 @@ class Gst
     }
 
     /**
-     * GST is calculated only when both sides have a GSTIN: our business and the party (customer on a sale,
-     * vendor on a purchase). Otherwise the document carries no GST at all (rate 0, no CGST/SGST/IGST).
+     * GST is calculated whenever our business has a GSTIN, whether or not the party (customer on a sale,
+     * vendor on a purchase) has one. Without our GSTIN the document carries no GST at all (rate 0, no CGST/SGST/IGST).
      */
-    public static function applies(?string $ourGstin, ?string $partyGstin): bool
+    public static function applies(?string $ourGstin): bool
     {
-        return trim((string) $ourGstin) !== '' && trim((string) $partyGstin) !== '';
+        return trim((string) $ourGstin) !== '';
     }
 
     /**

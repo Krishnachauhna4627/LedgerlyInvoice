@@ -145,13 +145,9 @@ export class InvoiceEditor {
 
   protected readonly sellerStateCode = computed(() => this.company()?.stateCode ?? null);
 
-  // GST only when both the business and the customer have a GSTIN (same rule as the server).
-  protected readonly gstApplies = computed(() => gstApplies(this.company()?.gstin, this.selectedClient()?.gstin));
-  protected readonly noGstNote = computed(() => {
-    if (this.gstApplies()) return '';
-    if (!this.company()?.gstin) return 'Your business has no GSTIN — no GST is charged.';
-    return this.selectedClient() ? 'This customer has no GSTIN — no GST is charged.' : 'Choose a customer to see if GST applies.';
-  });
+  // GST whenever the business has a GSTIN (same rule as the server).
+  protected readonly gstApplies = computed(() => gstApplies(this.company()?.gstin));
+  protected readonly noGstNote = computed(() => (this.gstApplies() ? '' : 'Your business has no GSTIN — no GST is charged.'));
 
   protected readonly calculation = computed(() => {
     const v = this.value();

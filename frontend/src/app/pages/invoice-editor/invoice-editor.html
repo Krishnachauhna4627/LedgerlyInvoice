@@ -124,7 +124,7 @@
                 }
               </select>
               <span id="inv-pos-hint" class="hint">
-                {{ !gstApplies() ? 'No GSTIN: no GST' : value().reverseCharge ? 'Reverse charge: no GST added' : calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
+                {{ !gstApplies() ? 'Your business has no GSTIN: no GST' : value().reverseCharge ? 'Reverse charge: no GST added' : calculation().isInterState ? 'Different from your state: IGST' : 'Same as your state: CGST + SGST' }}
               </span>
             </div>
             <div class="field">

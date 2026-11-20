@@ -1,5 +1,5 @@
 @let inv = invoice();
-<!-- GST only when both the seller and the customer have a GSTIN (gstApplies()). Otherwise no GST is mentioned:
+<!-- GST only when the seller has a GSTIN (gstApplies()). Otherwise no GST is mentioned:
      plain "INVOICE", one amount per line (tax-inclusive on invoices saved before this rule), no tax breakdown. -->
 @let gst = hasGst();
 <!-- Reverse charge: no GST is added, so tax columns and totals are hidden and the taxable amount is final. -->

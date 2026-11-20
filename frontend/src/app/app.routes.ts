@@ -24,7 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'invoices',
-        title: page('Invoices'),
+        title: page('Sale Invoices'),
         loadComponent: () => import('./pages/invoices/invoices').then((m) => m.Invoices),
       },
       {
@@ -44,7 +44,7 @@ export const routes: Routes = [
       },
       {
         path: 'invoices/:id',
-        title: page('Invoice'),
+        title: page('Sale Invoice'),
         loadComponent: () => import('./pages/invoice-view/invoice-view').then((m) => m.InvoiceView),
       },
       {

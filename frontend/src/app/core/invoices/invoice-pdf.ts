@@ -52,8 +52,8 @@ class InvoicePdfWriter {
     private readonly autoTable: (doc: JsPdf, options: UserOptions) => void,
     private readonly inv: Invoice,
   ) {
-    // GST is mentioned only when both the seller and the customer have a GSTIN; otherwise a plain "INVOICE".
-    this.gst = gstApplies(inv.seller.gstin, inv.client.gstin);
+    // GST is mentioned only when the seller has a GSTIN; otherwise a plain "INVOICE".
+    this.gst = gstApplies(inv.seller.gstin);
     this.showTax = this.gst && !inv.reverseCharge;
     this.modern = inv.template === 'modern';
     this.minimal = inv.template === 'minimal';

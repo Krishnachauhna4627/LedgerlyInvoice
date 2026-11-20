@@ -93,8 +93,8 @@ class PurchaseModel extends Model
         // IGST when the vendor is in another state than our business; CGST + SGST otherwise (or when a state is missing).
         $isInterState = ! empty($company['state_code']) && $vendor['state_code'] !== $company['state_code'];
 
-        // No GST unless both the vendor and our business have a GSTIN (Gst::applies()).
-        $lines = Gst::calculateLines($body['lines'], $isInterState, false, Gst::applies($company['gstin'] ?? null, $vendor['gstin']));
+        // No GST unless our business has a GSTIN (Gst::applies()).
+        $lines = Gst::calculateLines($body['lines'], $isInterState, false, Gst::applies($company['gstin'] ?? null));
         $sum   = static fn (string $key): float => Gst::round2(array_reduce($lines, static fn (float $t, array $l): float => $t + $l[$key], 0.0));
         $row   = [
             'purchase_number'   => $body['purchaseNumber'],

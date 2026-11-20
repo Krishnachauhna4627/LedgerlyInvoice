@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
@@ -25,7 +26,10 @@ export class InvoiceView {
   private readonly invoices = inject(InvoiceService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly location = inject(Location);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
+  // Page we came from inside the app (null when opened directly), read while this navigation is in progress.
+  private readonly cameFrom = this.router.currentNavigation()?.previousNavigation?.finalUrl?.toString() ?? null;
 
   protected readonly invoice = signal<Invoice | null>(null);
   protected readonly loadError = signal<string | null>(null);
@@ -36,6 +40,17 @@ export class InvoiceView {
 
   constructor() {
     this.load();
+  }
+
+  // Back to the previous page (list, ledger, dashboard…); straight after saving in the editor, or when the
+  // invoice was opened directly, go to the invoice list instead of back into the form.
+  protected back(): void {
+    const fromEditor = !!this.cameFrom && /^\/invoices\/(new|\d+\/edit)/.test(this.cameFrom);
+    if (this.cameFrom && !fromEditor) {
+      this.location.back();
+    } else {
+      this.router.navigateByUrl('/invoices');
+    }
   }
 
   private load(): void {

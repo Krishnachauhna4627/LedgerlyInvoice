@@ -100,13 +100,9 @@ export class PurchaseEditor {
     })),
   );
 
-  // GST only when both the vendor and the business have a GSTIN (same rule as the server).
-  protected readonly gstApplies = computed(() => gstApplies(this.companyGstin(), this.selectedClient()?.gstin));
-  protected readonly noGstNote = computed(() => {
-    if (this.gstApplies()) return '';
-    if (!this.companyGstin()) return 'Your business has no GSTIN — no GST on this bill.';
-    return this.selectedClient() ? 'This vendor has no GSTIN — no GST on this bill.' : 'Choose a vendor to see if GST applies.';
-  });
+  // GST whenever the business has a GSTIN (same rule as the server).
+  protected readonly gstApplies = computed(() => gstApplies(this.companyGstin()));
+  protected readonly noGstNote = computed(() => (this.gstApplies() ? '' : 'Your business has no GSTIN — no GST on this bill.'));
 
   // Live preview; the server recalculates on save. IGST when the vendor is in another state than the
   // business, CGST + SGST otherwise (same rule as PurchaseModel::savePurchase()).

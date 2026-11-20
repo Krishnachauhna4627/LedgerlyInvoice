@@ -26,10 +26,9 @@ export interface InvoiceTotals {
   grandTotal: number;
 }
 
-// GST is calculated only when both sides have a GSTIN: our business and the party (customer on a sale,
-// vendor on a purchase). Otherwise the document carries no GST at all. Same rule as Gst::applies() on the server.
-export const gstApplies = (ourGstin: string | null | undefined, partyGstin: string | null | undefined): boolean =>
-  !!ourGstin?.trim() && !!partyGstin?.trim();
+// GST is calculated whenever our business has a GSTIN, whether or not the party (customer on a sale, vendor on
+// a purchase) has one. Without our GSTIN the document carries no GST at all. Same rule as Gst::applies() on the server.
+export const gstApplies = (ourGstin: string | null | undefined): boolean => !!ourGstin?.trim();
 
 // Under reverse charge no GST is added: the taxable amount is the final amount.
 export function calculateLine(line: LineInput, isInterState: boolean, reverseCharge = false): LineAmounts {

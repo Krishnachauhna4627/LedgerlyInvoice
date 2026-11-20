@@ -276,13 +276,13 @@ class InvoiceService
         }
 
         $placeOfSupplyCode = $input['placeOfSupplyCode'] ?? $client['state_code'];
-        // No GST unless both our business and the customer have a GSTIN (Gst::applies()).
+        // No GST unless our business has a GSTIN (Gst::applies()).
         $calc              = Gst::calculateInvoice(
             $input['lines'],
             $seller['state_code'],
             $placeOfSupplyCode,
             (bool) $input['reverseCharge'],
-            Gst::applies($seller['gstin'], $client['gstin']),
+            Gst::applies($seller['gstin']),
         );
         $totals            = $calc['totals'];
 

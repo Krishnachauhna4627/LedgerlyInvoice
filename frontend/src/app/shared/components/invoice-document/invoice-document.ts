@@ -20,8 +20,8 @@ export class InvoiceDocument {
   readonly invoice = input.required<Invoice>();
 
   protected readonly stateLabel = stateLabel;
-  // GST is mentioned only when both the seller and the customer have a GSTIN.
-  protected readonly hasGst = computed(() => gstApplies(this.invoice().seller.gstin, this.invoice().client.gstin));
+  // GST is mentioned only when the seller has a GSTIN.
+  protected readonly hasGst = computed(() => gstApplies(this.invoice().seller.gstin));
   protected readonly words = computed(() => amountInWords(this.invoice().totals.grandTotal));
 
   protected readonly hsnSummary = computed(() => hsnSummary(this.invoice().lines));

@@ -1,5 +1,6 @@
 @if (invoice(); as inv) {
-  <app-page-header class="no-print" [title]="'Invoice ' + inv.invoiceNumber" [subtitle]="inv.client.name + ' · ' + (inv.totals.grandTotal | inr)">
+  <app-page-header class="no-print" [title]="'Sale Invoice ' + inv.invoiceNumber" [subtitle]="inv.client.name + ' · ' + (inv.totals.grandTotal | inr)">
+    <button type="button" class="btn btn--outline btn--sm" (click)="back()"><app-icon name="arrow-left" [size]="16" /> Back</button>
     <app-status-badge [status]="inv.displayStatus" />
     <a class="btn btn--outline btn--sm" [routerLink]="['/invoices', inv.id, 'edit']"><app-icon name="pencil" [size]="16" /> Edit</a>
     <a class="btn btn--outline btn--sm" routerLink="/invoices/new" [queryParams]="{ from: inv.id }"><app-icon name="copy" [size]="16" /> Duplicate</a>
