@@ -10,5 +10,5 @@ import { ProductPreview } from '../product-preview/product-preview';
   styleUrl: './hero.scss',
 })
 export class Hero {
-  protected readonly perks = ['Easy to use', 'GST compliant', 'No installation required'];
+  protected readonly perks = ['Easy to use', 'GST Ready', 'No installation required'];
 }
