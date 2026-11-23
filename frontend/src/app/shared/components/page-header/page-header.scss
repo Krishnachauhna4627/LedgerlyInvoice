@@ -20,6 +20,12 @@
   }
 }
 
+// Title and actions share the row while they fit; otherwise the actions wrap below the title.
+.titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 h1 {
   font-size: var(--text-lg);
   font-weight: 700;
@@ -35,7 +41,11 @@ p {
   flex-wrap: wrap;
   // Bottom edges line up, so buttons sit level with labelled fields (e.g. the Period / From / To boxes).
   align-items: flex-end;
+  justify-content: flex-end;
   gap: var(--space-2);
+  // Never wider than the bar: buttons and fields wrap instead of overlapping or running off the edge.
+  min-width: 0;
+  max-width: 100%;
 
   &:empty {
     display: none;

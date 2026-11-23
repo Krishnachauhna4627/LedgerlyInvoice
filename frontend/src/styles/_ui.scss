@@ -442,25 +442,26 @@ select.input {
 }
 
 // Period picker in a page header (dashboard, sale invoices): Period select + From + To dates.
+// The boxes size to their content and wrap onto another row when space runs out, so a date input (with its
+// calendar icon) never spills out of its box under the buttons beside it.
 .period-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--space-2);
-
-  // Tablets and up: the three boxes stay together on one row.
-  @include bp.up(md) {
-    flex-wrap: nowrap;
-  }
+  min-width: 0;
+  max-width: 100%;
 }
 
 .period-field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   flex: 1 1 140px;
+  min-width: 0;
 
-  @include bp.up(md) {
-    flex: 0 0 150px;
+  @include bp.up(sm) {
+    flex: 0 0 auto;
   }
 
   // Same height as the small header buttons beside them (.btn--sm), so they line up.
@@ -468,8 +469,14 @@ select.input {
     height: 36px;
     min-height: 36px;
     width: 100%;
+    min-width: 0;
     padding: 0 var(--space-3);
     font-size: var(--text-sm);
+
+    @include bp.up(sm) {
+      width: auto;
+      min-width: 140px;
+    }
 
     @include bp.touch {
       height: 44px;
