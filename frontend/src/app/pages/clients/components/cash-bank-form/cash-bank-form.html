@@ -1,0 +1,63 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error()) {
+    <div class="form-alert" role="alert">{{ error() }}</div>
+  }
+
+  @if (!isCash()) {
+    <div class="row">
+      <div class="field">
+        <label class="field__label" for="cb-bank-name">Bank name</label>
+        <input id="cb-bank-name" class="input" formControlName="bankName" autocomplete="off"
+          [class.is-invalid]="errorFor('bankName')" [attr.aria-invalid]="!!errorFor('bankName')" aria-describedby="cb-bank-name-error" />
+        @if (errorFor('bankName'); as message) {
+          <span id="cb-bank-name-error" class="field__error">{{ message }}</span>
+        }
+      </div>
+      <div class="field">
+        <label class="field__label" for="cb-account-no">Account number</label>
+        <input id="cb-account-no" class="input" formControlName="accountNo" autocomplete="off" inputmode="numeric"
+          [class.is-invalid]="errorFor('accountNo')" [attr.aria-invalid]="!!errorFor('accountNo')" aria-describedby="cb-account-no-error" />
+        @if (errorFor('accountNo'); as message) {
+          <span id="cb-account-no-error" class="field__error">{{ message }}</span>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="row">
+    @if (!isCash()) {
+      <div class="field">
+        <label class="field__label" for="cb-ifsc">IFSC code</label>
+        <input id="cb-ifsc" class="input upper" formControlName="ifsc" maxlength="11" autocomplete="off" spellcheck="false"
+          [class.is-invalid]="errorFor('ifsc')" [attr.aria-invalid]="!!errorFor('ifsc')" aria-describedby="cb-ifsc-error" />
+        @if (errorFor('ifsc'); as message) {
+          <span id="cb-ifsc-error" class="field__error">{{ message }}</span>
+        }
+      </div>
+    }
+    <div class="field">
+      <label class="field__label" for="cb-opening">{{ isCash() ? 'Opening cash balance (₹)' : 'Opening balance (₹)' }}</label>
+      <input id="cb-opening" class="input" type="number" step="0.01" formControlName="openingBalance" autocomplete="off"
+        inputmode="decimal" aria-describedby="cb-opening-hint" />
+      <span id="cb-opening-hint" class="hint">
+        {{ isCash() ? 'Cash you had before using the app.' : 'Balance before using the app. Minus if overdrawn.' }}
+      </span>
+    </div>
+  </div>
+
+  @if (!isCash()) {
+    <label class="checkbox">
+      <input type="checkbox" formControlName="primary" />
+      Primary account (printed on invoices)
+    </label>
+  }
+
+  <p class="hint">Also shown and editable in Business Details.</p>
+
+  <div class="actions">
+    <button type="button" class="btn btn--outline" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : account() ? 'Save changes' : 'Add bank account' }}
+    </button>
+  </div>
+</form>

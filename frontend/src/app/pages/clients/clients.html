@@ -3,6 +3,18 @@
     title="Download the list with receivable and payable balances (opens in Excel)">
     <app-icon name="download" [size]="16" /> Download Excel
   </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!hasRows() || pdfBusy()" (click)="openPdf()"
+    title="Open the list as a PDF to view, print or save">
+    <app-icon name="file-text" [size]="16" /> {{ pdfBusy() ? 'Making PDF…' : 'PDF' }}
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!hasRows() || pdfBusy()" (click)="sharePdf()"
+    title="Share the PDF (WhatsApp, email…); downloads it where sharing isn't available">
+    <app-icon name="send" [size]="16" /> Share PDF
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!company() || (company()?.bankAccounts?.length ?? 0) >= maxBankAccounts"
+    (click)="openCashBankForm(null)" title="Add a bank account (also in Business Details)">
+    <app-icon name="building" [size]="16" /> Add bank
+  </button>
   <button type="button" class="btn btn--primary btn--sm" (click)="openForm(null)">
     <app-icon name="plus" [size]="16" /> Add party
   </button>
@@ -103,6 +115,14 @@
                 </tr>
               }
             </tbody>
+            @if (filteredCashBank().length) {
+              <tbody class="cash-bank">
+                <tr class="section-row">
+                  <th scope="rowgroup" colspan="9">Cash &amp; Bank</th>
+                </tr>
+                <ng-container *ngTemplateOutlet="cashBankRows" />
+              </tbody>
+            }
           </table>
         </div>
 
@@ -142,12 +162,140 @@
               </div>
             </li>
           }
+          <ng-container *ngTemplateOutlet="cashBankCards" />
         </ul>
         <app-show-more [remaining]="page.remaining()" (more)="page.more()" />
       }
     </div>
   }
+
+  <!-- No parties (or none match): cash & bank still get their own table. -->
+  @if (!loading() && !loadError() && (clients().length === 0 || filtered().length === 0) && filteredCashBank().length) {
+    <div class="panel">
+      <div class="desktop table-scroll">
+        <table class="data-table fit">
+          <thead>
+            <tr>
+              <th scope="col">Cash &amp; Bank</th>
+              <th scope="col">GSTIN</th>
+              <th scope="col">Contact</th>
+              <th scope="col">State</th>
+              <th scope="col" class="num">Opening bal.</th>
+              <th scope="col" class="num">Debit</th>
+              <th scope="col" class="num">Credit</th>
+              <th scope="col" class="num">Closing bal.</th>
+              <th scope="col" class="row-actions">Action</th>
+            </tr>
+          </thead>
+          <tbody class="cash-bank">
+            <ng-container *ngTemplateOutlet="cashBankRows" />
+          </tbody>
+        </table>
+      </div>
+      <ul class="cards">
+        <ng-container *ngTemplateOutlet="cashBankCards" />
+      </ul>
+    </div>
+  }
 </div>
+
+<!-- Cash in hand and bank accounts: Debit = money in (receipts), Credit = money out (payments). -->
+<ng-template #cashBankRows>
+  @for (a of filteredCashBank(); track a.key) {
+    <tr>
+      <td>
+        <a class="name-link strong account-name" [routerLink]="['/settings']" [queryParams]="{ tab: 'cash-bank', account: a.key }" title="Open book">
+          <app-icon [name]="a.type === 'cash' ? 'wallet' : 'building'" [size]="16" /> {{ accountLabel(a) }}
+        </a>
+        <span class="address muted">{{ a.type === 'cash' ? 'Cash in hand' : 'Bank account' }}</span>
+      </td>
+      <td class="muted">—</td>
+      <td class="contact">
+        @if (ifscOf(a); as ifsc) {
+          <span>IFSC {{ ifsc }}</span>
+        } @else {
+          <span class="muted">—</span>
+        }
+      </td>
+      <td class="muted">—</td>
+      <td class="num">{{ a.periodOpening | balance: false }}</td>
+      <td class="num">{{ a.in | inr: false }}</td>
+      <td class="num">{{ a.out | inr: false }}</td>
+      <td class="num strong">{{ a.closing | balance: false }}</td>
+      <td class="row-actions">
+        <a class="icon-button" [routerLink]="['/settings']" [queryParams]="{ tab: 'cash-bank', account: a.key }"
+          [attr.aria-label]="'View book of ' + accountLabel(a)" title="View cash / bank book">
+          <app-icon name="eye" [size]="16" />
+        </a>
+        @if (editableAccount(a)) {
+          <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + accountLabel(a)" title="Edit details" (click)="openCashBankForm(a)">
+            <app-icon name="pencil" [size]="16" />
+          </button>
+        }
+        @if (a.type === 'bank' && a.bankAccountId !== null) {
+          <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Remove ' + accountLabel(a)" title="Remove bank account"
+            (click)="deletingAccount.set(a)">
+            <app-icon name="trash" [size]="16" />
+          </button>
+        }
+      </td>
+    </tr>
+  }
+</ng-template>
+
+<ng-template #cashBankCards>
+  @for (a of filteredCashBank(); track a.key) {
+    <li class="card card--tappable">
+      <div class="card__main">
+        <a class="card__title name-link card-link" [routerLink]="['/settings']" [queryParams]="{ tab: 'cash-bank', account: a.key }">{{ accountLabel(a) }}</a>
+        <span class="card__meta">Closing: <span class="strong">{{ a.closing | balance }}</span></span>
+        <span class="card__meta">Opening {{ a.periodOpening | balance: false }} · In {{ a.in | inr: false }} · Out {{ a.out | inr: false }}</span>
+        @if (ifscOf(a); as ifsc) {
+          <span class="card__meta">IFSC {{ ifsc }}</span>
+        }
+      </div>
+      <div class="card__actions">
+        <a class="icon-button" [routerLink]="['/settings']" [queryParams]="{ tab: 'cash-bank', account: a.key }"
+          [attr.aria-label]="'View book of ' + accountLabel(a)" title="View cash / bank book">
+          <app-icon name="eye" [size]="16" />
+        </a>
+        @if (editableAccount(a)) {
+          <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + accountLabel(a)" title="Edit details" (click)="openCashBankForm(a)">
+            <app-icon name="pencil" [size]="16" />
+          </button>
+        }
+        @if (a.type === 'bank' && a.bankAccountId !== null) {
+          <button type="button" class="icon-button icon-button--danger" [attr.aria-label]="'Remove ' + accountLabel(a)" title="Remove bank account"
+            (click)="deletingAccount.set(a)">
+            <app-icon name="trash" [size]="16" />
+          </button>
+        }
+      </div>
+    </li>
+  }
+</ng-template>
+
+<app-modal [open]="cashBankFormOpen()" [title]="editingAccount()?.type === 'cash' ? 'Edit cash in hand' : editingAccount() ? 'Edit bank account' : 'Add bank account'"
+  (closed)="cashBankFormOpen.set(false)">
+  @if (cashBankFormOpen() && company(); as c) {
+    <app-cash-bank-form [company]="c" [account]="editingAccount()" (saved)="onCashBankSaved($event)" (cancelled)="cashBankFormOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!deletingAccount()" title="Remove bank account?" size="sm" (closed)="deletingAccount.set(null)">
+  @if (deletingAccount(); as a) {
+    <p class="confirm-text">
+      <strong>{{ accountLabel(a) }}</strong> will be removed from your Business Details. Receipts and payments already
+      saved to it then count in your primary bank account.
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn--outline" (click)="deletingAccount.set(null)">Cancel</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleteBusy()" (click)="confirmDeleteAccount()">
+        {{ deleteBusy() ? 'Removing…' : 'Remove account' }}
+      </button>
+    </div>
+  }
+</app-modal>
 
 <app-modal [open]="formOpen()" [title]="editing() ? 'Edit party' : 'Add party'" (closed)="formOpen.set(false)">
   @if (formOpen()) {

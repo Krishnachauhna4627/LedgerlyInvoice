@@ -1,8 +1,14 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
-import { Client } from '../../core/data/models';
+import { CompanyService } from '../../core/data/company.service';
+import { CashBankSummaryRow, Client, Company } from '../../core/data/models';
+import { ReportService } from '../../core/data/report.service';
+import { cashBankAccountLabel } from '../../core/ledger/cash-bank-labels';
+import { createPartyListPdf } from '../../core/ledger/party-list-pdf';
+import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { stateLabel } from '../../core/gst/gst-states';
 import { downloadCsv } from '../../core/ui/csv';
 import { todayIso } from '../../core/ui/dates';
@@ -15,16 +21,23 @@ import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { BalancePipe } from '../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
+import { companyInput } from './cash-bank-accounts';
+import { CashBankForm } from './components/cash-bank-form/cash-bank-form';
+
+// Same limit as the backend.
+const MAX_BANK_ACCOUNTS = 10;
 
 @Component({
   selector: 'app-clients-page',
-  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, InrPipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, ClientForm, BalancePipe, InrPipe, RouterLink, ShowMore, CashBankForm, NgTemplateOutlet],
   templateUrl: './clients.html',
   styleUrl: './clients.scss',
 })
 export class Clients {
   private readonly clientService = inject(ClientService);
   private readonly toast = inject(ToastService);
+  private readonly companyService = inject(CompanyService);
+  private readonly reports = inject(ReportService);
 
   protected readonly clients = signal<Client[]>([]);
   protected readonly loading = signal(true);
@@ -37,7 +50,23 @@ export class Clients {
   protected readonly deleting = signal<Client | null>(null);
   protected readonly deleteBusy = signal(false);
 
+  // Cash in hand and bank accounts (kept in Business Details), listed below the parties.
+  protected readonly company = signal<Company | null>(null);
+  protected readonly cashBank = signal<CashBankSummaryRow[]>([]);
+  protected readonly cashBankFormOpen = signal(false);
+  protected readonly editingAccount = signal<CashBankSummaryRow | null>(null);
+  protected readonly deletingAccount = signal<CashBankSummaryRow | null>(null);
+  protected readonly accountLabel = cashBankAccountLabel;
+  protected readonly maxBankAccounts = MAX_BANK_ACCOUNTS;
+  protected readonly filteredCashBank = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) return this.cashBank();
+    return this.cashBank().filter((a) => [cashBankAccountLabel(a), a.accountNo].some((v) => (v ?? '').toLowerCase().includes(term)));
+  });
+
   protected readonly stateLabel = stateLabel;
+  protected readonly pdfBusy = signal(false);
+  protected readonly hasRows = computed(() => this.filtered().length > 0 || this.filteredCashBank().length > 0);
   protected readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
     if (!term) return this.clients();
@@ -81,6 +110,59 @@ export class Clients {
         this.loading.set(false);
       },
     });
+    this.loadCashBank();
+  }
+
+  // All-time balances, like the parties: opening as entered, total in / out, closing now.
+  private loadCashBank(): void {
+    this.companyService.get(true).subscribe({ next: (company) => this.company.set(company) });
+    this.reports.cashBank({}).subscribe({
+      next: (accounts) => this.cashBank.set(accounts),
+      error: (err: unknown) => this.toast.error(`Couldn't load cash & bank: ${toApiError(err).message}`),
+    });
+  }
+
+  // Edit / delete only for cash and real bank accounts (not the catch-all "Bank" for entries without one).
+  protected editableAccount(a: CashBankSummaryRow): boolean {
+    return a.type === 'cash' || a.bankAccountId !== null;
+  }
+
+  protected ifscOf(a: CashBankSummaryRow): string | null {
+    return this.company()?.bankAccounts.find((b) => b.id === a.bankAccountId)?.ifsc ?? null;
+  }
+
+  protected openCashBankForm(account: CashBankSummaryRow | null): void {
+    if (!this.company()) return;
+    this.editingAccount.set(account);
+    this.cashBankFormOpen.set(true);
+  }
+
+  protected onCashBankSaved(company: Company): void {
+    this.company.set(company);
+    this.cashBankFormOpen.set(false);
+    this.toast.success(this.editingAccount() ? 'Account saved' : 'Bank account added');
+    this.loadCashBank();
+  }
+
+  protected confirmDeleteAccount(): void {
+    const account = this.deletingAccount();
+    const company = this.company();
+    if (!account || !company || this.deleteBusy()) return;
+    this.deleteBusy.set(true);
+    const remaining = company.bankAccounts.filter((b) => b.id !== account.bankAccountId);
+    this.companyService.update(companyInput(company, remaining, company.cashOpeningBalance ?? 0)).subscribe({
+      next: (updated) => {
+        this.company.set(updated);
+        this.toast.success('Bank account removed');
+        this.deletingAccount.set(null);
+        this.deleteBusy.set(false);
+        this.loadCashBank();
+      },
+      error: (err: unknown) => {
+        this.toast.error(toApiError(err).message);
+        this.deleteBusy.set(false);
+      },
+    });
   }
 
   // Download the list shown (search applied) for Excel, with each party's receivable / payable and the totals.
@@ -110,8 +192,57 @@ export class Clients {
           c.closingBalance < 0 ? money(c.closingBalance) : '',
         ]),
         ['Total', '', '', '', '', '', '', '', '', '', '', '', receivable.toFixed(2), payable.toFixed(2)],
+        ...this.filteredCashBank().map((a) => [
+          cashBankAccountLabel(a),
+          '',
+          '',
+          '',
+          '',
+          '',
+          money(a.periodOpening),
+          side(a.periodOpening),
+          a.in.toFixed(2),
+          a.out.toFixed(2),
+          money(a.closing),
+          side(a.closing),
+          '',
+          '',
+        ]),
       ],
     );
+  }
+
+  // The list shown (search applied) with cash & bank, as a PDF: in a new tab to view / print / save…
+  protected async openPdf(): Promise<void> {
+    if (!this.hasRows() || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      await openPdfInNewTab(() => this.makePdf(), `Ledgers-party-detail-${todayIso()}`);
+    } catch (err) {
+      console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  // …or through the phone's share sheet (WhatsApp, email…); downloaded on desktop.
+  protected async sharePdf(): Promise<void> {
+    if (!this.hasRows() || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      const result = await sharePdf(() => this.makePdf(), `Ledgers-party-detail-${todayIso()}`, 'Ledgers/Party Detail');
+      if (result === 'downloaded') this.toast.success('PDF downloaded. Attach it to your email or chat to send it.');
+    } catch (err) {
+      console.error('Share PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  private makePdf(): Promise<Blob> {
+    return createPartyListPdf(this.filtered(), this.filteredCashBank(), this.company());
   }
 
   protected openForm(client: Client | null): void {
