@@ -4,7 +4,7 @@ import { toApiError } from '../../core/api/api-error';
 import { ClientService } from '../../core/data/client.service';
 import { CompanyService } from '../../core/data/company.service';
 import { Company, Ledger } from '../../core/data/models';
-import { ledgerAccount } from '../../core/ledger/ledger-labels';
+import { ledgerAccount, ledgerEntryType } from '../../core/ledger/ledger-labels';
 import { createLedgerPdf } from '../../core/ledger/ledger-pdf';
 import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
@@ -18,7 +18,7 @@ import { BalancePipe } from '../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 import { LedgerDocument } from './components/ledger-document/ledger-document';
 
-// /clients/:id — one customer's account ledger: sales, receipts and due / advance, date-wise.
+// /clients/:id — one party's account ledger: sales, receipts, purchases, payments and the balance, date-wise.
 @Component({
   selector: 'app-client-ledger-page',
   imports: [PageHeader, Icon, Modal, ReceiptForm, InrPipe, BalancePipe, RouterLink, LedgerDocument],
@@ -125,8 +125,8 @@ export class ClientLedger {
         ...l.entries.map((e) => [
           formatDmy(e.date),
           formatTime(e.createdAt),
-          e.type === 'sale' ? 'Sale' : 'Rcpt',
-          e.invoiceNumber,
+          ledgerEntryType(e),
+          e.number,
           ledgerAccount(e, this.company()),
           e.debit || '',
           e.credit || '',
@@ -134,7 +134,7 @@ export class ClientLedger {
           drCr(e.balance),
           e.reference,
         ]),
-        ['', '', 'Total', '', '', l.totals.sales, l.totals.receipts, '', '', ''],
+        ['', '', 'Total', '', '', l.totals.debit, l.totals.credit, '', '', ''],
         ['', '', 'Closing', '', '', '', '', Math.abs(l.totals.closingBalance), drCr(l.totals.closingBalance), ''],
       ],
     );

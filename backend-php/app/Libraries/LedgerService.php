@@ -123,8 +123,14 @@ class LedgerService
     }
 
     /**
-     * Date-wise ledger of one customer (a clients row): sales are debits, receipts credits, with a
-     * running balance. Entries before $from are folded into the opening balance; entries after $to are left out.
+     * Date-wise ledger of one party (a clients row), on both sides of the business:
+     *   debit  (they owe us more / we owe them less): sales invoices (except drafts), payments we made to them;
+     *   credit (they owe us less / we owe them more): receipts from them, purchase bills from them.
+     * The running balance starts at the opening balance: positive = Dr (receivable), negative = Cr (payable) —
+     * the same closing balance as the Ledgers/Party Detail list (PARTY_DEBIT_SQL / PARTY_CREDIT_SQL).
+     * Entries before $from are folded into the opening balance; entries after $to are left out.
+     *
+     * Every entry has `number` (its voucher / bill number); sales also keep `invoiceNumber`, receipts `receiptNumber`.
      *
      * @param array<string, mixed> $client
      *
@@ -142,59 +148,105 @@ class LedgerService
             ->join('company_bank_accounts bank', 'bank.id = receipts.bank_account_id', 'left')
             ->where('client_id', $client['id'])
             ->get()->getResultArray();
+        $purchases = $this->db->table('purchases')
+            ->select('id, purchase_number, purchase_date, grand_total, note, created_at')
+            ->where('client_id', $client['id'])
+            ->get()->getResultArray();
+        $payments = $this->db->table('vendor_payments')
+            ->select('vendor_payments.id, payment_number, payment_date, vendor_payments.created_at, mode, bank_account_id, amount, reference, bank.bank_name, bank.account_no')
+            ->join('company_bank_accounts bank', 'bank.id = vendor_payments.bank_account_id', 'left')
+            ->where('client_id', $client['id'])
+            ->get()->getResultArray();
 
+        $entry = static fn (string $type, array $fields): array => [
+            'type'          => $type,
+            'invoiceNumber' => null,
+            'receiptNumber' => null,
+            'mode'          => null,
+            'bankAccount'   => null,
+            'reference'     => null,
+            'debit'         => 0,
+            'credit'        => 0,
+            ...$fields,
+        ];
         $all = [
-            ...array_map(static fn (array $i): array => [
-                'type'          => 'sale',
+            ...array_map(static fn (array $i): array => $entry('sale', [
                 'id'            => (int) $i['id'],
                 'date'          => $i['invoice_date'],
                 'createdAt'     => iso_timestamp($i['created_at']),
+                'number'        => $i['invoice_number'],
                 'invoiceNumber' => $i['invoice_number'],
-                'receiptNumber' => null,
-                'mode'          => null,
-                'bankAccount'   => null,
-                'reference'     => null,
                 'debit'         => (float) $i['grand_total'],
-                'credit'        => 0,
-            ], $invoices),
-            ...array_map(static fn (array $r): array => [
-                'type'          => 'receipt',
+            ]), $invoices),
+            ...array_map(static fn (array $r): array => $entry('receipt', [
                 'id'            => (int) $r['id'],
                 'date'          => $r['receipt_date'],
                 'createdAt'     => iso_timestamp($r['created_at']),
-                'invoiceNumber' => null,
+                'number'        => $r['receipt_number'],
                 'receiptNumber' => $r['receipt_number'],
                 'mode'          => $r['mode'],
                 'bankAccount'   => ReceiptModel::bankAccountDto($r),
                 'reference'     => $r['reference'],
-                'debit'         => 0,
                 'credit'        => (float) $r['amount'],
-            ], $receipts),
+            ]), $receipts),
+            ...array_map(static fn (array $p): array => $entry('purchase', [
+                'id'        => (int) $p['id'],
+                'date'      => $p['purchase_date'],
+                'createdAt' => iso_timestamp($p['created_at']),
+                'number'    => $p['purchase_number'],
+                'reference' => $p['note'],
+                'credit'    => (float) $p['grand_total'],
+            ]), $purchases),
+            ...array_map(static fn (array $v): array => $entry('payment', [
+                'id'          => (int) $v['id'],
+                'date'        => $v['payment_date'],
+                'createdAt'   => iso_timestamp($v['created_at']),
+                'number'      => $v['payment_number'],
+                'mode'        => $v['mode'],
+                'bankAccount' => ReceiptModel::bankAccountDto($v),
+                'reference'   => $v['reference'],
+                'debit'       => (float) $v['amount'],
+            ]), $payments),
         ];
-        // By date; on the same day sales come before receipts, then in the order they were entered.
+        // By date; on the same day bills (sales, purchases) come before money (receipts, payments), then in the
+        // order they were entered.
+        $order = ['sale' => 0, 'purchase' => 1, 'receipt' => 2, 'payment' => 3];
         usort($all, static fn (array $a, array $b): int => strcmp($a['date'], $b['date'])
-            ?: (($a['type'] === 'sale' ? -1 : 1) - ($b['type'] === 'sale' ? -1 : 1))
+            ?: $order[$a['type']] - $order[$b['type']]
+            ?: strcmp((string) $a['createdAt'], (string) $b['createdAt'])
             ?: $a['id'] - $b['id']);
 
         $balance = (float) $client['opening_balance'];
         $entries = [];
-        foreach ($all as $entry) {
-            if ($to !== null && $entry['date'] > $to) {
+        foreach ($all as $e) {
+            if ($to !== null && $e['date'] > $to) {
                 break;
             }
-            $balance = Gst::round2($balance + $entry['debit'] - $entry['credit']);
-            if ($from === null || $entry['date'] >= $from) {
-                $entries[] = [...$entry, 'balance' => $balance];
+            $balance = Gst::round2($balance + $e['debit'] - $e['credit']);
+            if ($from === null || $e['date'] >= $from) {
+                $entries[] = [...$e, 'balance' => $balance];
             }
         }
-        $sum = static fn (string $key): float => Gst::round2(array_reduce($entries, static fn (float $total, array $e): float => $total + $e[$key], 0.0));
+        $sum = static fn (string $key, ?string $type = null): float => Gst::round2(array_reduce(
+            $entries,
+            static fn (float $total, array $e): float => $total + ($type === null || $e['type'] === $type ? $e[$key] : 0),
+            0.0,
+        ));
 
         return [
             'from'           => $from,
             'to'             => $to,
             'openingBalance' => Gst::round2($balance - array_reduce($entries, static fn (float $total, array $e): float => $total + $e['debit'] - $e['credit'], 0.0)),
             'entries'        => $entries,
-            'totals'         => ['sales' => $sum('debit'), 'receipts' => $sum('credit'), 'closingBalance' => $balance],
+            'totals'         => [
+                'sales'          => $sum('debit', 'sale'),
+                'receipts'       => $sum('credit', 'receipt'),
+                'purchases'      => $sum('credit', 'purchase'),
+                'payments'       => $sum('debit', 'payment'),
+                'debit'          => $sum('debit'),
+                'credit'         => $sum('credit'),
+                'closingBalance' => $balance,
+            ],
         ];
     }
 }

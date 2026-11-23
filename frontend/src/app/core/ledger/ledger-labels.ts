@@ -11,9 +11,15 @@ export function ledgerPeriod({ from, to }: Pick<Ledger, 'from' | 'to'>): string 
   return to ? `Up to ${formatDmy(to)}` : 'All entries';
 }
 
-// "Account" column: Sales for invoices, Cash, or the bank account for bank receipts.
+// "Type" column.
+const ENTRY_TYPES: Record<LedgerEntry['type'], string> = { sale: 'Sale', receipt: 'Rcpt', purchase: 'Purc', payment: 'Pymt' };
+export const ledgerEntryType = (entry: LedgerEntry): string => ENTRY_TYPES[entry.type];
+
+// "Account" column: Sales / Purchase for bills; Cash or the bank account for receipts and payments.
 export function ledgerAccount(entry: LedgerEntry, company: Company | null): string {
-  return entry.type === 'sale' ? 'Sales' : receiptAccountLabel(entry, company);
+  if (entry.type === 'sale') return 'Sales';
+  if (entry.type === 'purchase') return 'Purchase';
+  return receiptAccountLabel(entry, company);
 }
 
 // Business address on one line.

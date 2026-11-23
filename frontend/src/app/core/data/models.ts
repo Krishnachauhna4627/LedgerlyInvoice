@@ -152,14 +152,18 @@ export interface VendorPayment {
 export type VendorPaymentInput = Omit<VendorPayment, 'id' | 'createdAt' | 'bankAccount' | 'clientId' | 'vendorName'> & { clientId: number };
 
 export interface LedgerEntry {
-  type: 'sale' | 'receipt';
-  // Invoice id for a sale, receipt id for a receipt.
+  // Debit: sale, payment (we paid them). Credit: receipt (they paid us), purchase (their bill to us).
+  type: 'sale' | 'receipt' | 'purchase' | 'payment';
+  // Id of the invoice / receipt / purchase / payment.
   id: number;
   date: string;
   // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
   createdAt?: string | null;
+  // Voucher / bill number of any entry (invoiceNumber / receiptNumber are only set on sales / receipts).
+  number: string | null;
   invoiceNumber: string | null;
   receiptNumber: string | null;
+  // Receipts and payments: cash or bank.
   mode: ReceiptMode | null;
   bankAccount: BankAccountRef | null;
   reference: string | null;
@@ -176,7 +180,16 @@ export interface Ledger {
   // Balance carried in from before `from` (includes the customer's opening balance).
   openingBalance: number;
   entries: LedgerEntry[];
-  totals: { sales: number; receipts: number; closingBalance: number };
+  totals: {
+    sales: number;
+    receipts: number;
+    purchases: number;
+    payments: number;
+    // All entries: sales + payments, receipts + purchases.
+    debit: number;
+    credit: number;
+    closingBalance: number;
+  };
 }
 
 export interface Item {

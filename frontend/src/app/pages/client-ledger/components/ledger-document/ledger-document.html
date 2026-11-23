@@ -33,13 +33,22 @@
         @for (e of l.entries; track e.type + e.id) {
           <tr>
             <td class="nowrap">{{ formatDmy(e.date) }}<span class="time">{{ e.createdAt | time }}</span></td>
-            <td>{{ e.type === 'sale' ? 'Sale' : 'Rcpt' }}</td>
+            <td>{{ entryType(e) }}</td>
             <td class="nowrap">
-              @if (e.type === 'sale') {
-                <a [routerLink]="['/invoices', e.id]">{{ e.invoiceNumber }}</a>
-              } @else {
-                <!-- Opens the receipt on the Receipts page (same customer and financial year). -->
-                <a routerLink="/receipts" [queryParams]="{ open: e.id, client: l.client.id, date: e.date }">{{ e.receiptNumber || 'View' }}</a>
+              @switch (e.type) {
+                @case ('sale') {
+                  <a [routerLink]="['/invoices', e.id]">{{ e.number }}</a>
+                }
+                @case ('receipt') {
+                  <!-- Opens the receipt on the Receipts page (same customer and financial year). -->
+                  <a routerLink="/receipts" [queryParams]="{ open: e.id, client: l.client.id, date: e.date }">{{ e.number || 'View' }}</a>
+                }
+                @case ('purchase') {
+                  <a [routerLink]="['/purchases', e.id, 'edit']">{{ e.number || 'View' }}</a>
+                }
+                @case ('payment') {
+                  <a routerLink="/payments">{{ e.number || 'View' }}</a>
+                }
               }
             </td>
             <td>{{ account(e) }}</td>
@@ -50,13 +59,13 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="8" class="empty">No sales or receipts in this period.</td>
+            <td colspan="8" class="empty">No entries in this period.</td>
           </tr>
         }
         <tr class="ledger__total">
           <td colspan="4" class="num">Total</td>
-          <td class="num">{{ l.totals.sales | inr: false }}</td>
-          <td class="num">{{ l.totals.receipts | inr: false }}</td>
+          <td class="num">{{ l.totals.debit | inr: false }}</td>
+          <td class="num">{{ l.totals.credit | inr: false }}</td>
           <td colspan="2"></td>
         </tr>
       </tbody>

@@ -41,7 +41,7 @@ class Clients extends BaseController
     }
 
     /**
-     * Date-wise sales, receipts and running balance for one customer.
+     * Date-wise sales, receipts, purchases and payments with a running balance for one party.
      */
     public function ledger(string $id)
     {
@@ -81,13 +81,21 @@ class Clients extends BaseController
 
     /**
      * Invoices keep their own copy of the client's details, so deleting a client never changes them.
-     * Receipts don't, so a customer with receipts stays (their ledger would lose entries).
+     * Receipts, purchases and payments don't, so a party with any of them stays (their ledger would lose entries).
      */
     public function delete(string $id)
     {
         $row = $this->clients->findOwned($this->companyId(), $this->id($id));
-        if (db_connect()->table('receipts')->where('client_id', $row['id'])->countAllResults() > 0) {
+        $db = db_connect();
+        if ($db->table('receipts')->where('client_id', $row['id'])->countAllResults() > 0) {
             throw new HttpError(409, 'This party has receipts. Delete their receipts first.');
+        }
+        // Purchases and payments would lose their party (and drop out of every ledger) too.
+        if ($db->table('purchases')->where('client_id', $row['id'])->countAllResults() > 0) {
+            throw new HttpError(409, 'This party has purchases. Delete their purchases first.');
+        }
+        if ($db->table('vendor_payments')->where('client_id', $row['id'])->countAllResults() > 0) {
+            throw new HttpError(409, 'This party has payments. Delete their payments first.');
         }
         $this->clients->delete($row['id']);
 

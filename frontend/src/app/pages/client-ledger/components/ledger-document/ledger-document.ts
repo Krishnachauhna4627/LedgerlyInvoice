@@ -1,14 +1,14 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Company, Ledger, LedgerEntry } from '../../../../core/data/models';
-import { ledgerAccount, ledgerPeriod, oneLineAddress } from '../../../../core/ledger/ledger-labels';
+import { ledgerAccount, ledgerEntryType, ledgerPeriod, oneLineAddress } from '../../../../core/ledger/ledger-labels';
 import { formatDmy } from '../../../../core/ui/dates';
 import { BalancePipe } from '../../../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
 import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Printable "Account Ledger" of one customer: business header, period, opening balance,
-// date-wise sales (debit) and receipts (credit) with running balance, totals and closing balance.
+// date-wise sales and payments (debit), receipts and purchases (credit) with running balance, totals and closing balance.
 @Component({
   selector: 'app-ledger-document',
   imports: [InrPipe, BalancePipe, TimePipe, RouterLink],
@@ -20,6 +20,7 @@ export class LedgerDocument {
   readonly company = input<Company | null>(null);
 
   protected readonly formatDmy = formatDmy;
+  protected readonly entryType = ledgerEntryType;
 
   protected readonly address = computed(() => oneLineAddress(this.company()?.address));
   protected readonly period = computed(() => ledgerPeriod(this.ledger()));

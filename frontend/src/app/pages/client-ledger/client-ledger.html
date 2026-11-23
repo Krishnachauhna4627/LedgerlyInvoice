@@ -1,4 +1,4 @@
-<app-page-header class="no-print" [title]="ledger()?.client?.name ?? 'Party ledger'" subtitle="Account ledger: sales, receipts and balance, date-wise.">
+<app-page-header class="no-print" [title]="ledger()?.client?.name ?? 'Party ledger'" subtitle="Account ledger: sales, receipts, purchases, payments and balance, date-wise.">
   <a class="btn btn--outline btn--sm" routerLink="/clients"><app-icon name="arrow-left" [size]="16" /> Ledgers</a>
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Excel (CSV)
@@ -56,8 +56,18 @@
         <span class="summary-tile__label">Received</span>
         <span class="summary-tile__value">{{ l.totals.receipts | inr }}</span>
       </li>
+      @if (l.totals.purchases || l.totals.payments) {
+        <li class="summary-tile">
+          <span class="summary-tile__label">Purchases</span>
+          <span class="summary-tile__value">{{ l.totals.purchases | inr }}</span>
+        </li>
+        <li class="summary-tile">
+          <span class="summary-tile__label">Paid</span>
+          <span class="summary-tile__value">{{ l.totals.payments | inr }}</span>
+        </li>
+      }
       <li class="summary-tile summary-tile--main">
-        <span class="summary-tile__label">{{ l.totals.closingBalance > 0 ? 'Due' : l.totals.closingBalance < 0 ? 'Advance' : 'Closing balance' }}</span>
+        <span class="summary-tile__label">{{ l.totals.closingBalance > 0 ? 'Receivable (Dr)' : l.totals.closingBalance < 0 ? 'Payable (Cr)' : 'Closing balance' }}</span>
         <span class="summary-tile__value" [class.amount--due]="l.totals.closingBalance > 0" [class.amount--advance]="l.totals.closingBalance < 0">
           {{ l.totals.closingBalance | balance }}
         </span>

@@ -56,10 +56,20 @@ class Reports extends BaseController
         $prevReceivable = self::receivableAt($companyId, $prevTo);
         $prevPayable    = self::payableAt($companyId, $prevTo);
 
-        // Vendor names on purchases / payments that aren't saved parties (those are already in clientCount).
+        // Vendors: saved parties with purchases / payments, plus vendor names on old purchases / payments that aren't
+        // linked to a party and match none. Customers: every other saved party (each party is counted once).
         // Explicit collation: the purchases tables and clients were created with different defaults on some servers.
-        $vendors = $db->query(
-            'SELECT COUNT(*) AS n FROM (SELECT vendor_name FROM purchases WHERE company_id = ? UNION SELECT vendor_name FROM vendor_payments WHERE company_id = ?) v
+        $partyCount  = $db->table('clients')->where('company_id', $companyId)->countAllResults();
+        $vendorParty = $db->query(
+            'SELECT COUNT(*) AS n FROM clients c WHERE c.company_id = ? AND (
+               EXISTS (SELECT 1 FROM purchases p WHERE p.client_id = c.id)
+               OR EXISTS (SELECT 1 FROM vendor_payments vp WHERE vp.client_id = c.id))',
+            [$companyId],
+        )->getRowArray();
+        $vendorNames = $db->query(
+            'SELECT COUNT(*) AS n FROM (
+               SELECT vendor_name FROM purchases WHERE company_id = ? AND client_id IS NULL
+               UNION SELECT vendor_name FROM vendor_payments WHERE company_id = ? AND client_id IS NULL) v
              WHERE NOT EXISTS (SELECT 1 FROM clients c WHERE c.company_id = ? AND c.name COLLATE utf8mb4_unicode_ci = v.vendor_name COLLATE utf8mb4_unicode_ci)',
             [$companyId, $companyId, $companyId],
         )->getRowArray();
@@ -75,8 +85,8 @@ class Reports extends BaseController
             // Balances at the end of the period; count = customers / vendors with dues.
             'receivable'     => $stat($receivable, $prevReceivable),
             'payable'        => $stat($payable, $prevPayable),
-            'clientCount'    => $db->table('clients')->where('company_id', $companyId)->countAllResults(),
-            'vendorCount'    => (int) $vendors['n'],
+            'clientCount'    => $partyCount - (int) $vendorParty['n'],
+            'vendorCount'    => (int) $vendorParty['n'] + (int) $vendorNames['n'],
             'itemCount'      => $db->table('items')->where('company_id', $companyId)->countAllResults(),
             'trend'          => $this->monthlyTrend($companyId, $to, $months),
             'recentInvoices' => (new InvoiceService())->listInvoices($companyId, ['sort' => 'date_desc', 'limit' => 6]),

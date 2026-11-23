@@ -1,7 +1,7 @@
 import { Company, Ledger } from '../data/models';
 import { BOTTOM, CONTENT_WIDTH, FONT, MARGIN, PAGE, TOP_CONTINUED, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
 import { formatDmy, formatTime } from '../ui/dates';
-import { ledgerAccount, ledgerPeriod, oneLineAddress } from './ledger-labels';
+import { ledgerAccount, ledgerEntryType, ledgerPeriod, oneLineAddress } from './ledger-labels';
 
 // Builds one customer's "Account Ledger" as a real A4 PDF (tables drawn with jspdf-autotable),
 // laid out like <app-ledger-document>: business header, title bar, account / period / opening
@@ -67,20 +67,20 @@ export async function createLedgerPdf(ledger: Ledger, company: Company | null): 
       ? ledger.entries.map((e) => [
           // Time on a second line under the date.
           [formatDmy(e.date), formatTime(e.createdAt)].filter(Boolean).join('\n'),
-          e.type === 'sale' ? 'Sale' : 'Rcpt',
-          (e.type === 'sale' ? e.invoiceNumber : e.receiptNumber) ?? '',
+          ledgerEntryType(e),
+          e.number ?? '',
           ledgerAccount(e, company),
           e.debit ? money(e.debit) : '',
           e.credit ? money(e.credit) : '',
           balance(e.balance),
           e.reference ?? '',
         ])
-      : [[{ content: 'No sales or receipts in this period.', colSpan: 8, styles: { halign: 'center', textColor: c.muted } }]],
+      : [[{ content: 'No entries in this period.', colSpan: 8, styles: { halign: 'center', textColor: c.muted } }]],
     foot: [
       [
         { content: 'Total', colSpan: 4, styles: { halign: 'right' } },
-        { content: money(ledger.totals.sales), styles: numeric },
-        { content: money(ledger.totals.receipts), styles: numeric },
+        { content: money(ledger.totals.debit), styles: numeric },
+        { content: money(ledger.totals.credit), styles: numeric },
         { content: '', colSpan: 2 },
       ],
       [{ content: `Closing Bal. = Rs. ${balance(ledger.totals.closingBalance)}`, colSpan: 8, styles: { halign: 'right' } }],
