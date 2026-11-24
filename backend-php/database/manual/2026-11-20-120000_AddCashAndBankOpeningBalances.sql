@@ -13,6 +13,6 @@ ALTER TABLE `company_bank_accounts`
 -- Record it as applied, so 'php spark migrate' won't try to run it again later.
 INSERT INTO `migrations` (`version`, `class`, `group`, `namespace`, `time`, `batch`)
 SELECT '2026-11-20-120000', 'App\\Database\\Migrations\\AddCashAndBankOpeningBalances', 'default', 'App',
-       UNIX_TIMESTAMP(), COALESCE(MAX(`batch`), 0) + 1
-FROM `migrations`
+       UNIX_TIMESTAMP(), m.`next_batch`
+FROM (SELECT COALESCE(MAX(`batch`), 0) + 1 AS `next_batch` FROM `migrations`) AS m
 WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `version` = '2026-11-20-120000');
