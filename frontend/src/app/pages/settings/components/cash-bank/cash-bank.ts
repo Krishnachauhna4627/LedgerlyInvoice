@@ -5,6 +5,9 @@ import { CompanyService } from '../../../../core/data/company.service';
 import { CashBankLedger, CashBankSummaryRow, Company } from '../../../../core/data/models';
 import { DateRange, ReportService } from '../../../../core/data/report.service';
 import { cashBankAccountLabel, cashBankEntryType } from '../../../../core/ledger/cash-bank-labels';
+import { createCashBankPdf } from '../../../../core/ledger/cash-bank-pdf';
+import { openPdfInNewTab, sharePdf } from '../../../../core/pdf/open-pdf';
+import { ToastService } from '../../../../core/ui/toast.service';
 import { round2 } from '../../../../core/gst/gst';
 import { downloadCsv } from '../../../../core/ui/csv';
 import { financialYear, formatDmy, formatTime } from '../../../../core/ui/dates';
@@ -26,6 +29,7 @@ export class CashBank {
   private readonly reports = inject(ReportService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(ToastService);
   // "Opening balances" button: back to the details tab, where they are entered.
   readonly editOpenings = output();
 
@@ -34,6 +38,7 @@ export class CashBank {
   protected readonly company = signal<Company | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
+  protected readonly pdfBusy = signal(false);
 
   // The period starts as the current financial year (1 April – 31 March).
   protected readonly from = signal(financialYear().from);
@@ -106,6 +111,44 @@ export class CashBank {
 
   protected print(): void {
     window.print();
+  }
+
+  // "Cash-Book" / "Bank-Book-SBI-1234567890": PDF file name and share title.
+  private pdfName(l: CashBankLedger): string {
+    const name = l.account.type === 'cash' ? 'Cash Book' : `Bank Book ${cashBankAccountLabel(l.account).replace(/^Bank/, '')}`;
+    return name.trim().replace(/[^\w]+/g, '-');
+  }
+
+  // Makes a real PDF of the book and opens it in a new tab (works on phones, where printing often doesn't).
+  protected async openPdf(): Promise<void> {
+    const l = this.ledger();
+    if (!l || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      await openPdfInNewTab(() => createCashBankPdf(l, this.company()), this.pdfName(l));
+    } catch (err) {
+      console.error('Open PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  // Sends the book as a PDF file via the phone's share sheet (WhatsApp, email…), or downloads it on desktop.
+  protected async sharePdf(): Promise<void> {
+    const l = this.ledger();
+    if (!l || this.pdfBusy()) return;
+    this.pdfBusy.set(true);
+    try {
+      const title = `${l.account.type === 'cash' ? 'Cash Book' : 'Bank Book'} – ${cashBankAccountLabel(l.account)}`;
+      const result = await sharePdf(() => createCashBankPdf(l, this.company()), this.pdfName(l), title);
+      if (result === 'downloaded') this.toast.success('PDF downloaded. Attach it to your email or chat to send it.');
+    } catch (err) {
+      console.error('Share PDF failed', err);
+      this.toast.error('Could not make the PDF. Please try again.');
+    } finally {
+      this.pdfBusy.set(false);
+    }
   }
 
   protected exportCsv(): void {

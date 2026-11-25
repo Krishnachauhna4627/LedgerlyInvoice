@@ -1,5 +1,6 @@
+import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api/api-error';
 import { CompanyService } from '../../core/data/company.service';
 import { Company, ReceiptMode, VendorPayment } from '../../core/data/models';
@@ -19,6 +20,7 @@ import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
 import { TimePipe } from '../../shared/pipes/time.pipe';
 import { PaymentForm } from './components/payment-form/payment-form';
+import { PaymentView } from './components/payment-view/payment-view';
 
 const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 
@@ -26,13 +28,22 @@ const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 // The goods bought are recorded on /purchases, like receipts and invoices.
 @Component({
   selector: 'app-payments-page',
-  imports: [PageHeader, Icon, Modal, PaymentForm, InrPipe, TimePipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, PaymentForm, PaymentView, InrPipe, TimePipe, RouterLink, ShowMore],
   templateUrl: './payments.html',
   styleUrl: './payments.scss',
 })
 export class Payments {
   private readonly service = inject(VendorPaymentService);
   private readonly toast = inject(ToastService);
+  // ?open=<payment id>&client=<id>&date=<YYYY-MM-DD> (from a party ledger): show that payment (read-only) straight away.
+  private readonly urlParams = inject(ActivatedRoute).snapshot.queryParamMap;
+  private openId: number | null = Number(this.urlParams.get('open')) || null;
+  // Party whose ledger we came from (?open + ?client), for the "Back to ledger" buttons; null otherwise.
+  protected readonly ledgerClientId = this.openId ? Number(this.urlParams.get('client')) || null : null;
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  // Whether there is an in-app page to go back to (false when this URL was opened directly).
+  private readonly hasPrevious = !!this.router.currentNavigation()?.previousNavigation;
 
   protected readonly payments = signal<VendorPayment[]>([]);
   protected readonly page = paged(this.payments);
@@ -50,9 +61,11 @@ export class Payments {
   protected readonly editing = signal<VendorPayment | null>(null);
   protected readonly deleting = signal<VendorPayment | null>(null);
   // Business details printed on the voucher, and the payment whose PDF is being made.
-  private readonly company = signal<Company | null>(null);
+  protected readonly company = signal<Company | null>(null);
   protected readonly printingId = signal<number | null>(null);
   protected readonly deleteBusy = signal(false);
+  // Payment shown read-only in the view modal (opened from a party ledger).
+  protected readonly viewing = signal<VendorPayment | null>(null);
 
   protected readonly formatDmy = formatDmy;
   protected readonly totals = computed(() => {
@@ -69,6 +82,12 @@ export class Payments {
     inject(CompanyService)
       .get()
       .subscribe({ next: (company) => this.company.set(company) });
+    // Opening one payment: list the financial year it falls in, so it is in the list.
+    const date = this.urlParams.get('date');
+    if (this.openId && date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      this.from.set(financialYear(date).from);
+      this.to.set(financialYear(date).to);
+    }
     this.load();
   }
 
@@ -80,6 +99,7 @@ export class Payments {
       next: (payments) => {
         this.payments.set(payments);
         this.loading.set(false);
+        this.openFromUrl(payments);
       },
       error: (err: unknown) => {
         this.loadError.set(toApiError(err).message);
@@ -93,6 +113,28 @@ export class Payments {
     else this[name].set(value);
     this.page.reset();
     this.load();
+  }
+
+  // Once, after the first load: show the payment asked for in the URL.
+  private openFromUrl(payments: VendorPayment[]): void {
+    if (this.openId === null) return;
+    const payment = payments.find((p) => p.id === this.openId);
+    this.openId = null;
+    if (payment) this.viewing.set(payment);
+    else this.toast.error('That payment was not found.');
+  }
+
+  // Back to the ledger exactly as it was (period, scroll); straight to it when the link was opened directly.
+  protected backToLedger(): void {
+    if (this.hasPrevious) this.location.back();
+    else this.router.navigate(['/clients', this.ledgerClientId]);
+  }
+
+  // View modal → Edit: swap to the edit form for the same payment.
+  protected editViewed(): void {
+    const payment = this.viewing();
+    this.viewing.set(null);
+    if (payment) this.openForm(payment);
   }
 
   protected openForm(payment: VendorPayment | null): void {

@@ -1,0 +1,35 @@
+@let p = payment();
+<article class="receipt" [attr.aria-label]="'Payment ' + p.paymentNumber">
+  @if (company(); as c) {
+    <header class="biz">
+      <strong>{{ c.name }}</strong>
+      @if (address()) {
+        <span>{{ address() }}</span>
+      }
+    </header>
+  }
+
+  <dl class="facts">
+    <div><dt>Payment No.</dt><dd class="strong">{{ p.paymentNumber || '—' }}</dd></div>
+    <div><dt>Date</dt><dd>{{ formatDmy(p.paymentDate) }}<span class="time">{{ p.createdAt | time }}</span></dd></div>
+    <div class="wide"><dt>Paid to</dt><dd class="strong">{{ p.vendorName }}</dd></div>
+    <div class="wide"><dt>The sum of</dt><dd>{{ words() }}</dd></div>
+    <div class="wide"><dt>By</dt><dd>{{ account() }}</dd></div>
+    @if (p.reference) {
+      <div class="wide"><dt>Narration</dt><dd>{{ p.reference }}</dd></div>
+    }
+  </dl>
+
+  <p class="amount">{{ p.amount | inr }}</p>
+</article>
+
+<div class="actions">
+  @if (showBack()) {
+    <button type="button" class="btn btn--outline back" (click)="back.emit()"><app-icon name="arrow-left" [size]="16" /> Back to ledger</button>
+  }
+  <button type="button" class="btn btn--outline" (click)="closed.emit()">Close</button>
+  <button type="button" class="btn btn--outline" (click)="edit.emit()"><app-icon name="pencil" [size]="16" /> Edit</button>
+  <button type="button" class="btn btn--primary" [disabled]="printing()" (click)="print.emit()">
+    <app-icon name="printer" [size]="16" /> {{ printing() ? 'Making PDF…' : 'Print' }}
+  </button>
+</div>

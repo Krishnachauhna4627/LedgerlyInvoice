@@ -8,6 +8,12 @@
   <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger()" (click)="print()">
     <app-icon name="printer" [size]="16" /> Print
   </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger() || pdfBusy()" (click)="openPdf()">
+    <app-icon name="file-text" [size]="16" /> {{ pdfBusy() ? 'Making PDF…' : 'Open PDF' }}
+  </button>
+  <button type="button" class="btn btn--outline btn--sm" [disabled]="!ledger() || pdfBusy()" (click)="sharePdf()">
+    <app-icon name="send" [size]="16" /> Share PDF
+  </button>
 </div>
 
 <div class="body">

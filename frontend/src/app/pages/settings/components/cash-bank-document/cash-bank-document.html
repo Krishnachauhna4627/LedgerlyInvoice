@@ -38,6 +38,9 @@
               @if (e.type === 'receipt' && e.clientId) {
                 <!-- Opens the receipt on the Receipts page, with a way back here. -->
                 <a routerLink="/receipts" [queryParams]="{ open: e.id, client: e.clientId, date: e.date }">{{ e.number || 'View' }}</a>
+              } @else if (e.type === 'payment') {
+                <!-- Opens the payment on the Payments page. -->
+                <a routerLink="/payments" [queryParams]="{ open: e.id, client: e.clientId, date: e.date }">{{ e.number || 'View' }}</a>
               } @else {
                 {{ e.number }}
               }

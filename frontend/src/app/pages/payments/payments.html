@@ -1,4 +1,9 @@
 <app-page-header title="Payments" subtitle="Money paid to vendors. The items you bought go on Purchases.">
+  @if (ledgerClientId) {
+    <button type="button" class="btn btn--outline btn--sm" (click)="backToLedger()">
+      <app-icon name="arrow-left" [size]="16" /> Back to ledger
+    </button>
+  }
   <button type="button" class="btn btn--outline btn--sm" [disabled]="payments().length === 0" (click)="exportCsv()">
     <app-icon name="download" [size]="16" /> Export (CSV)
   </button>
@@ -137,6 +142,21 @@
 <app-modal [open]="formOpen()" [title]="editing() ? 'Edit Payment' : 'Record Payment'" (closed)="formOpen.set(false)">
   @if (formOpen()) {
     <app-payment-form [payment]="editing()" (saved)="onSaved()" (cancelled)="formOpen.set(false)" />
+  }
+</app-modal>
+
+<app-modal [open]="!!viewing()" title="Payment" (closed)="viewing.set(null)">
+  @if (viewing(); as p) {
+    <app-payment-view
+      [payment]="p"
+      [company]="company()"
+      [printing]="printingId() === p.id"
+      (print)="print(p)"
+      (edit)="editViewed()"
+      [showBack]="!!ledgerClientId"
+      (back)="backToLedger()"
+      (closed)="viewing.set(null)"
+    />
   }
 </app-modal>
 
