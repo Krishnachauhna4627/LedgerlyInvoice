@@ -1,6 +1,6 @@
 import { Company, StockLedger } from '../data/models';
 import { BOTTOM, CONTENT_WIDTH, FONT, MARGIN, PAGE, TOP_CONTINUED, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
-import { formatDmy, formatTime } from '../ui/dates';
+import { formatDmy } from '../ui/dates';
 import { oneLineAddress } from './ledger-labels';
 
 // Builds one product's "Stock Ledger" as an A4 PDF, laid out like the account ledger PDF: business header,
@@ -68,7 +68,7 @@ export async function createStockLedgerPdf(ledger: StockLedger, company: Company
         { content: qty(ledger.openingStock), styles: { ...numeric, fontStyle: 'bold' } },
       ],
       ...ledger.entries.map((e) => [
-        [formatDmy(e.date), formatTime(e.createdAt)].filter(Boolean).join('\n'),
+        formatDmy(e.date),
         e.type === 'purchase' ? 'Purchase' : 'Sale',
         e.number,
         e.party,

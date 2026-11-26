@@ -10,7 +10,7 @@ import { openPdfInNewTab, sharePdf } from '../../../../core/pdf/open-pdf';
 import { ToastService } from '../../../../core/ui/toast.service';
 import { round2 } from '../../../../core/gst/gst';
 import { downloadCsv } from '../../../../core/ui/csv';
-import { financialYear, formatDmy, formatTime } from '../../../../core/ui/dates';
+import { financialYear, formatDmy } from '../../../../core/ui/dates';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { BalancePipe } from '../../../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
@@ -158,12 +158,11 @@ export class CashBank {
     const name = cashBankAccountLabel(l.account);
     downloadCsv(
       `${name.replace(/[^\w]+/g, '-').toLowerCase()}-book.csv`,
-      ['Date', 'Time', 'Type', 'Vch No', 'Account', 'Debit (In)', 'Credit (Out)', 'Balance', 'Dr/Cr', 'Short Narration'],
+      ['Date', 'Type', 'Vch No', 'Account', 'Debit (In)', 'Credit (Out)', 'Balance', 'Dr/Cr', 'Short Narration'],
       [
-        ['', '', 'Opening', '', '', '', '', Math.abs(l.openingBalance), drCr(l.openingBalance), ''],
+        ['', 'Opening', '', '', '', '', Math.abs(l.openingBalance), drCr(l.openingBalance), ''],
         ...l.entries.map((e) => [
           formatDmy(e.date),
-          formatTime(e.createdAt),
           cashBankEntryType(e),
           e.number,
           e.party,

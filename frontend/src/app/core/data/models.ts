@@ -72,7 +72,7 @@ export interface Receipt {
   // Receipt No., unique per company, like the invoice number.
   receiptNumber: string;
   receiptDate: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   mode: ReceiptMode;
   // The business bank account the money went into (bank receipts only; null if not chosen or since removed).
@@ -115,7 +115,7 @@ export interface Purchase {
   vendorGstin: string | null;
   vendorStateCode: string | null;
   purchaseDate: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   // Optional — vendor's bill no., etc.
   note: string | null;
@@ -138,7 +138,7 @@ export interface VendorPayment {
   // Copied from the party when the payment was saved.
   vendorName: string;
   paymentDate: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   mode: ReceiptMode;
   // The business bank account it was paid from (bank payments only).
@@ -157,7 +157,7 @@ export interface LedgerEntry {
   // Id of the invoice / receipt / purchase / payment.
   id: number;
   date: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   // Voucher / bill number of any entry (invoiceNumber / receiptNumber are only set on sales / receipts).
   number: string | null;
@@ -216,7 +216,7 @@ export interface StockLedgerEntry {
   // Purchase payment id for a purchase, invoice id for a sale.
   id: number;
   date: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   // Payment No. or invoice number.
   number: string;
@@ -254,7 +254,7 @@ export interface InvoiceListItem {
   id: number;
   invoiceNumber: string;
   invoiceDate: string;
-  // When it was saved (ISO timestamp, UTC); the date has no time. Shown with formatTime() / | time.
+  // When it was saved (ISO timestamp, UTC); the date has no time. Not shown: bills, reports and ledgers show dates only.
   createdAt?: string | null;
   dueDate: string | null;
   status: InvoiceStatus;

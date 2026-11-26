@@ -36,7 +36,7 @@
                   <span class="note">{{ p.note }}</span>
                 }
               </td>
-              <td class="muted nowrap" [rowSpan]="rows.length">{{ formatDmy(p.purchaseDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
+              <td class="muted nowrap" [rowSpan]="rows.length">{{ formatDmy(p.purchaseDate) }}</td>
             }
             @if (line) {
               <td class="num">{{ line.quantity }}</td>
@@ -97,7 +97,7 @@
     <li class="card card--tappable">
       <div class="card__main">
         <a class="card__title card-link" [routerLink]="['/purchases', p.id, 'edit']">{{ p.vendorName }}</a>
-        <span class="card__meta">No. {{ p.purchaseNumber }} · {{ formatDmy(p.purchaseDate) }}{{ p.createdAt | time: ', ' }}</span>
+        <span class="card__meta">No. {{ p.purchaseNumber }} · {{ formatDmy(p.purchaseDate) }}</span>
         <span class="card__meta">{{ itemsText(p) }}{{ p.note ? ' · ' + p.note : '' }}</span>
         <span class="card__amount">{{ p.totals.grandTotal | inr }}</span>
       </div>

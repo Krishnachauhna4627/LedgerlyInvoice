@@ -5,13 +5,12 @@ import { stateName } from '../../../../core/gst/gst-states';
 import { formatDmy } from '../../../../core/ui/dates';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Purchase register laid out like the invoices table: on md+ one row per bill line with the bill-level
 // cells spanning its rows; stacked cards on phones.
 @Component({
   selector: 'app-purchase-table',
-  imports: [RouterLink, Icon, InrPipe, TimePipe],
+  imports: [RouterLink, Icon, InrPipe],
   templateUrl: './purchase-table.html',
   styleUrl: './purchase-table.scss',
 })

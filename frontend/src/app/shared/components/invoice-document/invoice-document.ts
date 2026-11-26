@@ -6,12 +6,11 @@ import { gstApplies } from '../../../core/gst/gst';
 import { stateLabel } from '../../../core/gst/gst-states';
 import { formatInvoiceDate, hsnSummary, inclusiveRate } from '../../../core/invoices/invoice-summary';
 import { InrPipe } from '../../pipes/inr.pipe';
-import { TimePipe } from '../../pipes/time.pipe';
 
 // The printable GST tax invoice. Layout is shared by all templates; only styling changes per template.
 @Component({
   selector: 'app-invoice-document',
-  imports: [InrPipe, DecimalPipe, TimePipe],
+  imports: [InrPipe, DecimalPipe],
   templateUrl: './invoice-document.html',
   styleUrls: ['./invoice-document.scss', './invoice-document.templates.scss', './invoice-document.print.scss'],
   host: { '[class]': "'tpl-' + invoice().template" },

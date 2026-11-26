@@ -10,7 +10,7 @@ import { createPaymentPdf } from '../../core/payments/payment-pdf';
 import { openPdfInNewTab } from '../../core/pdf/open-pdf';
 import { bankAccountLabel } from '../../core/receipts/receipt-labels';
 import { downloadCsv } from '../../core/ui/csv';
-import { financialYear, formatDmy, formatTime } from '../../core/ui/dates';
+import { financialYear, formatDmy } from '../../core/ui/dates';
 import { paged } from '../../core/ui/paged';
 import { ToastService } from '../../core/ui/toast.service';
 import { Icon } from '../../shared/components/icon/icon';
@@ -18,7 +18,6 @@ import { Modal } from '../../shared/components/modal/modal';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { ShowMore } from '../../shared/components/show-more/show-more';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../shared/pipes/time.pipe';
 import { PaymentForm } from './components/payment-form/payment-form';
 import { PaymentView } from './components/payment-view/payment-view';
 
@@ -28,7 +27,7 @@ const MODE_LABEL: Record<ReceiptMode, string> = { cash: 'Cash', bank: 'Bank' };
 // The goods bought are recorded on /purchases, like receipts and invoices.
 @Component({
   selector: 'app-payments-page',
-  imports: [PageHeader, Icon, Modal, PaymentForm, PaymentView, InrPipe, TimePipe, RouterLink, ShowMore],
+  imports: [PageHeader, Icon, Modal, PaymentForm, PaymentView, InrPipe, RouterLink, ShowMore],
   templateUrl: './payments.html',
   styleUrl: './payments.scss',
 })
@@ -187,8 +186,8 @@ export class Payments {
   protected exportCsv(): void {
     downloadCsv(
       `payments${this.from() ? '-' + this.from() : ''}${this.to() ? '-to-' + this.to() : ''}.csv`,
-      ['Payment No.', 'Date', 'Time', 'Vendor', 'Mode', 'Narration', 'Amount'],
-      this.payments().map((p) => [p.paymentNumber, formatDmy(p.paymentDate), formatTime(p.createdAt), p.vendorName, this.modeText(p), p.reference, p.amount]),
+      ['Payment No.', 'Date', 'Vendor', 'Mode', 'Narration', 'Amount'],
+      this.payments().map((p) => [p.paymentNumber, formatDmy(p.paymentDate), p.vendorName, this.modeText(p), p.reference, p.amount]),
     );
   }
 }

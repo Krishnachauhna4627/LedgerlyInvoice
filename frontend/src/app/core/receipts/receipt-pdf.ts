@@ -1,7 +1,7 @@
 import { Company, Receipt } from '../data/models';
 import { amountInWords } from '../gst/amount-in-words';
 import { CONTENT_WIDTH, FONT, MARGIN, PAGE, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
-import { formatDmy, formatTime } from '../ui/dates';
+import { formatDmy } from '../ui/dates';
 import { oneLineAddress } from '../ledger/ledger-labels';
 import { receiptAccountLabel } from './receipt-labels';
 
@@ -86,7 +86,7 @@ export async function createVoucherPdf(v: Voucher, company: Company | null, auto
         { content: v.numberLabel, styles: label },
         { content: v.number ?? '', styles: { fontStyle: 'bold' } },
         { content: 'Date', styles: { fontStyle: 'bold', cellWidth: 20 } },
-        { content: [formatDmy(v.date), formatTime(v.createdAt)].filter(Boolean).join('\n'), styles: { cellWidth: 30 } },
+        { content: formatDmy(v.date), styles: { cellWidth: 30 } },
       ],
       [{ content: v.partyLabel, styles: label }, { content: v.partyName, colSpan: 3, styles: { fontStyle: 'bold' } }],
       [{ content: 'The sum of', styles: label }, { content: amountInWords(v.amount), colSpan: 3 }],

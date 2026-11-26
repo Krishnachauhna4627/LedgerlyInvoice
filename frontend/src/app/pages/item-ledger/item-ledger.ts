@@ -9,16 +9,15 @@ import { createStockLedgerPdf } from '../../core/ledger/stock-ledger-pdf';
 import { openPdfInNewTab, sharePdf } from '../../core/pdf/open-pdf';
 import { ToastService } from '../../core/ui/toast.service';
 import { downloadCsv } from '../../core/ui/csv';
-import { formatDmy, formatTime } from '../../core/ui/dates';
+import { formatDmy } from '../../core/ui/dates';
 import { Icon } from '../../shared/components/icon/icon';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../shared/pipes/time.pipe';
 
 // /items/:id — stock ledger of one product: opening stock, purchases in, sales out, stock in hand.
 @Component({
   selector: 'app-item-ledger-page',
-  imports: [PageHeader, Icon, RouterLink, DecimalPipe, InrPipe, TimePipe],
+  imports: [PageHeader, Icon, RouterLink, DecimalPipe, InrPipe],
   templateUrl: './item-ledger.html',
   styleUrl: './item-ledger.scss',
 })
@@ -109,12 +108,11 @@ export class ItemLedger {
     if (!l) return;
     downloadCsv(
       `stock-ledger-${l.item.name.replace(/[^\w]+/g, '-').toLowerCase()}.csv`,
-      ['Date', 'Time', 'Type', 'Vch/Bill No', 'Party', 'Rate', 'In', 'Out', 'Balance'],
+      ['Date', 'Type', 'Vch/Bill No', 'Party', 'Rate', 'In', 'Out', 'Balance'],
       [
-        ['', '', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
+        ['', 'Opening stock', '', '', '', l.openingStock, '', l.openingStock],
         ...this.entries().map((e) => [
           formatDmy(e.date),
-          formatTime(e.createdAt),
           e.type === 'purchase' ? 'Purchase' : 'Sale',
           e.number,
           e.party,

@@ -5,13 +5,12 @@ import { ledgerAccount, ledgerEntryType, ledgerPeriod, oneLineAddress } from '..
 import { formatDmy } from '../../../../core/ui/dates';
 import { BalancePipe } from '../../../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Printable "Account Ledger" of one customer: business header, period, opening balance,
 // date-wise sales and payments (debit), receipts and purchases (credit) with running balance, totals and closing balance.
 @Component({
   selector: 'app-ledger-document',
-  imports: [InrPipe, BalancePipe, TimePipe, RouterLink],
+  imports: [InrPipe, BalancePipe, RouterLink],
   templateUrl: './ledger-document.html',
   styleUrl: './ledger-document.scss',
 })

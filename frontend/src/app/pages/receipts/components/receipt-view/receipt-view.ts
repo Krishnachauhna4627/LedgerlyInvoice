@@ -6,12 +6,11 @@ import { receiptAccountLabel } from '../../../../core/receipts/receipt-labels';
 import { formatDmy } from '../../../../core/ui/dates';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Read-only receipt (same details as the printed receipt) with Print / Edit actions; shown in a modal.
 @Component({
   selector: 'app-receipt-view',
-  imports: [Icon, InrPipe, TimePipe],
+  imports: [Icon, InrPipe],
   templateUrl: './receipt-view.html',
   styleUrl: './receipt-view.scss',
 })

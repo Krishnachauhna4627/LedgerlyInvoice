@@ -6,13 +6,12 @@ import { receiptAccountLabel } from '../../../../core/receipts/receipt-labels';
 import { formatDmy } from '../../../../core/ui/dates';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Read-only payment voucher (same details as the printed voucher) with Print / Edit actions; shown in a modal.
 // Same layout as the receipt view, so it shares its stylesheet.
 @Component({
   selector: 'app-payment-view',
-  imports: [Icon, InrPipe, TimePipe],
+  imports: [Icon, InrPipe],
   templateUrl: './payment-view.html',
   styleUrl: '../../../receipts/components/receipt-view/receipt-view.scss',
 })

@@ -6,14 +6,13 @@ import { ledgerPeriod, oneLineAddress } from '../../../../core/ledger/ledger-lab
 import { formatDmy } from '../../../../core/ui/dates';
 import { BalancePipe } from '../../../../shared/pipes/balance.pipe';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 // Printable cash book / bank book in the same layout as the customer "Account Ledger": business header,
 // period, opening balance, date-wise receipts (debit, money in) and payments (credit, money out) with a
 // running balance, totals and closing balance.
 @Component({
   selector: 'app-cash-bank-document',
-  imports: [InrPipe, BalancePipe, TimePipe, RouterLink],
+  imports: [InrPipe, BalancePipe, RouterLink],
   templateUrl: './cash-bank-document.html',
   // Same look as the customer ledger.
   styleUrl: '../../../client-ledger/components/ledger-document/ledger-document.scss',

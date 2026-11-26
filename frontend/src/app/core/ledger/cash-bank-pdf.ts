@@ -1,6 +1,6 @@
 import { CashBankLedger, Company } from '../data/models';
 import { BOTTOM, CONTENT_WIDTH, FONT, MARGIN, PAGE, TOP_CONTINUED, finalY, lineHeight, money, newPdf, themeColors } from '../pdf/pdf-kit';
-import { formatDmy, formatTime } from '../ui/dates';
+import { formatDmy } from '../ui/dates';
 import { cashBankAccountLabel, cashBankEntryType } from './cash-bank-labels';
 import { ledgerPeriod, oneLineAddress } from './ledger-labels';
 
@@ -68,8 +68,7 @@ export async function createCashBankPdf(ledger: CashBankLedger, company: Company
     head: [['Date', 'Type', 'Vch No', 'Account', 'Debit (In)', 'Credit (Out)', 'Balance (Rs.)', 'Short Narration']],
     body: ledger.entries.length
       ? ledger.entries.map((e) => [
-          // Time on a second line under the date.
-          [formatDmy(e.date), formatTime(e.createdAt)].filter(Boolean).join('\n'),
+          formatDmy(e.date),
           cashBankEntryType(e),
           e.number ?? '',
           e.party ?? '',

@@ -6,7 +6,6 @@ import { stateName } from '../../../../core/gst/gst-states';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { InrPipe } from '../../../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../../../shared/pipes/time.pipe';
 
 export interface MenuRequest {
   invoice: InvoiceListItem;
@@ -16,7 +15,7 @@ export interface MenuRequest {
 // Wide table on md+ (one row per invoice line, like a GST sales register); stacked cards on phones.
 @Component({
   selector: 'app-invoice-table',
-  imports: [RouterLink, DatePipe, Icon, StatusBadge, InrPipe, TimePipe],
+  imports: [RouterLink, DatePipe, Icon, StatusBadge, InrPipe],
   templateUrl: './invoice-table.html',
   styleUrl: './invoice-table.scss',
 })

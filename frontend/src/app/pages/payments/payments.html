@@ -88,7 +88,7 @@
             @for (p of page.rows(); track p.id) {
               <tr>
                 <td class="strong">{{ p.paymentNumber }}</td>
-                <td>{{ formatDmy(p.paymentDate) }}<span class="time">{{ p.createdAt | time }}</span></td>
+                <td>{{ formatDmy(p.paymentDate) }}</td>
                 <td class="strong">{{ p.vendorName }}</td>
                 <td>{{ modeText(p) }}</td>
                 <td [class.muted]="!p.reference">{{ p.reference || '—' }}</td>
@@ -116,7 +116,7 @@
           <li class="card">
             <div class="card__main">
               <span class="card__title">{{ p.vendorName }}</span>
-              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.paymentDate) }}{{ p.createdAt | time: ', ' }} · {{ modeText(p) }}{{ p.reference ? ' · ' + p.reference : '' }}</span>
+              <span class="card__meta">No. {{ p.paymentNumber }} · {{ formatDmy(p.paymentDate) }} · {{ modeText(p) }}{{ p.reference ? ' · ' + p.reference : '' }}</span>
               <span class="card__amount">{{ p.amount | inr }}</span>
             </div>
             <div class="card__actions">

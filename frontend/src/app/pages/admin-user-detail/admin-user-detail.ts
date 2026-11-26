@@ -9,12 +9,11 @@ import { Icon } from '../../shared/components/icon/icon';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { InrPipe } from '../../shared/pipes/inr.pipe';
-import { TimePipe } from '../../shared/pipes/time.pipe';
 
 // /admin/users/:id — one user's profile, company, invoices, clients and items (read-only).
 @Component({
   selector: 'app-admin-user-detail-page',
-  imports: [RouterLink, DatePipe, Icon, PageHeader, StatusBadge, InrPipe, TimePipe],
+  imports: [RouterLink, DatePipe, Icon, PageHeader, StatusBadge, InrPipe],
   templateUrl: './admin-user-detail.html',
   styleUrl: './admin-user-detail.scss',
 })
