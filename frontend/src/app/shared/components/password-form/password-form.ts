@@ -3,17 +3,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { toApiError } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
+import { NEW_PASSWORD_VALIDATORS, PASSWORD_HINT, PASSWORD_STRENGTH_MESSAGES } from '../../../core/auth/password-rules';
 import { ToastService } from '../../../core/ui/toast.service';
 
 type Field = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
-// Same rules as the backend (auth.validation.js passwordChangeSchema); the backend has the final say.
+// Same rules as the backend (Config\Validation passwordChange); the backend has the final say.
 const MESSAGES: Record<Field, Record<string, string>> = {
   currentPassword: { required: 'Current password is required.' },
   newPassword: {
     required: 'New password is required.',
     minlength: 'New password must be at least 8 characters.',
     maxlength: 'New password is too long.',
+    ...PASSWORD_STRENGTH_MESSAGES,
   },
   confirmPassword: { required: 'Confirm your new password.', mismatch: "Passwords don't match." },
 };
@@ -38,9 +40,10 @@ export class PasswordForm {
   readonly cancelled = output();
 
   protected readonly username = this.auth.user()?.username ?? '';
+  protected readonly passwordHint = PASSWORD_HINT;
   protected readonly form = inject(NonNullableFormBuilder).group({
     currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+    newPassword: ['', NEW_PASSWORD_VALIDATORS],
     confirmPassword: ['', [Validators.required, matchesNewPassword]],
   });
   protected readonly submitted = signal(false);

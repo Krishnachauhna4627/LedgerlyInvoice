@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Libraries\AuthService;
+use App\Libraries\RateLimit;
 use Throwable;
 
 /**
@@ -27,6 +28,7 @@ class Auth extends BaseController
 
     public function signup()
     {
+        RateLimit::perIp('signup', $this->request->getIPAddress(), 30, HOUR);
         $data = $this->validated('signup', self::PROFILE_CLEANERS + ['company' => ['trim']]);
 
         return $this->response->setStatusCode(201)->setJSON($this->auth->signup($data));
@@ -34,6 +36,7 @@ class Auth extends BaseController
 
     public function login()
     {
+        RateLimit::perIp('login', $this->request->getIPAddress(), 60, MINUTE);
         $data = $this->validated('login', ['login' => ['trim', 'lower']]);
 
         return $this->response->setJSON($this->auth->login($data));
@@ -45,6 +48,7 @@ class Auth extends BaseController
      */
     public function forgotPassword()
     {
+        RateLimit::perIp('forgot', $this->request->getIPAddress(), 10, 15 * MINUTE);
         $email = $this->validated('forgotPassword', ['email' => ['trim', 'lower']])['email'];
 
         register_shutdown_function(function () use ($email) {

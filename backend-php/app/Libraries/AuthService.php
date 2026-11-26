@@ -22,6 +22,9 @@ class AuthService
 
     // No 0/O/1/l/I so the emailed password is easy to type.
     private const TEMP_PASSWORD_CHARS  = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    // The emailed password always has a capital, a small letter, a number and a special character
+    // (like the rules for passwords people choose); one character from each of these sets.
+    private const TEMP_PASSWORD_GROUPS = ['ABCDEFGHJKMNPQRSTUVWXYZ', 'abcdefghjkmnpqrstuvwxyz', '23456789', '@#$%&*!'];
     private const TEMP_PASSWORD_LENGTH = 12;
 
     // One reset per email per window, so repeated clicks (or someone else) can't keep replacing the password.
@@ -80,12 +83,15 @@ class AuthService
      */
     public function login(array $data): array
     {
+        RateLimit::assertLoginAllowed($data['login']);
         $column = str_contains($data['login'], '@') ? 'email' : 'username';
         $row    = $this->users->select('id, password_hash')->where($column, $data['login'])->first();
         $valid  = password_verify($data['password'], $row['password_hash'] ?? self::DUMMY_HASH);
         if (! $row || ! $valid) {
+            RateLimit::loginFailed($data['login']);
             throw new HttpError(401, 'Incorrect username/email or password.');
         }
+        RateLimit::loginSucceeded($data['login']);
 
         return $this->createSession($this->getUserById((int) $row['id']));
     }
@@ -195,13 +201,18 @@ class AuthService
 
     private static function generateTempPassword(): string
     {
-        $chars    = self::TEMP_PASSWORD_CHARS;
-        $password = '';
-        for ($i = 0; $i < self::TEMP_PASSWORD_LENGTH; $i++) {
-            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        $pick  = static fn (string $set): string => $set[random_int(0, strlen($set) - 1)];
+        $chars = array_map($pick, self::TEMP_PASSWORD_GROUPS);
+        while (count($chars) < self::TEMP_PASSWORD_LENGTH) {
+            $chars[] = $pick(self::TEMP_PASSWORD_CHARS);
+        }
+        // Secure shuffle, so the required characters aren't always at the start.
+        for ($i = count($chars) - 1; $i > 0; $i--) {
+            $j = random_int(0, $i);
+            [$chars[$i], $chars[$j]] = [$chars[$j], $chars[$i]];
         }
 
-        return $password;
+        return implode('', $chars);
     }
 
     /**

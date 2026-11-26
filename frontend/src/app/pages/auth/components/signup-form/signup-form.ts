@@ -3,6 +3,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { toApiError } from '../../../../core/api/api-error';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { NEW_PASSWORD_VALIDATORS, PASSWORD_HINT, PASSWORD_STRENGTH_MESSAGES } from '../../../../core/auth/password-rules';
 import { Modal } from '../../../../shared/components/modal/modal';
 import { LEGAL_TITLES, LegalContent, LegalDoc } from '../legal-content/legal-content';
 
@@ -29,6 +30,7 @@ const MESSAGES: Record<Field, Record<string, string>> = {
     required: 'Password is required.',
     minlength: 'Password must be at least 8 characters.',
     maxlength: 'Password is too long.',
+    ...PASSWORD_STRENGTH_MESSAGES,
   },
   acceptTerms: { required: 'Please accept the Terms & Conditions and Privacy Policy.' },
 };
@@ -51,7 +53,7 @@ export class SignupForm {
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     phone: ['', [Validators.required, Validators.pattern(/^\+?(?:[\s-]*\d){10,15}[\s-]*$/)]],
     company: ['', [Validators.required, Validators.maxLength(150)]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+    password: ['', NEW_PASSWORD_VALIDATORS],
     acceptTerms: [false, Validators.requiredTrue],
   });
   protected readonly submitted = signal(false);
@@ -60,6 +62,7 @@ export class SignupForm {
   // Which legal document is open in the modal, if any.
   protected readonly legalDoc = signal<LegalDoc | null>(null);
   protected readonly legalTitles = LEGAL_TITLES;
+  protected readonly passwordHint = PASSWORD_HINT;
 
   protected errorFor(field: Field): string | null {
     const control = this.form.controls[field];

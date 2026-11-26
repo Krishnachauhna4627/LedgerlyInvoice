@@ -116,7 +116,7 @@
       @if (errorFor('password'); as message) {
         <span id="signup-password-error" class="field__error">{{ message }}</span>
       } @else {
-        <span id="signup-password-error" class="hint">At least 8 characters.</span>
+        <span id="signup-password-error" class="hint">{{ passwordHint }}</span>
       }
     </div>
   </div>

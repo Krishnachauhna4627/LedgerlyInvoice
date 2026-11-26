@@ -98,12 +98,12 @@ class Validation extends BaseConfig
             ],
         ],
         'password' => [
-            'rules'  => ['string', 'min_length[8]', 'max_length[72]'],
+            'rules'  => self::NEW_PASSWORD_RULES,
             'errors' => [
                 'string'     => 'Password is required.',
                 'min_length' => 'Password must be at least 8 characters.',
                 'max_length' => 'Password is too long.',
-            ],
+            ] + self::NEW_PASSWORD_ERRORS,
         ],
     ];
 
@@ -120,13 +120,23 @@ class Validation extends BaseConfig
         ],
         // bcrypt only uses the first 72 bytes.
         'newPassword' => [
-            'rules'  => ['string', 'min_length[8]', 'max_length[72]'],
+            'rules'  => self::NEW_PASSWORD_RULES,
             'errors' => [
                 'string'     => 'New password is required.',
                 'min_length' => 'New password must be at least 8 characters.',
                 'max_length' => 'New password is too long.',
-            ],
+            ] + self::NEW_PASSWORD_ERRORS,
         ],
+    ];
+
+    // Rules for a password someone chooses (signup, change password); login accepts any existing password.
+    // Same rules as frontend core/auth/password-rules.ts. bcrypt only uses the first 72 bytes.
+    private const NEW_PASSWORD_RULES = ['string', 'min_length[8]', 'max_length[72]', 'password_uppercase', 'password_number', 'password_special'];
+
+    private const NEW_PASSWORD_ERRORS = [
+        'password_uppercase' => 'Password must include at least one capital letter (A–Z).',
+        'password_number'    => 'Password must include at least one number (0–9).',
+        'password_special'   => 'Password must include at least one special character, like @ # $ !',
     ];
 
     private const EMAIL = [

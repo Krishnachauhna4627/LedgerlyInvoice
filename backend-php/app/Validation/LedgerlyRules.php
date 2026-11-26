@@ -11,6 +11,30 @@ use App\Libraries\Gst;
 class LedgerlyRules
 {
     /**
+     * New passwords: at least one capital letter (A–Z). Keep in step with frontend core/auth/password-rules.ts.
+     */
+    public function password_uppercase($value): bool
+    {
+        return is_string($value) && preg_match('/[A-Z]/', $value) === 1;
+    }
+
+    /**
+     * New passwords: at least one number (0–9).
+     */
+    public function password_number($value): bool
+    {
+        return is_string($value) && preg_match('/[0-9]/', $value) === 1;
+    }
+
+    /**
+     * New passwords: at least one special character (anything but a letter, number or space, e.g. @ # $ !).
+     */
+    public function password_special($value): bool
+    {
+        return is_string($value) && preg_match('/[^A-Za-z0-9\s]/', $value) === 1;
+    }
+
+    /**
      * A GST state code; state_code[nullable] also allows null (but not '').
      */
     public function state_code($value, ?string $params = null): bool

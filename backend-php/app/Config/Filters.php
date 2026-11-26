@@ -4,6 +4,7 @@ namespace Config;
 
 use App\Filters\AdminFilter;
 use App\Filters\AuthFilter;
+use App\Filters\SecurityHeaders;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -38,6 +39,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'auth'          => AuthFilter::class,
         'admin'         => AdminFilter::class,
+        'securityheaders' => SecurityHeaders::class,
     ];
 
     /**
@@ -82,7 +84,7 @@ class Filters extends BaseFilters
         ],
         'after' => [
             // 'honeypot',
-            // 'secureheaders',
+            'securityheaders', // App\Filters\SecurityHeaders: CSP, clickjacking, HTTPS (HSTS)
         ],
     ];
 
