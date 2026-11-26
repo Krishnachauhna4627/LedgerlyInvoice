@@ -79,6 +79,30 @@ class Validation extends BaseConfig
     ];
 
     /**
+     * New password from a "Forgot password" link.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    public array $passwordReset = [
+        'token' => [
+            'rules'  => ['string', 'required', 'max_length[128]'],
+            'errors' => [
+                'string'     => 'This reset link is invalid or has expired. Please ask for a new one.',
+                'required'   => 'This reset link is invalid or has expired. Please ask for a new one.',
+                'max_length' => 'This reset link is invalid or has expired. Please ask for a new one.',
+            ],
+        ],
+        'password' => [
+            'rules'  => self::NEW_PASSWORD_RULES,
+            'errors' => [
+                'string'     => 'Password is required.',
+                'min_length' => 'Password must be at least 8 characters.',
+                'max_length' => 'Password is too long.',
+            ] + self::NEW_PASSWORD_ERRORS,
+        ],
+    ];
+
+    /**
      * The logged-in user's own details (Edit profile).
      *
      * @var array<string, array<string, mixed>>

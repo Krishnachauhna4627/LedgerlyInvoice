@@ -1,6 +1,10 @@
 <h1 class="title">Welcome back</h1>
 <p class="subtitle">Log in to manage your invoices.</p>
 
+@if (notice) {
+  <div class="notice" role="alert">{{ notice }}</div>
+}
+
 <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
   @if (error()) {
     <div class="form-alert" role="alert">{{ error() }}</div>

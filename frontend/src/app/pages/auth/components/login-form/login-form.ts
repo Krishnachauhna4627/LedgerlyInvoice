@@ -24,6 +24,8 @@ export class LoginForm {
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  // Why the user was logged out (password changed, inactivity, …), shown above the form once.
+  protected readonly notice = this.auth.takeNotice();
 
   protected showError(field: 'login' | 'password'): boolean {
     const control = this.form.controls[field];

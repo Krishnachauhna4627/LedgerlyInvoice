@@ -43,6 +43,7 @@ class Auth extends BaseController
     }
 
     /**
+     * Emails a one-time link to set a new password (nothing changes until it is used).
      * Same answer whether or not the email has an account. The email is sent after the response
      * goes out where the server allows it (PHP-FPM / LiteSpeed); otherwise before.
      */
@@ -59,13 +60,25 @@ class Auth extends BaseController
             }
 
             try {
-                $this->auth->resetPassword($email);
+                $this->auth->sendPasswordResetLink($email);
             } catch (Throwable $e) {
                 log_message('error', 'Password reset failed: ' . $e);
             }
         });
 
-        return $this->response->setJSON(['message' => 'If an account exists for that email, we have sent it a new password.']);
+        return $this->response->setJSON(['message' => 'If an account exists for that email, we have sent it a link to reset the password. The link expires in 30 minutes.']);
+    }
+
+    /**
+     * Sets a new password with the token from a "Forgot password" email. 204 on success.
+     */
+    public function resetPassword()
+    {
+        RateLimit::perIp('reset', $this->request->getIPAddress(), 10, 15 * MINUTE);
+        $data = $this->validated('passwordReset', ['token' => ['trim']]);
+        $this->auth->resetPasswordWithToken($data['token'], $data['password']);
+
+        return $this->response->setStatusCode(204);
     }
 
     public function me()

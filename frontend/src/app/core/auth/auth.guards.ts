@@ -2,13 +2,18 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { ToastService } from '../ui/toast.service';
-import { AuthService } from './auth.service';
+import { AuthService, IDLE_LOGOUT_MESSAGE } from './auth.service';
 
 // Pages that need a logged-in user.
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isLoggedIn()) {
+    return router.createUrlTree(['/login']);
+  }
+  // Unused for longer than the idle limit (e.g. the tab was closed or the computer slept): log in again.
+  if (auth.isIdleExpired()) {
+    auth.logout(IDLE_LOGOUT_MESSAGE);
     return router.createUrlTree(['/login']);
   }
   const toast = inject(ToastService);

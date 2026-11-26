@@ -31,11 +31,15 @@ class AuthFilter implements FilterInterface
         }
 
         $user = db_connect()->table('users')
-            ->select('id, company_id, is_admin')
+            ->select('id, company_id, is_admin, token_version')
             ->where('id', (int) ($payload->sub ?? 0))
             ->get()->getRow();
         if (! $user) {
             throw new HttpError(401, 'Please log in.');
+        }
+        // The password was changed or reset after this token was issued (tokens without "ver" are version 0).
+        if ((int) ($payload->ver ?? 0) !== (int) $user->token_version) {
+            throw new HttpError(401, 'Your password was changed. Please log in again with your new password.');
         }
 
         $current            = service('currentUser');

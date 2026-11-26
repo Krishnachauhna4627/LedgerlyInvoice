@@ -12,6 +12,13 @@ export const routes: Routes = [
     title: page('Log in'),
     loadComponent: () => import('./pages/auth/auth').then((m) => m.Auth),
   },
+  // Link in the "Forgot password" email. No guard: it works even if someone is logged in on this browser.
+  {
+    path: 'reset-password',
+    title: page('Reset password'),
+    data: { mode: 'reset' },
+    loadComponent: () => import('./pages/auth/auth').then((m) => m.Auth),
+  },
   // Logged-in area: every child page renders inside the sidebar shell.
   {
     path: '',

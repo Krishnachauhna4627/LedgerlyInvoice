@@ -2,9 +2,9 @@ import { Component, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { toApiError } from '../../../core/api/api-error';
-import { AuthService } from '../../../core/auth/auth.service';
+import { Router } from '@angular/router';
+import { AuthService, PASSWORD_CHANGED_MESSAGE } from '../../../core/auth/auth.service';
 import { NEW_PASSWORD_VALIDATORS, PASSWORD_HINT, PASSWORD_STRENGTH_MESSAGES } from '../../../core/auth/password-rules';
-import { ToastService } from '../../../core/ui/toast.service';
 
 type Field = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
@@ -25,7 +25,8 @@ function matchesNewPassword(control: AbstractControl): ValidationErrors | null {
   return control.value && control.value !== newPassword ? { mismatch: true } : null;
 }
 
-// Change the logged-in user's password. Emits when saved; the parent closes its modal.
+// Change the logged-in user's password. When saved it emits (the parent closes its modal), then logs out:
+// the server ends every session of the account, and the login page asks to log in with the new password.
 @Component({
   selector: 'app-password-form',
   imports: [ReactiveFormsModule],
@@ -34,7 +35,7 @@ function matchesNewPassword(control: AbstractControl): ValidationErrors | null {
 })
 export class PasswordForm {
   private readonly auth = inject(AuthService);
-  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly saved = output();
   readonly cancelled = output();
@@ -72,8 +73,10 @@ export class PasswordForm {
     this.error.set(null);
     this.auth.changePassword({ currentPassword, newPassword }).subscribe({
       next: () => {
-        this.toast.success('Password changed');
+        // The server has ended every session of this account (this one too): log in again with the new password.
         this.saved.emit();
+        this.auth.logout(PASSWORD_CHANGED_MESSAGE);
+        this.router.navigateByUrl('/login');
       },
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);

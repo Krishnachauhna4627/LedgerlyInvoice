@@ -35,3 +35,18 @@
     background: var(--color-border);
   }
 }
+
+// Information box (e.g. "Your password was changed. Please log in again…", "Check your inbox").
+.notice {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  font-size: var(--text-sm);
+}
+
+.notice__title {
+  font-weight: 700;
+}

@@ -35,7 +35,10 @@
           <app-signup-form (loginRequested)="mode.set('login')" />
         }
         @case ('forgot') {
-          <app-forgot-password-form (loginRequested)="mode.set('login')" />
+          <app-forgot-password-form (loginRequested)="toLogin()" />
+        }
+        @case ('reset') {
+          <app-reset-password-form (loginRequested)="toLogin()" (forgotRequested)="mode.set('forgot')" />
         }
       }
     </div>

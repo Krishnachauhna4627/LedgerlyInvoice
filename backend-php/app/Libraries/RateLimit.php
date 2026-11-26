@@ -38,7 +38,7 @@ class RateLimit
     {
         if ((int) cache(self::key('login_fail', $login)) >= self::LOGIN_FAILURES_MAX) {
             throw new HttpError(429, 'Too many failed login attempts. Please try again in '
-                . self::minutes((int) (self::LOGIN_FAILURES_WINDOW / MINUTE)) . ', or use "Forgot password".');
+                . self::minutes((int) (self::LOGIN_FAILURES_WINDOW / MINUTE)) . ', or use "Forgot password" to get a new password.');
         }
     }
 
@@ -54,6 +54,17 @@ class RateLimit
     public static function loginSucceeded(string $login): void
     {
         cache()->delete(self::key('login_fail', $login));
+    }
+
+    /**
+     * Lifts the failed-login pause for an account's username and email (after its password was reset,
+     * so the new password works straight away). Logins arrive lowercased, so the keys are too.
+     */
+    public static function clearLoginFailures(string ...$logins): void
+    {
+        foreach ($logins as $login) {
+            cache()->delete(self::key('login_fail', strtolower(trim($login))));
+        }
     }
 
     // Cache keys can't contain characters like '@' or ':', so key on a hash.

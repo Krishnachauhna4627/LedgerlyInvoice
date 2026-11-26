@@ -20,15 +20,11 @@ class AuthService
     // so response time doesn't reveal which usernames/emails exist.
     private const DUMMY_HASH = '$2y$12$TkJdPVcPSFHi85uqr6k5q.ZYdGtGKoU5SkBXHYNAZoGWnJp13te2.';
 
-    // No 0/O/1/l/I so the emailed password is easy to type.
-    private const TEMP_PASSWORD_CHARS  = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    // The emailed password always has a capital, a small letter, a number and a special character
-    // (like the rules for passwords people choose); one character from each of these sets.
-    private const TEMP_PASSWORD_GROUPS = ['ABCDEFGHJKMNPQRSTUVWXYZ', 'abcdefghjkmnpqrstuvwxyz', '23456789', '@#$%&*!'];
-    private const TEMP_PASSWORD_LENGTH = 12;
-
-    // One reset per email per window, so repeated clicks (or someone else) can't keep replacing the password.
+    // One reset email per address per window, so repeated clicks (or someone else) can't flood the inbox.
     private const RESET_COOLDOWN_SECONDS = 5 * 60;
+
+    // How long a "Forgot password" link works.
+    private const RESET_LINK_SECONDS = 30 * 60;
 
     private UserModel $users;
 
@@ -118,6 +114,9 @@ class AuthService
     }
 
     /**
+     * Saves the new password and logs the account out everywhere (every existing token stops working),
+     * including the device that changed it: the user then logs in again with the new password.
+     *
      * @param array<string, string> $data
      */
     public function changePassword(int $id, array $data): void
@@ -128,15 +127,17 @@ class AuthService
                 'currentPassword' => 'Current password is incorrect.',
             ]);
         }
-        $this->users->update($id, ['password_hash' => self::hash($data['newPassword'])]);
+        $this->setPassword($id, $data['newPassword']);
     }
 
     /**
-     * Emails the account a new random password, then saves it (email first, so a failed send leaves the old one working).
+     * "Forgot password": emails a one-time link to set a new password. Nothing changes until the link is used,
+     * so the current password keeps working (nobody can lock an account by asking for resets).
      * Never reports whether the email has an account.
      */
-    public function resetPassword(string $email): void
+    public function sendPasswordResetLink(string $email): void
     {
+        // One email per address per window, so repeated clicks (or someone else) can't flood the inbox.
         // Cache keys can't contain '@', so key on a hash of the email.
         $cacheKey = 'password_reset_' . md5($email);
         if (cache($cacheKey) !== null) {
@@ -148,19 +149,70 @@ class AuthService
         if (! $user) {
             return;
         }
-        $password = self::generateTempPassword();
-        Mailer::send($email, 'Your new Gogna password', implode("\n", [
+
+        // Only the hash is stored; the token itself exists only in the email. A new link replaces older ones.
+        $token  = bin2hex(random_bytes(32));
+        $resets = db_connect()->table('password_resets');
+        $resets->where('user_id', (int) $user['id'])->delete();
+        $resets->insert([
+            'user_id'    => (int) $user['id'],
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => gmdate('Y-m-d H:i:s', time() + self::RESET_LINK_SECONDS),
+        ]);
+
+        $link = self::appUrl() . 'reset-password?token=' . $token;
+        Mailer::send($email, 'Reset your Gogna password', implode("\n", [
             "Hi {$user['name']},",
             '',
-            'We received a request to reset your Gogna password. Your new password is:',
+            'We received a request to reset the password for your Gogna account (username: ' . $user['username'] . ').',
+            'Open this link to choose a new password:',
             '',
-            "    {$password}",
+            "    {$link}",
             '',
-            "Log in with your username ({$user['username']}) or this email, then change it from your profile: click your name at the bottom of the sidebar → Change password.",
+            'The link works once and expires in ' . (self::RESET_LINK_SECONDS / 60) . ' minutes.',
             '',
-            "If you didn't ask for this, log in with the password above and change it right away.",
+            "If you didn't ask for this, you can ignore this email: your password has not changed.",
         ]));
-        $this->users->update((int) $user['id'], ['password_hash' => self::hash($password)]);
+    }
+
+    /**
+     * Sets a new password with a token from a reset link. The link then stops working, and the account is
+     * logged out everywhere.
+     */
+    public function resetPasswordWithToken(string $token, string $password): void
+    {
+        $invalid = new HttpError(400, 'This reset link is invalid or has expired. Please ask for a new one.');
+        if (preg_match('/^[0-9a-f]{64}$/', $token) !== 1) {
+            throw $invalid;
+        }
+
+        $db    = db_connect();
+        $reset = $db->table('password_resets')
+            ->select('id, user_id')
+            ->where('token_hash', hash('sha256', $token))
+            ->where('used_at', null)
+            ->where('expires_at >', gmdate('Y-m-d H:i:s'))
+            ->get()->getRowArray();
+        if (! $reset) {
+            throw $invalid;
+        }
+
+        $db->transException(true)->transStart();
+        // Claim the link first; if two requests race, only the one that marks it used goes on.
+        $db->table('password_resets')->where('id', (int) $reset['id'])->where('used_at', null)
+            ->update(['used_at' => gmdate('Y-m-d H:i:s')]);
+        if ($db->affectedRows() !== 1) {
+            $db->transComplete();
+            throw $invalid;
+        }
+        $this->setPassword((int) $reset['user_id'], $password);
+        $db->table('password_resets')->where('user_id', (int) $reset['user_id'])->where('id !=', (int) $reset['id'])->delete();
+        $db->transComplete();
+
+        $user = $this->users->select('email, username')->find((int) $reset['user_id']);
+        if ($user) {
+            RateLimit::clearLoginFailures((string) $user['email'], (string) $user['username']);
+        }
     }
 
     /**
@@ -187,32 +239,45 @@ class AuthService
      */
     private function createSession(array $user): array
     {
-        $jwt   = config('Jwt');
-        $now   = time();
-        $token = JWT::encode(['sub' => (string) $user['id'], 'iat' => $now, 'exp' => $now + $jwt->expiresIn], $jwt->secret, 'HS256');
+        $jwt     = config('Jwt');
+        $now     = time();
+        $version = db_connect()->table('users')->select('token_version')->where('id', (int) $user['id'])->get()->getRowArray();
+        $token   = JWT::encode([
+            'sub' => (string) $user['id'],
+            // Checked by AuthFilter: a password change / reset raises the user's version, ending older tokens.
+            'ver' => (int) ($version['token_version'] ?? 0),
+            'iat' => $now,
+            'exp' => $now + $jwt->expiresIn,
+        ], $jwt->secret, 'HS256');
 
         return ['token' => $token, 'user' => $user];
+    }
+
+    /**
+     * Saves a new password and ends every existing session of the account.
+     */
+    private function setPassword(int $userId, string $password): void
+    {
+        db_connect()->table('users')->where('id', $userId)
+            ->set('password_hash', self::hash($password))
+            ->set('token_version', 'token_version + 1', false)
+            ->update();
+    }
+
+    /**
+     * Where the app is opened, for links in emails: FRONTEND_URL, else app.baseURL. Never taken from the
+     * request's Host header, which a client could fake to send reset links to their own site.
+     */
+    private static function appUrl(): string
+    {
+        $url = (string) (env('FRONTEND_URL') ?: config('App')->baseURL);
+
+        return rtrim($url, '/') . '/';
     }
 
     private static function hash(string $password): string
     {
         return password_hash($password, PASSWORD_BCRYPT, ['cost' => self::BCRYPT_COST]);
-    }
-
-    private static function generateTempPassword(): string
-    {
-        $pick  = static fn (string $set): string => $set[random_int(0, strlen($set) - 1)];
-        $chars = array_map($pick, self::TEMP_PASSWORD_GROUPS);
-        while (count($chars) < self::TEMP_PASSWORD_LENGTH) {
-            $chars[] = $pick(self::TEMP_PASSWORD_CHARS);
-        }
-        // Secure shuffle, so the required characters aren't always at the start.
-        for ($i = count($chars) - 1; $i > 0; $i--) {
-            $j = random_int(0, $i);
-            [$chars[$i], $chars[$j]] = [$chars[$j], $chars[$i]];
-        }
-
-        return implode('', $chars);
     }
 
     /**

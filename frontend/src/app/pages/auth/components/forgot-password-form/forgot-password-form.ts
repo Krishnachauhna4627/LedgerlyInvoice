@@ -3,7 +3,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { toApiError } from '../../../../core/api/api-error';
 import { AuthService } from '../../../../core/auth/auth.service';
 
-// Asks for the account's email; the backend emails it a new password.
+// Asks for the account's email; the backend emails it a one-time link to choose a new password.
 @Component({
   selector: 'app-forgot-password-form',
   imports: [ReactiveFormsModule],

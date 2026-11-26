@@ -25,6 +25,11 @@ import { ICONS, IconName } from './icons';
       display: inline-flex;
       flex-shrink: 0;
     }
+    /* Icons have a fixed size. The global svg { max-width: 100% } made browsers count them as 0px wide
+       inside inline-flex boxes (e.g. status badges), pushing the label past the badge's border. */
+    svg {
+      max-width: none;
+    }
   `,
   host: { 'aria-hidden': 'true' },
 })

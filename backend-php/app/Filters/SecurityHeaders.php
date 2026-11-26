@@ -10,9 +10,9 @@ use CodeIgniter\HTTP\ResponseInterface;
  * Browser security headers on every response (set from PHP so they work on any web server).
  *
  * On HTML pages (the Angular app) it also sends a Content-Security-Policy: scripts only from this site,
- * plus the app's own inline <script> blocks allowed by hash (worked out from the page itself, so a new
- * frontend build never needs a config change). This stops injected scripts from running or loading
- * code from other sites.
+ * plus the inline <script> blocks of the built public/angular/index.html allowed by hash (read from that
+ * file, never from the response, so nothing a page outputs can allow itself; a new frontend build needs
+ * no config change). This stops injected scripts from running or loading code from other sites.
  */
 class SecurityHeaders implements FilterInterface
 {
@@ -39,24 +39,15 @@ class SecurityHeaders implements FilterInterface
         }
 
         if (str_contains($response->getHeaderLine('Content-Type'), 'text/html')) {
-            $response->setHeader('Content-Security-Policy', self::contentSecurityPolicy((string) $response->getBody()));
+            $response->setHeader('Content-Security-Policy', self::contentSecurityPolicy());
         }
     }
 
-    private static function contentSecurityPolicy(string $html): string
+    private static function contentSecurityPolicy(): string
     {
-        $scriptSources = ["'self'"];
-        if (preg_match_all('#<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>#is', $html, $matches)) {
-            foreach ($matches[1] as $inline) {
-                if (trim($inline) !== '') {
-                    $scriptSources[] = "'sha256-" . base64_encode(hash('sha256', $inline, true)) . "'";
-                }
-            }
-        }
-
         return implode('; ', [
             "default-src 'self'",
-            'script-src ' . implode(' ', array_unique($scriptSources)),
+            'script-src ' . implode(' ', ["'self'", ...self::appInlineScriptHashes()]),
             // Angular sets inline styles; Inter comes from Google Fonts.
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' data: https://fonts.gstatic.com",
@@ -70,5 +61,33 @@ class SecurityHeaders implements FilterInterface
             "form-action 'self'",
             "frame-ancestors 'none'",
         ]);
+    }
+
+    /**
+     * Hashes of the inline <script> blocks in the built Angular index.html (the trusted file on disk).
+     *
+     * @return list<string>
+     */
+    private static function appInlineScriptHashes(): array
+    {
+        static $cache = [];
+        $file  = FCPATH . 'angular/index.html';
+        $mtime = @filemtime($file);
+        if ($mtime === false) {
+            return [];
+        }
+        if (! isset($cache[$mtime])) {
+            $hashes = [];
+            if (preg_match_all('#<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>#is', (string) file_get_contents($file), $matches)) {
+                foreach ($matches[1] as $inline) {
+                    if (trim($inline) !== '') {
+                        $hashes[] = "'sha256-" . base64_encode(hash('sha256', $inline, true)) . "'";
+                    }
+                }
+            }
+            $cache = [$mtime => array_values(array_unique($hashes))];
+        }
+
+        return $cache[$mtime];
     }
 }

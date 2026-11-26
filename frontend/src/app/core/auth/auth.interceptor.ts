@@ -18,7 +18,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: unknown) => {
       const isAuthAttempt = req.url.startsWith('/api/auth/login') || req.url.startsWith('/api/auth/signup');
       if (err instanceof HttpErrorResponse && err.status === 401 && token && !isAuthAttempt) {
-        auth.logout();
+        // e.g. "Your password was changed. Please log in again…" when it was changed on another device.
+        auth.logout((err.error as { message?: string } | null)?.message ?? 'Your session has expired. Please log in again.');
         router.navigateByUrl('/login');
       }
       return throwError(() => err);

@@ -8,6 +8,7 @@ import { Icon } from '../../shared/components/icon/icon';
 import { IconName } from '../../shared/components/icon/icons';
 import { LogoMark } from '../../shared/components/logo-mark/logo-mark';
 import { Modal } from '../../shared/components/modal/modal';
+import { IdleLogout } from '../../core/auth/idle-logout';
 import { PasswordForm } from '../../shared/components/password-form/password-form';
 import { ProfileForm } from '../../shared/components/profile-form/profile-form';
 import { ToastHost } from '../../shared/components/toast-host/toast-host';
@@ -24,6 +25,7 @@ interface NavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, LogoMark, Modal, PasswordForm, ProfileForm, ToastHost],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
+  providers: [IdleLogout],
 })
 export class AppShell {
   private readonly auth = inject(AuthService);
@@ -61,6 +63,8 @@ export class AppShell {
   protected readonly profileView = signal<'profile' | 'password' | null>(null);
 
   constructor() {
+    // Logged out after 10 minutes without activity.
+    inject(IdleLogout).start(inject(DestroyRef));
     this.invoices.refreshCount();
     // Close the mobile drawer after navigating.
     this.router.events

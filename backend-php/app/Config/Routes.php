@@ -17,6 +17,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function (R
         $routes->post('signup', 'Auth::signup');
         $routes->post('login', 'Auth::login');
         $routes->post('forgot-password', 'Auth::forgotPassword');
+        $routes->post('reset-password', 'Auth::resetPassword');
         $routes->get('me', 'Auth::me', ['filter' => 'auth']);
         $routes->put('me', 'Auth::updateMe', ['filter' => 'auth']);
         $routes->put('me/password', 'Auth::changePassword', ['filter' => 'auth']);
