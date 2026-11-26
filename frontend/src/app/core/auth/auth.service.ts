@@ -28,6 +28,12 @@ export class AuthService {
   // This tab's last activity (ms), in case storage isn't available.
   private lastActivity = 0;
 
+  constructor() {
+    // Opening the site after being away (tab closed, computer asleep, logged in yesterday…): an idle
+    // session ends before any page decides where to go.
+    this.expireIfIdle();
+  }
+
   getToken(): string | null {
     return this.token();
   }
@@ -66,16 +72,21 @@ export class AuthService {
   }
 
   // True when the session has gone unused for longer than IDLE_TIMEOUT_MS (in any tab).
-  // No record yet (a session from before this check existed) counts as active now.
+  // No record counts as expired: every login records activity, so a stored session without one is old
+  // (e.g. from before this check existed) and must log in again.
   isIdleExpired(): boolean {
     // The shared record (every tab keeps it fresh); this tab's own copy only when storage is blocked.
     const stored = Number(readToken(LAST_ACTIVITY_KEY)) || 0;
     const last = storageUnavailable ? this.lastActivity : stored;
-    if (!last) {
-      this.markActive();
-      return false;
-    }
-    return Date.now() - last > IDLE_TIMEOUT_MS;
+    return !last || Date.now() - last > IDLE_TIMEOUT_MS;
+  }
+
+  // Ends a stored session that has gone unused for too long, so no page (not even /login) treats the
+  // user as logged in. Returns true when it logged out.
+  expireIfIdle(): boolean {
+    if (!this.isLoggedIn() || !this.isIdleExpired()) return false;
+    this.logout(IDLE_LOGOUT_MESSAGE);
+    return true;
   }
 
   // False once another tab has logged out (the stored token is gone or replaced).

@@ -10,6 +10,7 @@ describe('AuthService.loadCurrentUser', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.setItem('ledgerly.token', 'test-token');
+    localStorage.setItem('ledgerly.lastActivity', String(Date.now()));
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     auth = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
@@ -48,5 +49,34 @@ describe('AuthService.loadCurrentUser', () => {
     expect(failed).toBe(true);
     expect(auth.isLoggedIn()).toBe(true);
     expect(localStorage.getItem('ledgerly.token')).toBe('test-token');
+  });
+});
+
+describe('AuthService idle sessions', () => {
+  afterEach(() => localStorage.clear());
+
+  function start(lastActivity: number | null): AuthService {
+    localStorage.setItem('ledgerly.token', 'test-token');
+    if (lastActivity !== null) localStorage.setItem('ledgerly.lastActivity', String(lastActivity));
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    return TestBed.inject(AuthService);
+  }
+
+  it('keeps a session used within the last 10 minutes', () => {
+    const auth = start(Date.now() - 2 * 60 * 1000);
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(auth.takeNotice()).toBeNull();
+  });
+
+  it('ends a session unused for more than 10 minutes when the site is opened (e.g. logged in yesterday)', () => {
+    const auth = start(Date.now() - 24 * 60 * 60 * 1000);
+    expect(auth.isLoggedIn()).toBe(false);
+    expect(localStorage.getItem('ledgerly.token')).toBeNull();
+    expect(auth.takeNotice()).toContain('10 minutes');
+  });
+
+  it('ends an old session that has no activity record', () => {
+    const auth = start(null);
+    expect(auth.isLoggedIn()).toBe(false);
   });
 });
