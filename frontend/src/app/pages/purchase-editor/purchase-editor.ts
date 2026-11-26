@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
@@ -55,7 +56,13 @@ export class PurchaseEditor {
   private readonly service = inject(PurchaseService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
-  private readonly purchaseId = Number(inject(ActivatedRoute).snapshot.paramMap.get('id')) || null;
+  private readonly location = inject(Location);
+  private readonly routeSnapshot = inject(ActivatedRoute).snapshot;
+  private readonly purchaseId = Number(this.routeSnapshot.paramMap.get('id')) || null;
+  // Party whose ledger we came from (?client=<id>), for the "Back to ledger" buttons; null otherwise.
+  protected readonly ledgerClientId = Number(this.routeSnapshot.queryParamMap.get('client')) || null;
+  // Whether there is an in-app page to go back to (false when this URL was opened directly).
+  private readonly hasPrevious = !!this.router.currentNavigation()?.previousNavigation;
 
   protected readonly title = this.purchaseId ? 'Edit Purchase' : 'Record Purchase';
   protected readonly items = signal<Item[]>([]);
@@ -120,6 +127,12 @@ export class PurchaseEditor {
       grandTotal: round2(subTotal + totalTax),
     };
   });
+
+  // Back to the ledger exactly as it was (period, scroll); straight to it when the link was opened directly.
+  protected backToLedger(): void {
+    if (this.hasPrevious) this.location.back();
+    else this.router.navigate(['/clients', this.ledgerClientId]);
+  }
 
   constructor() {
     forkJoin({
@@ -261,7 +274,8 @@ export class PurchaseEditor {
     request$.subscribe({
       next: (saved) => {
         this.toast.success(`Purchase ${saved.purchaseNumber} saved`);
-        this.router.navigateByUrl('/purchases');
+        if (this.ledgerClientId) this.backToLedger();
+        else this.router.navigateByUrl('/purchases');
       },
       error: (err: unknown) => {
         const { message, fieldErrors } = toApiError(err);

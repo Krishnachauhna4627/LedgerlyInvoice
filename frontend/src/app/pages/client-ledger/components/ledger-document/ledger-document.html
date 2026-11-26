@@ -44,7 +44,7 @@
                   <a routerLink="/receipts" [queryParams]="{ open: e.id, client: l.client.id, date: e.date }">{{ e.number || 'View' }}</a>
                 }
                 @case ('purchase') {
-                  <a [routerLink]="['/purchases', e.id, 'edit']">{{ e.number || 'View' }}</a>
+                  <a [routerLink]="['/purchases', e.id, 'edit']" [queryParams]="{ client: l.client.id }">{{ e.number || 'View' }}</a>
                 }
                 @case ('payment') {
                   <!-- Opens the payment on the Payments page (same financial year). -->

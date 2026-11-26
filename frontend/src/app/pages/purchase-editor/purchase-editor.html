@@ -1,5 +1,11 @@
 <app-page-header [title]="title" subtitle="A purchase invoice from a vendor and the items you bought. Record what you paid on Payments.">
-  <a class="btn btn--outline btn--sm" routerLink="/purchases">Cancel</a>
+  @if (ledgerClientId) {
+    <button type="button" class="btn btn--outline btn--sm" (click)="backToLedger()">
+      <app-icon name="arrow-left" [size]="16" /> Back to ledger
+    </button>
+  } @else {
+    <a class="btn btn--outline btn--sm" routerLink="/purchases">Cancel</a>
+  }
 </app-page-header>
 
 <div class="page-body">
@@ -8,7 +14,11 @@
   } @else if (loadError()) {
     <div class="panel panel__body">
       <div class="form-alert" role="alert">{{ loadError() }}</div>
-      <a class="btn btn--outline btn--sm back" routerLink="/purchases">Back to purchases</a>
+      @if (ledgerClientId) {
+        <button type="button" class="btn btn--outline btn--sm back" (click)="backToLedger()">Back to ledger</button>
+      } @else {
+        <a class="btn btn--outline btn--sm back" routerLink="/purchases">Back to purchases</a>
+      }
     </div>
   } @else {
     <form class="panel editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
